@@ -1,5 +1,7 @@
+.DS_Store
 .vscode
 node_modules
-.DS_Store
 public
-themes/ananke
+site/node_modules
+site/public
+site/themes/ananke

@@ -1,0 +1,16 @@
+{
+  "name": "tollmanz.com",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "cd site; hugo -d ../public",
+    "dev": "cd site; hugo server -D",
+    "now-build": "npm run build"
+  },
+  "author": "Zack Tollman <tollmanz@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "hugo-cli": "0.9.0"
+  }
+}
