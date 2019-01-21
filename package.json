@@ -4,13 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "cd site; hugo -d ../public",
-    "dev": "cd site; hugo server -D",
+    "build": "npm run hugo; npm run minify",
+    "hugo": "hugo -s ./site -d ../public",
+    "dev": "hugo server -D -s ./site; npm run minify",
+    "minify": "node scripts/html-minify.js",
     "now-build": "npm run build"
   },
   "author": "Zack Tollman <tollmanz@gmail.com>",
   "license": "MIT",
   "devDependencies": {
+    "glob": "7.1.3",
+    "html-minifier": "3.5.21",
     "hugo-cli": "0.9.0"
   }
 }
