@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm run hugo; npm run minify",
     "hugo": "hugo -s ./site -d ../public",
-    "dev": "hugo server -D -s ./site; npm run minify",
+    "dev": "hugo server -D -s ./site",
     "minify": "node scripts/html-minify.js",
     "now-build": "npm run build"
   },
