@@ -3,9 +3,9 @@
   <ul class="post-list">
     {{ range where .Pages "Section" "posts" }}
       <li>
-        <span class="post-meta">{{ .Date.Format "May 26, 2018" }}</span>
+        <span class="post-meta">{{ .Date.Format "Jan 2, 2006" }}</span>
         <h2>
-          <a class="post-link" href="{{ .Permalink }}">{{ .Title }}</a>
+          <a class="post-link" href="{{ .RelPermalink }}">{{ .Title }}</a>
         </h2>
       </li>
     {{ end }}
