@@ -1,0 +1,15 @@
+{{ define "main" }}
+<div class="home">
+  <ul class="post-list">
+    {{ range where .Pages "Section" "posts" }}
+      <li>
+        <span class="post-meta">{{ .Date.Format "May 26, 2018" }}</span>
+        <h2>
+          <a class="post-link" href="{{ .Permalink }}">{{ .Title }}</a>
+        </h2>
+      </li>
+    {{ end }}
+  </ul>
+  <p class="rss-subscribe">subscribe <a href="/feed.xml">via RSS</a></p>
+</div>
+{{end}}
