@@ -18,11 +18,11 @@ const { minify } = require('html-minifier');
     files.map(file => {
       const contents = fs.readFileSync(file).toString();
       const minified = minify(contents, {
-        removeComments: true,
         collapseWhitespace: true,
-        removeAttributeQuotes: true,
         minifyJS: true,
-        minifyCSS: true
+        minifyCSS: true,
+        removeAttributeQuotes: true,
+        removeComments: true,
       });
       fs.writeFileSync(file, minified);
     });
