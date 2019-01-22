@@ -11,7 +11,7 @@
   ],
   "routes": [
     {
-      "src": "\/(?!.*\.[^\/.\n]+$).*",
+      "src": "\/(?!.*\\.[^\/.\n]+$).*",
       "headers": {
         "strict-transport-security": "max-age=15552000; includeSubDomains; preload",
         "link": "</css/main.css>; rel=preload; as=style",
@@ -19,7 +19,8 @@
         "x-xss-protection": "1; mode=block",
         "x-content-type-options": "nosniff",
         "x-frame-options": "SAMEORIGIN",
-        "content-security-policy": "default-src 'self' https:; font-src 'self' https:; img-src 'self' https:; style-src 'self' https: https://fonts.googleapis.com; script-src 'self' https: 'unsafe-inline' https://ssl.google-analytics.com"
+        "content-security-policy": "default-src 'self' https:; font-src 'self' https:; img-src 'self' https:; style-src 'self' https: https://fonts.googleapis.com; script-src 'self' https: 'unsafe-inline' https://ssl.google-analytics.com",
+        "cache-control": "s-maxage=31536000, max-age=600"
       }
     },
     {
