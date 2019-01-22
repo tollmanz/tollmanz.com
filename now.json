@@ -24,7 +24,7 @@
       }
     },
     {
-      "src": "(.*)+.(jpg|jpeg|gif|png|webp|js|css|woff|woff2|ttf)",
+      "src": "(.*)+.(jpg|jpeg|gif|png|webp|js|css|woff|woff2|ttf|ico)",
       "headers" : {
         "cache-control": "s-maxage=31536000, max-age=31536000"
       }
