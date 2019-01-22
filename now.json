@@ -7,6 +7,10 @@
       "config": {
         "distDir": "public"
       }
+    },
+    {
+      "src": "*.html",
+      "use": "@now/html-minifier"
     }
   ]
 }

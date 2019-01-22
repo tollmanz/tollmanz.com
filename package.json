@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm run hugo; npm run minify",
+    "build": "npm run hugo",
     "hugo": "hugo -s ./site -d ../public",
     "dev": "hugo server -D -s ./site",
     "minify": "node scripts/html-minify.js",
