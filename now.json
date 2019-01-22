@@ -7,10 +7,14 @@
       "config": {
         "distDir": "public"
       }
-    },
+    }
+  ],
+  "routes": [
     {
-      "src": "*.html",
-      "use": "@now/html-minifier"
+      "src": "(.*)+.(jpg|jpeg|gif|png|webp|js|css|woff|woff2|ttf)",
+      "headers" : {
+        "Cache-Control": "max-age=31536000; s-max-age=31536000"
+      }
     }
   ]
 }
