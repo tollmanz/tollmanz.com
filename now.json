@@ -30,5 +30,8 @@
         "cache-control": "s-maxage=31536000, max-age=31536000"
       }
     }
+  ],
+  "alias": [
+    "www.tollmanz.com"
   ]
 }
