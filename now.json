@@ -25,9 +25,15 @@
       }
     },
     {
-      "src": "(.*)+.(jpg|jpeg|gif|png|webp|js|css|woff|woff2|ttf|ico)",
+      "src": "(.*)+.(jpg|jpeg|gif|png|webp|js|woff|woff2|ttf|ico)",
       "headers" : {
         "cache-control": "s-maxage=31536000, max-age=31536000"
+      }
+    },
+    {
+      "src": "(.*)+.(css)",
+      "headers" : {
+        "cache-control": "s-maxage=31536000, max-age=600"
       }
     }
   ],
