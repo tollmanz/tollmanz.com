@@ -2,6 +2,7 @@
 .env
 .vercel
 .vscode
+api/node_modules
 node_modules
 public
 site/node_modules
