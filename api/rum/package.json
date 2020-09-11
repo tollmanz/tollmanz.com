@@ -1,0 +1,12 @@
+{
+  "name": "tollmanz.com",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "author": "Zack Tollman <tollmanz@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "honeycomb-beeline": "2.3.0"
+  }
+}
