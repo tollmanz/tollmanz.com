@@ -4,16 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm run eleventy; npm run minify",
-    "eleventy": "eleventy",
-    "dev": "eleventy --serve",
-    "minify": "node scripts/html-minify.js"
+    "build": "eleventy",
+    "dev": "eleventy --serve"
   },
   "author": "Zack Tollman <tollmanz@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "@11ty/eleventy": "3.1.2",
-    "glob": "11.0.3",
     "html-minifier-terser": "7.2.0",
     "luxon": "3.7.2",
     "markdown-it": "14.1.0"

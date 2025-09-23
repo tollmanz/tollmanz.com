@@ -1,6 +1,23 @@
 const { DateTime } = require("luxon");
+const { minify } = require("html-minifier-terser");
 
 module.exports = function (eleventyConfig) {
+  // HTML minification transform
+  eleventyConfig.addTransform("htmlmin", function (content) {
+    if ((this.page.outputPath || "").endsWith(".html")) {
+      let minified = minify(content, {
+        collapseWhitespace: true,
+        minifyJS: true,
+        minifyCSS: true,
+        removeAttributeQuotes: true,
+        removeComments: true,
+      });
+      return minified;
+    }
+    // If not an HTML output, return content as-is
+    return content;
+  });
+
   // Copy static assets
   eleventyConfig.addPassthroughCopy("src/css");
   eleventyConfig.addPassthroughCopy("src/js");
