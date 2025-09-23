@@ -1,0 +1,14 @@
+---
+layout: base.njk
+---
+
+<div class="post">
+  <header class="post-header">
+    <h1 class="post-title">{{ title }}</h1>
+    <p class="post-meta">{{ date | dateDisplay }}</p>
+  </header>
+
+  <article class="post-content">
+    {{ content | safe }}
+  </article>
+</div>
