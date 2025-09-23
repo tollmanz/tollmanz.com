@@ -1,23 +1,15 @@
-const fs = require('fs');
+const fs = require("fs");
 
-const glob = require('glob');
-const { minify } = require('html-minifier');
+const { glob } = require("glob");
+const { minify } = require("html-minifier-terser");
 
-(async() => {
+(async () => {
   try {
-    const files = await new Promise((resolve, reject) => {
-      glob('./public/**/*.html', (err, files) => {
-        if (err) {
-          return reject(err);
-        }
+    const files = await glob("./public/**/*.html");
 
-        return resolve(files);
-      });
-    });
-
-    files.map(file => {
+    for (const file of files) {
       const contents = fs.readFileSync(file).toString();
-      const minified = minify(contents, {
+      const minified = await minify(contents, {
         collapseWhitespace: true,
         minifyJS: true,
         minifyCSS: true,
@@ -25,9 +17,8 @@ const { minify } = require('html-minifier');
         removeComments: true,
       });
       fs.writeFileSync(file, minified);
-    });
-  } catch(e) {
+    }
+  } catch (e) {
     console.error(e);
   }
 })();
-

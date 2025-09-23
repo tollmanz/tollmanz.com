@@ -12,8 +12,8 @@
   "author": "Zack Tollman <tollmanz@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "glob": "7.1.3",
-    "html-minifier": "3.5.21",
-    "hugo-cli": "0.9.0"
+    "glob": "11.0.3",
+    "html-minifier-terser": "7.2.0",
+    "hugo-cli": "0.14.0"
   }
 }

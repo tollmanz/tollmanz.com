@@ -2,6 +2,7 @@
 .vscode
 node_modules
 public
+site/.hugo_build.lock
 site/node_modules
 site/public
 site/themes/ananke
