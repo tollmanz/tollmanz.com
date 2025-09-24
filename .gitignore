@@ -6,3 +6,9 @@ site/.hugo_build.lock
 site/node_modules
 site/public
 site/themes/ananke
+
+# Environment variables
+.env
+
+# Deployment cache
+.deployment-cache.json

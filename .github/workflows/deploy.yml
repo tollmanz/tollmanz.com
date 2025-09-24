@@ -1,0 +1,87 @@
+name: Deploy Site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # Allow manual triggering
+    inputs:
+      force_deploy:
+        description: "Force redeploy all files (bypass cache)"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download previous deployment cache
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-cache
+          path: .
+        continue-on-error: true # Don't fail if no previous cache exists
+
+      - name: Validate environment
+        run: |
+          echo "Validating required secrets are present..."
+          if [ -z "${{ secrets.B2_APPLICATION_KEY_ID }}" ]; then
+            echo "❌ B2_APPLICATION_KEY_ID secret is missing"
+            exit 1
+          fi
+          if [ -z "${{ secrets.B2_APPLICATION_KEY }}" ]; then
+            echo "❌ B2_APPLICATION_KEY secret is missing"
+            exit 1
+          fi
+          if [ -z "${{ secrets.B2_BUCKET_NAME }}" ]; then
+            echo "❌ B2_BUCKET_NAME secret is missing"
+            exit 1
+          fi
+          echo "✅ All required secrets are present"
+
+      - name: Deploy to Backblaze B2
+        env:
+          B2_APPLICATION_KEY_ID: ${{ secrets.B2_APPLICATION_KEY_ID }}
+          B2_APPLICATION_KEY: ${{ secrets.B2_APPLICATION_KEY }}
+          B2_BUCKET_NAME: ${{ secrets.B2_BUCKET_NAME }}
+        run: |
+          if [ "${{ inputs.force_deploy }}" = "true" ]; then
+            echo "🚀 Starting FORCED deployment - all files will be uploaded"
+            npm run deploy:force
+          else
+            echo "🚀 Starting normal deployment"
+            npm run deploy
+          fi
+
+      - name: Report deployment status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "🎉 Deployment completed successfully!"
+            echo "Your site has been deployed to Backblaze B2."
+          else
+            echo "❌ Deployment failed!"
+            echo "Please check the logs above for error details."
+            exit 1
+          fi
+
+      - name: Upload deployment cache
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-cache
+          path: .deployment-cache.json
+          retention-days: 30

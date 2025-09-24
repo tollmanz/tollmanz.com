@@ -5,14 +5,22 @@
   "main": "index.js",
   "scripts": {
     "build": "eleventy",
-    "dev": "eleventy --serve"
+    "dev": "eleventy --serve",
+    "deploy": "node scripts/deploy.js",
+    "deploy:dry-run": "node scripts/deploy.js --dry-run",
+    "deploy:force": "node scripts/deploy.js --force"
   },
   "author": "Zack Tollman <tollmanz@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "@11ty/eleventy": "3.1.2",
+    "backblaze-b2": "1.7.1",
+    "chalk": "5.6.2",
+    "dotenv": "17.2.2",
+    "fs-extra": "11.3.2",
     "html-minifier-terser": "7.2.0",
     "luxon": "3.7.2",
-    "markdown-it": "14.1.0"
+    "markdown-it": "14.1.0",
+    "mime-types": "2.1.35"
   }
 }
