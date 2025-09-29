@@ -77,6 +77,16 @@ module.exports = function (eleventyConfig) {
     return htmlContent.replace(/href="\/([^"]*)/g, `href="${base}/$1`);
   });
 
+  // Absolute URL filter for sitemap
+  eleventyConfig.addFilter("absoluteUrl", function (url, base) {
+    if (!url) return base;
+    // Remove trailing slash from base if present
+    const cleanBase = base.replace(/\/$/, "");
+    // Ensure url starts with /
+    const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+    return `${cleanBase}${cleanUrl}`;
+  });
+
   // Configure markdown
   let markdownIt = require("markdown-it");
   let markdownItOptions = {
