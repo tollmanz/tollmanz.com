@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Violation Locations and Sampling Mode in HTTPS Mixed Content Detector 1.2.0"
-date:       2015-01-19 11:30:00
+title: "Violation Locations and Sampling Mode in HTTPS Mixed Content Detector 1.2.0"
+date: 2015-01-19 11:30:00
 categories: security
 permalink: /wordpress-https-mixed-content-detector-1-2-0-update/
 ---
@@ -14,12 +14,12 @@ The violation locations feature attempts to identify how the mixed content warni
 
 Currently, the plugin checks the following locations for a violation:
 
-* **Shortcodes** (search every registered shortcode individually and will identify the violating shortcode)
-* **Autoembeds**
-* **Raw content**
-* **Fully filtered content** (i.e., content after passed through the "the_content" filter)
-* **Script enqueues**
-* **Style enqueues**
+- **Shortcodes** (search every registered shortcode individually and will identify the violating shortcode)
+- **Autoembeds**
+- **Raw content**
+- **Fully filtered content** (i.e., content after passed through the "the_content" filter)
+- **Script enqueues**
+- **Style enqueues**
 
 The locations are identified when a CSP report is received. Additionally, if you already have a list of violations and need to run them through the violation location engine, you can do so with WP CLI:
 
@@ -61,6 +61,6 @@ define( 'MCD_SAMPLE_FREQUENCY', 10 );
 
 The number set, divided by 100, is the percentage of requests that are accepted. A value of 10 is equal to 10% since 10/100 = 0.1, or 10%.
 
-*Please use sampling mode responsibly. At no point should you leave sampling mode turned on for more than a limited period of time. This will degrade your site's performance, scalability, and security.* I recommend turning it on for a short duration (e.g., 10 minutes) and promptly disabling it. Please adjust this based on your traffic levels.
+_Please use sampling mode responsibly. At no point should you leave sampling mode turned on for more than a limited period of time. This will degrade your site's performance, scalability, and security._ I recommend turning it on for a short duration (e.g., 10 minutes) and promptly disabling it. Please adjust this based on your traffic levels.
 
 Additionally, with sampling mode turned on, it is significantly easier for an attacker to push malicious requests to your site that will lead to a write operation against your database. Sampling mode must allow mostly anonymous requests to prompt a write operation to track the CSP reports. This mode is not intended to be turned on indefinitely. You should only turn it on to capture violations, then turn it back off while working out those violations. Using the tool in this manner will greatly reduce the attack vector.

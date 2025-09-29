@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Git \"amend\" without Editing the Comment"
-date:       2014-09-02 08:45:00
+title: 'Git "amend" without Editing the Comment'
+date: 2014-09-02 08:45:00
 categories: git
 permalink: /git-amend-without-comment-edit/
 ---
@@ -25,4 +25,4 @@ Yes. This is simple and totally obvious. I was curious why I never knew this bef
 
 References:
 
-* [Stackoverflow: git commit --amend --use-existing-message? (no editor interaction)](http://stackoverflow.com/questions/10237071/git-commit-amend-use-existing-message-no-editor-interaction)
+- [Stackoverflow: git commit --amend --use-existing-message? (no editor interaction)](http://stackoverflow.com/questions/10237071/git-commit-amend-use-existing-message-no-editor-interaction)

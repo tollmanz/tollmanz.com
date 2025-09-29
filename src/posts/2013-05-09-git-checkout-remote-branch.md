@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Checking Out a Remote Branch with Git"
-date:       2013-05-09 08:22:00
+title: "Checking Out a Remote Branch with Git"
+date: 2013-05-09 08:22:00
 categories: git branch remote
 permalink: /git-checkout-remote-branch/
 ---
@@ -14,4 +14,4 @@ git checkout -b test origin/test
 
 References:
 
-* [Stackoverflow: git checkout remote branch](http://stackoverflow.com/questions/1783405/git-checkout-remote-branch)
+- [Stackoverflow: git checkout remote branch](http://stackoverflow.com/questions/1783405/git-checkout-remote-branch)

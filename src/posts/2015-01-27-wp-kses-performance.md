@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "wp_kses Performance"
-date:       2015-01-26 21:00:00
+title: "wp_kses Performance"
+date: 2015-01-26 21:00:00
 categories: security
 permalink: /wp-kses-performance/
 ---
@@ -12,17 +12,17 @@ If you are not familiar with `wp_kses`, it is a function used in WordPress to sa
 
 > It can read HTML code, no matter how malformed it is, and filter out undesirable bits. The idea is to allow some safe subset of HTML through, so as to prevent various forms of attacks.
 
-Recently, at work, I noticed a number of uses of `wp_kses_post`, a wrapper of `wp_kses`, in our theme, declared that we should *never* have this in our code, went through and removed them all, broke a bunch of stuff, reverted it all, and decided that I actually need to better understand the performance characteristics of the functions. Frankly, I was uncomfortable using the function as I had previously understand that it was bad for performance. I needed to get answers, so I rolled up my sleeves and began exploring `wp_kses` performance.
+Recently, at work, I noticed a number of uses of `wp_kses_post`, a wrapper of `wp_kses`, in our theme, declared that we should _never_ have this in our code, went through and removed them all, broke a bunch of stuff, reverted it all, and decided that I actually need to better understand the performance characteristics of the functions. Frankly, I was uncomfortable using the function as I had previously understand that it was bad for performance. I needed to get answers, so I rolled up my sleeves and began exploring `wp_kses` performance.
 
 ### `wp_kses` Background
 
 My initial approach to answering the `wp_kses` performance question was to look for someone else discussing it online. I found very little. Other than a Mark Jaquith [comment](http://mikejolley.com/2013/08/keeping-your-shit-secure-whilst-developing-for-wordpress/#comment-1001881940) on a post discouraging its use, a comment [mention](https://github.com/10up/Engineering-Best-Practices/blob/c7d7df9fcae5aa5e42a3eebd91017a8b926d7879/_includes/markdown/PHP.md#escape-or-validate-output) in 10up's [Best Practices document](https://github.com/10up/Engineering-Best-Practices) about it having "bad performance", and a notable omission from WordPress.com VIP's guide to [validating, sanitizing, and escaping](http://vip.wordpress.com/documentation/validating-sanitizing-escaping/), I could not find any resource that provided evidence, antidotes or a solid reason for not using the function.
 
-I looked up the history of the functions and found that they came from the [*kses - PHP HTML/XHTML filter*](http://sourceforge.net/projects/kses/) open source project. It was [introduced to WordPress](https://core.trac.wordpress.org/changeset/649) in 2003 (ironically on my birthday) when the kses library was at version 0.2.1 (it seemed to cease development at version 0.2.2). One day after being added to WordPress, it was used for the first time as it was applied to [post comments](https://core.trac.wordpress.org/changeset/650). Interestingly, the functions were applied to comments *on the front end as they were printed to the screen*, not on the backend on save. Just less than [one year later](https://core.trac.wordpress.org/changeset/1964), the functions were removed from being applied to post comments on output and were instead applied to comments on when saved to the database. Unfortunately, the commit message is a measly "Comments refactoring and cleanup" and I could not find a papertrail for the changeset<span class="footnote-article-number">1</span>.
+I looked up the history of the functions and found that they came from the [_kses - PHP HTML/XHTML filter_](http://sourceforge.net/projects/kses/) open source project. It was [introduced to WordPress](https://core.trac.wordpress.org/changeset/649) in 2003 (ironically on my birthday) when the kses library was at version 0.2.1 (it seemed to cease development at version 0.2.2). One day after being added to WordPress, it was used for the first time as it was applied to [post comments](https://core.trac.wordpress.org/changeset/650). Interestingly, the functions were applied to comments _on the front end as they were printed to the screen_, not on the backend on save. Just less than [one year later](https://core.trac.wordpress.org/changeset/1964), the functions were removed from being applied to post comments on output and were instead applied to comments on when saved to the database. Unfortunately, the commit message is a measly "Comments refactoring and cleanup" and I could not find a papertrail for the changeset<span class="footnote-article-number">1</span>.
 
-In late 2005, `wp_kses` was finally [applied to post content](https://core.trac.wordpress.org/ticket/1674) (if you look at the patch, it's applied via `content_save_pre`)<span class="footnote-article-number">2</span>. As far as I can tell, this was the first time the `wp_kses` functions were applied to content. Nothing in the patch suggests that the functionality was previously present elsewhere. If my reading of this is correct, `wp_kses` was never applied to post content on the front end. It also seems that if it took almost two years to apply the function to post content, the main concern for `wp_kses` was to *sanitize non-WordPress user content* only. This patch also updated the kses functions to version 0.2.2.
+In late 2005, `wp_kses` was finally [applied to post content](https://core.trac.wordpress.org/ticket/1674) (if you look at the patch, it's applied via `content_save_pre`)<span class="footnote-article-number">2</span>. As far as I can tell, this was the first time the `wp_kses` functions were applied to content. Nothing in the patch suggests that the functionality was previously present elsewhere. If my reading of this is correct, `wp_kses` was never applied to post content on the front end. It also seems that if it took almost two years to apply the function to post content, the main concern for `wp_kses` was to _sanitize non-WordPress user content_ only. This patch also updated the kses functions to version 0.2.2.
 
-Currently, `wp_kses` is applied to comments and post content very similarly to the way that it was all the way back in 2005. Not much has changed about the actual mechanism. Looking through these changesets does not give us any insight into *why* these changes were made, although, it's likely safe to assume that it was performance related.
+Currently, `wp_kses` is applied to comments and post content very similarly to the way that it was all the way back in 2005. Not much has changed about the actual mechanism. Looking through these changesets does not give us any insight into _why_ these changes were made, although, it's likely safe to assume that it was performance related.
 
 Without my Googling and Trac-diving answering my performance questions, I decided that I might as well test the performance for myself.
 
@@ -39,48 +39,48 @@ Unsurprisingly, the results of the tests show that the `wp_kses` functions are i
 <h4 class="table-header">Long content</h4>
 
 |      | wp_kses_post | wp_kses_p | esc_html | esc_attr |
-| ---- | ------- | --------- | -------- | -------- |
-| 5.3  | 22.863  | 12.201    | 1.638    | 1.640    |
-| 5.4  | 22.651  | 12.236    | 0.725    | 0.728    |
-| 5.5  | 24.337  | 13.095    | 0.685    | 0.687    |
-| 5.6  | 28.930  | 21.279    | 1.029    | 0.725    |
-| HHVM | 2.022   | 1.139     | 0.326    | 0.297    |
+| ---- | ------------ | --------- | -------- | -------- |
+| 5.3  | 22.863       | 12.201    | 1.638    | 1.640    |
+| 5.4  | 22.651       | 12.236    | 0.725    | 0.728    |
+| 5.5  | 24.337       | 13.095    | 0.685    | 0.687    |
+| 5.6  | 28.930       | 21.279    | 1.029    | 0.725    |
+| HHVM | 2.022        | 1.139     | 0.326    | 0.297    |
 
 <p class="table-note"><em>Time in ms</em></p>
 
 <h4 class="table-header">Medium content</h4>
 
 |      | wp_kses_post | wp_kses_p | esc_html | esc_attr |
-| ---- | ------- | --------- | -------- | -------- |
-| 5.3  | 0.319   | 0.252     | 0.055    | 0.055    |
-| 5.4  | 0.283   | 0.246     | 0.052    | 0.053    |
-| 5.5  | 0.303   | 0.248     | 0.051    | 0.051    |
-| 5.6  | 0.300   | 0.247     | 0.052    | 0.052    |
-| HHVM | 0.022   | 0.020     | 0.006    | 0.005    |
+| ---- | ------------ | --------- | -------- | -------- |
+| 5.3  | 0.319        | 0.252     | 0.055    | 0.055    |
+| 5.4  | 0.283        | 0.246     | 0.052    | 0.053    |
+| 5.5  | 0.303        | 0.248     | 0.051    | 0.051    |
+| 5.6  | 0.300        | 0.247     | 0.052    | 0.052    |
+| HHVM | 0.022        | 0.020     | 0.006    | 0.005    |
 
 <p class="table-note"><em>Time in ms</em></p>
 
 <h4 class="table-header">Short content</h4>
 
 |      | wp_kses_post | wp_kses_p | esc_html | esc_attr |
-| ---- | ------- | --------- | -------- | -------- |
-| 5.3  | 0.133   | 0.097     | 0.049    | 0.050    |
-| 5.4  | 0.130   | 0.095     | 0.046    | 0.047    |
-| 5.5  | 0.130   | 0.094     | 0.045    | 0.045    |
-| 5.6  | 0.130   | 0.094     | 0.045    | 0.045    |
-| HHVM | 0.009   | 0.008     | 0.003    | 0.003    |
+| ---- | ------------ | --------- | -------- | -------- |
+| 5.3  | 0.133        | 0.097     | 0.049    | 0.050    |
+| 5.4  | 0.130        | 0.095     | 0.046    | 0.047    |
+| 5.5  | 0.130        | 0.094     | 0.045    | 0.045    |
+| 5.6  | 0.130        | 0.094     | 0.045    | 0.045    |
+| HHVM | 0.009        | 0.008     | 0.003    | 0.003    |
 
 <p class="table-note"><em>Time in ms</em></p>
 
-If we look at the mean performance for the 5.3-5.6 environments for the long content, `wp_kses` (*M* = 24.34ms) is 1.68 times slower than `wp_kses_p` (*M* = 14.70ms), 24.23 times slower than `esc_html` (*M* = 1.02ms), and 26.13 times slower than `esc_attr` (*M* = 0.95ms). It is faster to reduce the array of allowed HTML tags and *much* faster to sanitize using simpler functions. These "fast" functions are performing at the speed of what I usually quantify as a sufficiently fast MySQL query in WordPress and the `wp_kses` functions are much slower than that.
+If we look at the mean performance for the 5.3-5.6 environments for the long content, `wp_kses` (_M_ = 24.34ms) is 1.68 times slower than `wp_kses_p` (_M_ = 14.70ms), 24.23 times slower than `esc_html` (_M_ = 1.02ms), and 26.13 times slower than `esc_attr` (_M_ = 0.95ms). It is faster to reduce the array of allowed HTML tags and _much_ faster to sanitize using simpler functions. These "fast" functions are performing at the speed of what I usually quantify as a sufficiently fast MySQL query in WordPress and the `wp_kses` functions are much slower than that.
 
 ![](/media/images/wp-kses-long.jpg "Long content results")
 
-Looking at the mean performance for the 5.3-5.6 environments for the medium content, the `wp_kses` functions are still slower, but the difference is reduced. `wp_kses` (*M* = 0.30ms) is 1.22 times slower than `wp_kses_p` (*M* = 0.25ms), 5.70 times slower than `esc_html` (*M* = 0.05ms), and 5.73 times slower than `esc_attr` (*M* = 0.05ms). While the performance is still much slower for `wp_kses`, the performance for `wp_kses` itself, is sub-millisecond performance, which is pretty good given what the function is doing. It is important to note the differences between the functions; however, it's probably more important to note the raw performance of each function given that the performance is fairly reasonable against medium content.
+Looking at the mean performance for the 5.3-5.6 environments for the medium content, the `wp_kses` functions are still slower, but the difference is reduced. `wp_kses` (_M_ = 0.30ms) is 1.22 times slower than `wp_kses_p` (_M_ = 0.25ms), 5.70 times slower than `esc_html` (_M_ = 0.05ms), and 5.73 times slower than `esc_attr` (_M_ = 0.05ms). While the performance is still much slower for `wp_kses`, the performance for `wp_kses` itself, is sub-millisecond performance, which is pretty good given what the function is doing. It is important to note the differences between the functions; however, it's probably more important to note the raw performance of each function given that the performance is fairly reasonable against medium content.
 
 ![](/media/images/wp-kses-medium-2.jpg "Medium content results")
 
-Finally, comparing the mean performance of `wp_kses` against the other functions for the 5.3-5.6 environments when processing short content continues the convergence trend. All functions are performing admirably. `wp_kses` (*M* = 0.13ms) is 1.38 times slower than `wp_kses_p` (*M* = 0.09ms), 2.81 times slower than `esc_html` (*M* = 0.05ms), and 2.80 times slower than `esc_attr` (*M* = 0.05ms). Again, we see performance differences, but looking at the raw values, all of them are performing acceptably quick.
+Finally, comparing the mean performance of `wp_kses` against the other functions for the 5.3-5.6 environments when processing short content continues the convergence trend. All functions are performing admirably. `wp_kses` (_M_ = 0.13ms) is 1.38 times slower than `wp_kses_p` (_M_ = 0.09ms), 2.81 times slower than `esc_html` (_M_ = 0.05ms), and 2.80 times slower than `esc_attr` (_M_ = 0.05ms). Again, we see performance differences, but looking at the raw values, all of them are performing acceptably quick.
 
 ![](/media/images/wp-kses-short-2.jpg "Short content results")
 

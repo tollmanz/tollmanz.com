@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Errata and Clarifications for My WordCamp Seattle 2012 Talk"
-date:       2012-05-21 03:56:00
+title: "Errata and Clarifications for My WordCamp Seattle 2012 Talk"
+date: 2012-05-21 03:56:00
 categories: talks errata
 permalink: /errata-and-clarifications-for-my-wordcamp-seattle-2012-talk/
 ---

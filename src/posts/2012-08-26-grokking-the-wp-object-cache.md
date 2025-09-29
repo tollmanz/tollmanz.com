@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Grokking the WordPress Object Cache"
-date:       2012-08-26 11:30:00
+title: "Grokking the WordPress Object Cache"
+date: 2012-08-26 11:30:00
 categories: caching
 permalink: /grokking-the-wp-object-cache/
 ---
@@ -46,11 +46,11 @@ The default WordPress object cache does make page requests more performant out o
 
 In order for WordPress to make the most of its object cache, it needs to be available early in the WordPress load. The object cache is loaded via the `wp_start_object_cache` function, which is called in `wp-settings.php`. The call stack, or order of files included leading up to the initiation of the cache, is as follows:
 
-*   index.php
-*   wp-blog-header.php
-*   wp-load.php
-*   wp-config.php
-*   wp-settings.php
+- index.php
+- wp-blog-header.php
+- wp-load.php
+- wp-config.php
+- wp-settings.php
 
 The `wp_start_object_cache` first checks to see if a replacement `WP_Object_Cache` class is available. In order to replace WordPress core's object cache, a file named "object-cache.php" must be placed in the "wp-content" folder. The code in `wp_start_object_cache` checks to see if that file is available. If so, it is included via `require_once`. More importantly, by including this file, WordPress will not load the default `WP_Object_Cache` class by purposely not including the `wp-includes/cache.php` file. As such, this allows for a user defined version of the `WP_Object_Cache` class that is used in place of WordPress version of the class. Additionally, if the user version is loaded, the `$_wp_using_ext_object_cache` variable is set to true, which allows code that executes later in the request to be aware of whether the default object cache or a third party object cache is being used.
 
@@ -106,7 +106,7 @@ As previously indicated, the `wp_cache_*` functions take a `$group` argument. Wh
 
 ### A Note About Transients
 
-WordPress Transients are popularly used for caching data in WordPress. Without using a persistent object cache, transients are stored in the "wp_options" table. The advantage of using transients is that they theoretically provide a persistent caching mechanism across many server environments. If a user does not have a persistent object cache installed, transient data is stored in the database and that data is persistent across requests. If the user is using a persistent object cache, the transient functions will use the `WP_Object_Cache` class to provide a persistent caching experience. My recommendation is that if you are writing code that will be used in numerous different server environments, transients are ideal and they nearly guarantee persistence of cached data. If you are writing code for a specific server that you know implements a persistent object cache, you should use the `wp_cache_*` functions directly in order to reduce the overhead of extra function calls.
+WordPress Transients are popularly used for caching data in WordPress. Without using a persistent object cache, transients are stored in the "wp*options" table. The advantage of using transients is that they theoretically provide a persistent caching mechanism across many server environments. If a user does not have a persistent object cache installed, transient data is stored in the database and that data is persistent across requests. If the user is using a persistent object cache, the transient functions will use the `WP_Object_Cache` class to provide a persistent caching experience. My recommendation is that if you are writing code that will be used in numerous different server environments, transients are ideal and they nearly guarantee persistence of cached data. If you are writing code for a specific server that you know implements a persistent object cache, you should use the `wp_cache*\*` functions directly in order to reduce the overhead of extra function calls.
 
 ### Final Words
 

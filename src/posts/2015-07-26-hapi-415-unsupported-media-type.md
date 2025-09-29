@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Handling 415 (Unsupported Content-Type) Errors in Hapi"
-date:       2015-07-26 19:30:00
+title: "Handling 415 (Unsupported Content-Type) Errors in Hapi"
+date: 2015-07-26 19:30:00
 categories: node, http, hapi
 permalink: /hapi-415-unsupported-media-type/
 ---
@@ -18,11 +18,11 @@ The application that I wrote to handle these POST requests is written in Node us
 
 ```javascript
 server.route({
-  method: 'POST',
-  path:'/csp-report',
+  method: "POST",
+  path: "/csp-report",
   handler: function (request, reply) {
     // Record the request
-  }
+  },
 });
 ```
 
@@ -33,10 +33,10 @@ My solution to this issue was to map `application/csp-report` to `application/js
 To accomplish this goal, I utilized the `onRequest` event to map the content type:
 
 ```javascript
-server.ext('onRequest', function(request, reply) {
-  if ('application/csp-report' === request.headers['content-type']) {
-    request.headers['content-type'] = 'application/json';
-    request.headers['x-content-type'] = 'application/csp-report';
+server.ext("onRequest", function (request, reply) {
+  if ("application/csp-report" === request.headers["content-type"]) {
+    request.headers["content-type"] = "application/json";
+    request.headers["x-content-type"] = "application/csp-report";
   }
 
   return reply.continue();

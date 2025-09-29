@@ -1,18 +1,18 @@
 ---
 layout: post.njk
-title:      "WordCamp Chicago 2013: Enhancing Developer Creativity with Git"
-date:       2013-06-30 08:24:00
+title: "WordCamp Chicago 2013: Enhancing Developer Creativity with Git"
+date: 2013-06-30 08:24:00
 categories: git
 permalink: /enhancing-developer-creativity-with-git/
 ---
 
-Today, I had the opportunity to speak at WordCamp Chicago 2013. In an unusal twist for me, I spoke about git, which is a very non-WordPress topic. While I typically like to write a more thorough post to summarize my talks, time was simply not on my side this week. As such, I am including a very short synopsis of my talk with a link to my slides. 
+Today, I had the opportunity to speak at WordCamp Chicago 2013. In an unusal twist for me, I spoke about git, which is a very non-WordPress topic. While I typically like to write a more thorough post to summarize my talks, time was simply not on my side this week. As such, I am including a very short synopsis of my talk with a link to my slides.
 
 The main thesis of my &#8220;Enhancing Developer Creativity With Git&#8221; talk was that fear can impair creativity and one can overcome his/her fear of git. The three &#8220;fears&#8221; that I addressed were:
 
-*   Fear of not having an undo
-*   Concern about merging your work
-*   Fear of committing regressions
+- Fear of not having an undo
+- Concern about merging your work
+- Fear of committing regressions
 
 For each of these concerns, I discussed &#8220;cures&#8221; for the fears. With regard to concerns about undoing commits, I talked about git&#8217;s [`reflog`](http://fiji.sc/Git_reflogs) feature that keeps a local log of actions that change the HEAD state of the repository. With `reflog` you can easily reset your repository to a previous state in the same way you would expect an &#8220;undo&#8221; command to work. I highly recommend reading about `reflog` as it is a really powerful tool for viewing your local history to &#8220;undo&#8221; problems with your repository.
 

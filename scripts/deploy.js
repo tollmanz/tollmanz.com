@@ -12,10 +12,10 @@ const crypto = require("crypto");
 
 // Simple color functions using ANSI codes
 const colors = {
-  red: (text) => `\x1b[31m${text}\x1b[0m`,
-  green: (text) => `\x1b[32m${text}\x1b[0m`,
-  yellow: (text) => `\x1b[33m${text}\x1b[0m`,
-  blue: (text) => `\x1b[34m${text}\x1b[0m`,
+  red: text => `\x1b[31m${text}\x1b[0m`,
+  green: text => `\x1b[32m${text}\x1b[0m`,
+  yellow: text => `\x1b[33m${text}\x1b[0m`,
+  blue: text => `\x1b[34m${text}\x1b[0m`,
   reset: "\x1b[0m",
 };
 
@@ -66,7 +66,7 @@ class DeploymentManager {
       "B2_BUCKET_NAME",
     ];
 
-    const missing = requiredVars.filter((varName) => !process.env[varName]);
+    const missing = requiredVars.filter(varName => !process.env[varName]);
 
     if (missing.length > 0) {
       if (this.dryRun) {
@@ -163,7 +163,7 @@ class DeploymentManager {
         this.log("Using unrestricted key, listing buckets...", "info");
         const response = await this.b2.listBuckets();
         const bucket = response.data.buckets.find(
-          (b) => b.bucketName === this.bucketName
+          b => b.bucketName === this.bucketName
         );
 
         if (!bucket) {
@@ -372,7 +372,7 @@ class DeploymentManager {
 
     if (this.dryRun && uploadCount > 0) {
       this.log("📋 Files that would be uploaded:", "info");
-      filesToUpload.forEach((file) => {
+      filesToUpload.forEach(file => {
         this.log(`    • ${file.remotePath} (${file.sizeText})`, "info");
       });
     }
@@ -434,7 +434,7 @@ class DeploymentManager {
             // Unrestricted key - try to list buckets
             const response = await tempB2.listBuckets();
             const bucket = response.data.buckets.find(
-              (b) => b.bucketName === this.bucketName
+              b => b.bucketName === this.bucketName
             );
 
             if (!bucket) {

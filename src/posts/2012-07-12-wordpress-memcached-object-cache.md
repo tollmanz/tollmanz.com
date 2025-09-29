@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "WordPress Object Cache Driven By The PECL Memcache(d) Extension"
-date:       2012-07-12 18:58:00
+title: "WordPress Object Cache Driven By The PECL Memcache(d) Extension"
+date: 2012-07-12 18:58:00
 categories: caching
 permalink: /wordpress-memcached-object-cache/
 ---
@@ -20,7 +20,7 @@ Now, let me tell you why this object is, in my humble opinion, pretty cool.
 
 ### Multi Get: Why Take One When You Can Take Many
 
-When I started this project, I was most excited about multi get and, to a lesser extent multi set, methods. In a memcached environment, objects are accessed from memcached via a "get" operation. Each time a "get" command is issued, a request to the memcached server is made and a value is returned (assuming it is there). A single page load can initiate these round trips over and over and over. For instance, in a WordPress install with a memcached backend, using `get_post`, `get_terms`, and `get_post_meta` will all prompt trips to memcached to get objects. Assuming that these objects exist in memcached, they will be successfully returned and database queries will be avoided. With multi get, these three objects can be accessed with a single request to memcached, as opposed to issuing three individual requests. The clear advantage here is that the data can be accessed more quickly with fewer requests. Admittedly, 1 vs. 3 requests is hardly remarkable; however, scale this to hundreds or thousands of requests and this can result in major savings. 
+When I started this project, I was most excited about multi get and, to a lesser extent multi set, methods. In a memcached environment, objects are accessed from memcached via a "get" operation. Each time a "get" command is issued, a request to the memcached server is made and a value is returned (assuming it is there). A single page load can initiate these round trips over and over and over. For instance, in a WordPress install with a memcached backend, using `get_post`, `get_terms`, and `get_post_meta` will all prompt trips to memcached to get objects. Assuming that these objects exist in memcached, they will be successfully returned and database queries will be avoided. With multi get, these three objects can be accessed with a single request to memcached, as opposed to issuing three individual requests. The clear advantage here is that the data can be accessed more quickly with fewer requests. Admittedly, 1 vs. 3 requests is hardly remarkable; however, scale this to hundreds or thousands of requests and this can result in major savings.
 
 The other "multi" function that is supported is the multi set method. Similar to multi get, it allows you to carry out multiple memcached actions with a single request instead of many. In this case, multi set can set numerous object in cache in a single request as opposed to many. Again, less round trips theoretically means faster processing of data and an overall more performant application.
 
@@ -46,26 +46,26 @@ A common technique for handling these concurrency issues, is to use a "locking" 
 
 The PECL Memcached extension's [check and set](http://www.php.net/manual/en/memcached.cas.php "Check and Set") (CAS) procedures<span class="footnote-article-number">2</span> offers a valuable method for handling these concurrency events. The CAS method checks a "Check And Set token" (CAS token) prior to setting a value in memcached. The CAS token is obtained from the get method. The set will only be allowed if the CAS token is identical to what it was when the CAS token was initially accessed via the get method. If between the time that the CAS token was obtained and the CAS token is checked its value has changed, the check will fail and the set will not occur. This concept can be a bit difficult to understand, so let us look at how two concurrent events would be processed to demonstrate CAS methods.
 
-*   Request A gets cache key "lock" and also returns a CAS token with value, (float) 282369.
-*   Request B gets cache key "lock" and also returns a CAS token with value, (float) 282369. The CAS token for request A and B are identical because the "lock" object was not updated between the to get requests.
-*   Request A attempts to set cache key "lock" to a new value via a CAS operation. The request is successful because the CAS token check passes. Moreover, it is successful because the CAS token will still be (float) 282369 as the "lock" has not been updated.
-*   Request B attempts to set cache key "lock" to a new value via a CAS operation. The request fails because since this request's CAS token was set it was changed by request A's successful CAS operation.
+- Request A gets cache key "lock" and also returns a CAS token with value, (float) 282369.
+- Request B gets cache key "lock" and also returns a CAS token with value, (float) 282369. The CAS token for request A and B are identical because the "lock" object was not updated between the to get requests.
+- Request A attempts to set cache key "lock" to a new value via a CAS operation. The request is successful because the CAS token check passes. Moreover, it is successful because the CAS token will still be (float) 282369 as the "lock" has not been updated.
+- Request B attempts to set cache key "lock" to a new value via a CAS operation. The request fails because since this request's CAS token was set it was changed by request A's successful CAS operation.
 
-To apply this to a race condition where you want an event to occur once and only once, the event would occur only if the CAS operation was successful (i.e., returns (bool) true). Otherwise, the event will not be allowed to transpire. 
+To apply this to a race condition where you want an event to occur once and only once, the event would occur only if the CAS operation was successful (i.e., returns (bool) true). Otherwise, the event will not be allowed to transpire.
 
 Admittedly, this is a really nice in theory, but I have not had a chance to test how well CAS methods handle concurrency in the wild. Testing this is ridiculously difficult and I am making preparation to be able to do so in the near future. I do hope it works as advertised.
 
 ### Implications for WordPress
 
-Out of the box, this object cache will work similarly to the original WordPress Memcached Object Cache. Really poorly conducted performance tests show similar performance between the two caching systems. All of the methods in the original WordPress Memcached Object Cache are supported and thus, all of the objects cached in WordPress Core are supported. 
+Out of the box, this object cache will work similarly to the original WordPress Memcached Object Cache. Really poorly conducted performance tests show similar performance between the two caching systems. All of the methods in the original WordPress Memcached Object Cache are supported and thus, all of the objects cached in WordPress Core are supported.
 
-I cannot imagine that I will see any major speed increases from this implementation with a basic WordPress installation unless the libmemcached library happens to offer a significant faster path to accessing memcached data than the PECL Memcache extension. The main advantage of this object cache will come from themes and plugins that are developed with these added methods in mind. 
+I cannot imagine that I will see any major speed increases from this implementation with a basic WordPress installation unless the libmemcached library happens to offer a significant faster path to accessing memcached data than the PECL Memcache extension. The main advantage of this object cache will come from themes and plugins that are developed with these added methods in mind.
 
 At [10up](http://10up.com "10up LLC"), where I am a Senior Web Engineer, we are looking into ways to leverage this object cache and its powerful methods to drive WordPress implementations. We hope to use it as the main caching library for client projects in the near future.
 
 ### Conclusion
 
-In the end, I am open to any feedback that anyone has. Please report [issues](https://github.com/tollmanz/wordpress-memcached-backend/commits/master "WordPress Memcached Backend Issues") on GitHub so they can be tracked in an organized fashion. Realize that I consider this to be beta at the moment and hope to bring it to a non-beta state with help from others. This post was merely to introduce people to the work. In future writing, I will discuss installing the object cache, as well as how to use some of the methods discussed above. 
+In the end, I am open to any feedback that anyone has. Please report [issues](https://github.com/tollmanz/wordpress-memcached-backend/commits/master "WordPress Memcached Backend Issues") on GitHub so they can be tracked in an organized fashion. Realize that I consider this to be beta at the moment and hope to bring it to a non-beta state with help from others. This post was merely to introduce people to the work. In future writing, I will discuss installing the object cache, as well as how to use some of the methods discussed above.
 
 <p class="footnote"><span class="footnote-footer-number">1</span> I only recently realized that there are additional methods in the PECL Memcached extension (e.g., touch). Once I fully understand these methods, I will be adding them to this WordPress extension.
 

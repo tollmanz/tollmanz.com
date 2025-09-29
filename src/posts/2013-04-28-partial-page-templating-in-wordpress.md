@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Towards a Partial Page Templating System in WordPress"
-date:       2013-04-28 14:33:00
+title: "Towards a Partial Page Templating System in WordPress"
+date: 2013-04-28 14:33:00
 categories: caching edge-side-includes
 permalink: /partial-page-templating-in-wordpress/
 ---
@@ -20,13 +20,13 @@ The full page cache model breaks once you need to display _different data_ for *
 
 To illustrated the problem, imagine a very simple page that contains the following components:
 
-*   Header (contains a "Hi User A" message)
+- Header (contains a "Hi User A" message)
 
-*   Post Text (same for all users)
+- Post Text (same for all users)
 
-*   Sidebar (same for all users and contains complex logic for generating related posts content)
+- Sidebar (same for all users and contains complex logic for generating related posts content)
 
-*   Footer (same for all users)
+- Footer (same for all users)
 
 Of the four main elements on the page, only the header is unique for each user. With the Batcache page caching model, the logged in **User A** will need to generate all four elements every time she views the page, when really, she only needs to cause the _Header_ to regenerate. Logged out users have no need for the "Hi User {$name}" message and thus, a welcome message free version is generated and served to all logged out users. For our logged in users, this is a problem because we are requiring them to regenerate the _Sidebar_, which contains non-performant, yet necessary, MySQL queries<span class="footnote-article-number">4</span>.
 
@@ -54,7 +54,7 @@ Jaquith wrote [an article](http://markjaquith.wordpress.com/2013/04/26/fragment-
 
 For what Jaquith and Ruter's functions purport to do, they work quite well; however, it does not provide system for partial page caching that might allow for a shorter WordPress page load in cases where only a small amount of data is needed. Bringing back the four elements previously discussed, WordPress would still need to get the four elements, even though some of them are wrapped in the fragment caching API. To be clear, when I say "WordPress would need to get the four elements", I mean that WordPress would need to run the code in the wrappers, determine if the data is available in cache, and if not, regenerate it. A lot of code is being executed; certainly more than 1.12% of WordPress. Additionally, if **User B** revisits the page, a cached version of the page _for her_ will not be saved and the page view will once again have to generate the whole page.
 
-Dvorkin [responded to the Tweet thread](https://twitter.com/MZAWeb/status/328489999588798464 "https://twitter.com/MZAWeb/status/328489999588798464") started by Rarst with an idea that is closer to what I will discuss below. As a sidenote, I think that what Jaquith and Ruter are talking about is _way_ different than what Dvorkin is discussing. I think all parties consider this to be "Fragment Caching" and thus they are  solving different problems. Dvorkin is solving the same problem as me and is the most relevant to my discussion<span class="footnote-article-number">5</span>.
+Dvorkin [responded to the Tweet thread](https://twitter.com/MZAWeb/status/328489999588798464 "https://twitter.com/MZAWeb/status/328489999588798464") started by Rarst with an idea that is closer to what I will discuss below. As a sidenote, I think that what Jaquith and Ruter are talking about is _way_ different than what Dvorkin is discussing. I think all parties consider this to be "Fragment Caching" and thus they are solving different problems. Dvorkin is solving the same problem as me and is the most relevant to my discussion<span class="footnote-article-number">5</span>.
 
 Dvorkin's approach borrows from the idea of **Edge Side Includes** (ESI) as described on the [Varnish](https://www.varnish-cache.org/docs/3.0/tutorial/esi.html "https://www.varnish-cache.org/docs/3.0/tutorial/esi.html") website:
 
@@ -120,22 +120,23 @@ As suggested by Dvorkin, we should borrow liberally from ESIs; however, my appro
 
 ```html
 <html>
-<head>
-	<title>Post Title</title>
-</head>
-<body>
-	<header>
-		<esi:include src="http://my-url.com/rest-api/get/name/user-a" max-age="0" />
-	</header>
-	<article>
-		<h1>Post Title</h1>
-		<p>Post content</p>
-	</article>
-	<section class="sidebar">
-	</section>
-	<footer>
-	</footer>
-</body>
+  <head>
+    <title>Post Title</title>
+  </head>
+  <body>
+    <header>
+      <esi:include
+        src="http://my-url.com/rest-api/get/name/user-a"
+        max-age="0"
+      />
+    </header>
+    <article>
+      <h1>Post Title</h1>
+      <p>Post content</p>
+    </article>
+    <section class="sidebar"></section>
+    <footer></footer>
+  </body>
 </html>
 ```
 

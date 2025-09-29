@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Sending Email With Git, Gmail, and OS X"
-date:       2013-05-15 23:30:00
+title: "Sending Email With Git, Gmail, and OS X"
+date: 2013-05-15 23:30:00
 categories: git send-email os-x gmail
 permalink: /git-send-email-gmail-os-x/
 ---
@@ -48,5 +48,5 @@ After running the `git send-email` command again, the patches were successfully 
 
 References:
 
-* [More Fedora: Configuring git send-email to use Gmail SMTP](http://morefedora.blogspot.com/2009/02/configuring-git-send-email-to-use-gmail.html)
-* [Installing Net::SMTP::SSL for sending patches with Git over secure SMTP](http://kbase.wincent.com/old/knowledge-base/Installing_Net::SMTP::SSL_for_sending_patches_with_Git_over_secure_SMTP.html)
+- [More Fedora: Configuring git send-email to use Gmail SMTP](http://morefedora.blogspot.com/2009/02/configuring-git-send-email-to-use-gmail.html)
+- [Installing Net::SMTP::SSL for sending patches with Git over secure SMTP](http://kbase.wincent.com/old/knowledge-base/Installing_Net::SMTP::SSL_for_sending_patches_with_Git_over_secure_SMTP.html)

@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Matching a Homepage (or \"/\" or \"/index.html\" ) with Nginx Location Blocks"
-date:       2015-06-22 22:00:00
+title: 'Matching a Homepage (or "/" or "/index.html" ) with Nginx Location Blocks'
+date: 2015-06-22 22:00:00
 categories: nginx, location
 permalink: /nginx-location-match-homepage/
 ---
@@ -34,7 +34,7 @@ server {
 }
 ```
 
-I set up three locations: homepage, assets, and all other files. Nginx [docs](http://nginx.org/en/docs/http/ngx_http_core_module.html#location) are very clear that `location = / {}` would match `/` over `location / {}` because it is *more specific* and should therefore take precedence; however, that absolutely did not work with any amount of trying.
+I set up three locations: homepage, assets, and all other files. Nginx [docs](http://nginx.org/en/docs/http/ngx_http_core_module.html#location) are very clear that `location = / {}` would match `/` over `location / {}` because it is _more specific_ and should therefore take precedence; however, that absolutely did not work with any amount of trying.
 
 After a ton of searching, I finally stumbled upon the [`index` directive docs](http://nginx.org/en/docs/http/ngx_http_index_module.html). In an aside at the end of the page, it mentions:
 
@@ -59,4 +59,4 @@ server {
 }
 ```
 
-This configuration makes a lot of sense in the end, but it was terribly confusing to work out. I *really* hope this note-to-self saves someone time in the future.
+This configuration makes a lot of sense in the end, but it was terribly confusing to work out. I _really_ hope this note-to-self saves someone time in the future.

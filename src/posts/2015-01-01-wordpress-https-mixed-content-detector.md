@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "WordPress HTTPS Mixed Content Detector Plugin"
-date:       2015-01-01 16:00:00
+title: "WordPress HTTPS Mixed Content Detector Plugin"
+date: 2015-01-01 16:00:00
 categories: security
 permalink: /wordpress-https-mixed-content-detector/
 ---
@@ -20,9 +20,9 @@ When you are finished logging reports, simply deactivate the plugin. There curre
 
 ### How it Works
 
-The plugin uses the *[Content-Security-Policy-Report-Only](http://w3c.github.io/webappsec/specs/content-security-policy/#iana-content-security-policy-report-only)* header to set a "report only content policy" that creates an alert if assets served from unsecure location attempt to load from your website. The *Content-Security-Policy-Report-Only* header allows you to set a "report-uri" to send a notice about unsecure content. The plugin sends this to a special URL on your website. When that URL is pinged with a report of a content violation, it will log the violation for you to view at a later date.
+The plugin uses the _[Content-Security-Policy-Report-Only](http://w3c.github.io/webappsec/specs/content-security-policy/#iana-content-security-policy-report-only)_ header to set a "report only content policy" that creates an alert if assets served from unsecure location attempt to load from your website. The _Content-Security-Policy-Report-Only_ header allows you to set a "report-uri" to send a notice about unsecure content. The plugin sends this to a special URL on your website. When that URL is pinged with a report of a content violation, it will log the violation for you to view at a later date.
 
-Since this plugin is only setting the *Content-Security-Policy-Report-Only* header, and not the *Content-Security-Policy* header, *all assets will still be allowed* (although browsers may block the asset based on default browser behavior); however, any unsecure assets will be reported. The beauty of this arrangement is that you can deploy this plugin *before you deploy TLS* on your site to find the unsecure resources and fix them before they cause issues.
+Since this plugin is only setting the _Content-Security-Policy-Report-Only_ header, and not the _Content-Security-Policy_ header, _all assets will still be allowed_ (although browsers may block the asset based on default browser behavior); however, any unsecure assets will be reported. The beauty of this arrangement is that you can deploy this plugin _before you deploy TLS_ on your site to find the unsecure resources and fix them before they cause issues.
 
 Note that this will only work for logged in admins. This allows the code to set a nonce to protect the "report-uri" from being pinged by unauthorized HTTP requests. If this was not locked down to logged-in, nonce-verified admins, it would represent both a security and self-DoSing risk. High traffic sites would crumble under the weigh of all of the SQL inserts from reports. In its current state, the plugin should be able to be deployed on high traffic websites without issue.
 
@@ -44,12 +44,12 @@ Content-Security-Policy: default-src 'self' https:; font-src https://fonts.gstat
 
 This is a little hard to read, but breaks down to the following rules:
 
-* Fonts can only be loaded from `https://fonts.gstatic.com`
-* Images can only be loaded from `https://www.tollmanz.com`
-* CSS files can only be loaded from `https://www.tollmanz.com` and `https://fonts.googleapis.com`
-* JS files can only be loaded from `https://www.tollmanz.com` and `https://ssl.google-analytics.com`
-* Anything else that does not fall into these categories must be from `https://www.tollmanz.com`
-* Inline styles and scripts are not allowed (XSS protection)
+- Fonts can only be loaded from `https://fonts.gstatic.com`
+- Images can only be loaded from `https://www.tollmanz.com`
+- CSS files can only be loaded from `https://www.tollmanz.com` and `https://fonts.googleapis.com`
+- JS files can only be loaded from `https://www.tollmanz.com` and `https://ssl.google-analytics.com`
+- Anything else that does not fall into these categories must be from `https://www.tollmanz.com`
+- Inline styles and scripts are not allowed (XSS protection)
 
 It makes sense that many users might want to dial in a more secure policy like this. Fortunately, adding this flexibility to the plugin just requires adding an option to specify your own content security policy. The browser handles the rest! I plan to add this flexibility in the future.
 

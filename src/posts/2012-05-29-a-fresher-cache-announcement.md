@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Example Usage and Documentation for the \"A Fresher Cache\" Plugin "
-date:       2012-05-29 12:24:00
+title: 'Example Usage and Documentation for the "A Fresher Cache" Plugin '
+date: 2012-05-29 12:24:00
 categories: caching
 permalink: /a-fresher-cache-announcement/
 ---
@@ -82,23 +82,23 @@ When clicking the item, the cache is refreshed and my changes are picked up.
 
 This function registers a new admin bar menu item under the "Freshen" menu item. It accepts a single array as its one argument. This array can contain the same arguments that the [`$wp_admin_bar->add_menu`](http://codex.wordpress.org/Function_Reference/add_menu "Function Reference/add menu") function takes. In addition, it takes four more arguments specific to the plugin's functionality. All of the accepted args are shown below.
 
-*   **id**: unique id of the menu item (default: false)
-*   **title**: display name of the item (default: false)
-*   **parent**: id for the parent menu item; useful for declaring parent/child relationships (default: false)
-*   **href**: href value for the menu item; should be left as default (default: false)
-*   **group**: whether or not to group the menu item (default: false)
-*   **meta**: meta information for the menu item (default: array)
-*   **function**: the function to call when the item is clicked (default: false)
-*   **args**: the arguments to send to the function (default: array)
-*   **capability**: the required capability to show the item and run the function (default: 'edit_theme_options')
-*   **no_href**: whether or not to make the menu item a link (default: false)
+- **id**: unique id of the menu item (default: false)
+- **title**: display name of the item (default: false)
+- **parent**: id for the parent menu item; useful for declaring parent/child relationships (default: false)
+- **href**: href value for the menu item; should be left as default (default: false)
+- **group**: whether or not to group the menu item (default: false)
+- **meta**: meta information for the menu item (default: array)
+- **function**: the function to call when the item is clicked (default: false)
+- **args**: the arguments to send to the function (default: array)
+- **capability**: the required capability to show the item and run the function (default: 'edit_theme_options')
+- **no_href**: whether or not to make the menu item a link (default: false)
 
 ##### afc_remove_item
 
 This function removes a previously registered item from the list of registered items. It takes one argument, which is the id value of the registered item to remove.
 
-*   **id**: id of the item to remove (default: none)
+- **id**: id of the item to remove (default: none)
 
 ##### afc_remove_default_actions
 
-Removes all of the "Core" actions that are added by default. This is accomplished by unregistering the  function that would add the item. Note that to remove an individual default item, you can use `afc_remove_item`. The function takes no arguments.
+Removes all of the "Core" actions that are added by default. This is accomplished by unregistering the function that would add the item. Note that to remove an individual default item, you can use `afc_remove_item`. The function takes no arguments.

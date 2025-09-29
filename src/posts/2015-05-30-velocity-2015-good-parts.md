@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Velocity 2015 (Santa Clara): The Good Parts"
-date:       2015-05-30 10:45:00
+title: "Velocity 2015 (Santa Clara): The Good Parts"
+date: 2015-05-30 10:45:00
 categories: conferences
 permalink: /velocity-2015-good-parts/
 ---
@@ -18,23 +18,23 @@ Andy and Simon told a few stories about how such components have broken function
 
 During their talk they pointed to a number of tools that help with auditing and diagnosing issues with third party components. I love how actionable these tools are. Here are some of the gems:
 
-* [Request Map Generator](http://requestmap.webperf.tools/): Built by Simon, this tools shows all of the third party domains that are loaded on a site. It helps you determine the chain of scripts that are loaded to more easily discovery which third party components are loading the fourth and fifth party components and so on.
-* [Web Performance Heat Map Generator](http://heatmap.webperf.tools/): Another Simon special, the Heat Map tool shows the areas of your site that are taking the longest to load. This tool helps you spot potential third party widgets that are slow to load on your site (as well as any first party slow spots). Simon [talks more about it](http://blog.webperf.ninja/2015/performance-heatmap/) on his blog.
-* [JS Manners](http://jsmanners.com/): A self-described "YSlow for widgets" that helps audit third party scripts to determine if there might be security risks, performance issues, or compatibility problems.
-* [SPOF-o-matic](https://chrome.google.com/webstore/detail/spof-o-matic/plikhggfbplemddobondkeogomgoodeg?hl=en-US): A Chrome extension by [WebPageTest.org](http://www.webpagetest.org/) creator Patrick Meenan for detecting and simulating Single Points of Failure (SPOF) on your site.
-* [Ghostery](https://chrome.google.com/webstore/detail/ghostery/mlomiejdfkolichcflejclcbmpeaniij?hl=en): Andy and Simon recommended using Ghostery as a quick way to get a look at all of the tracking code your site is running. I have used the tool to block tracking code in the past, but never thought to use it as a tool for auditing my own work. It's a really clever way to get a quick look at tracking code you may not realize that you are loading.
+- [Request Map Generator](http://requestmap.webperf.tools/): Built by Simon, this tools shows all of the third party domains that are loaded on a site. It helps you determine the chain of scripts that are loaded to more easily discovery which third party components are loading the fourth and fifth party components and so on.
+- [Web Performance Heat Map Generator](http://heatmap.webperf.tools/): Another Simon special, the Heat Map tool shows the areas of your site that are taking the longest to load. This tool helps you spot potential third party widgets that are slow to load on your site (as well as any first party slow spots). Simon [talks more about it](http://blog.webperf.ninja/2015/performance-heatmap/) on his blog.
+- [JS Manners](http://jsmanners.com/): A self-described "YSlow for widgets" that helps audit third party scripts to determine if there might be security risks, performance issues, or compatibility problems.
+- [SPOF-o-matic](https://chrome.google.com/webstore/detail/spof-o-matic/plikhggfbplemddobondkeogomgoodeg?hl=en-US): A Chrome extension by [WebPageTest.org](http://www.webpagetest.org/) creator Patrick Meenan for detecting and simulating Single Points of Failure (SPOF) on your site.
+- [Ghostery](https://chrome.google.com/webstore/detail/ghostery/mlomiejdfkolichcflejclcbmpeaniij?hl=en): Andy and Simon recommended using Ghostery as a quick way to get a look at all of the tracking code your site is running. I have used the tool to block tracking code in the past, but never thought to use it as a tool for auditing my own work. It's a really clever way to get a quick look at tracking code you may not realize that you are loading.
 
 I've always hated third party components on sites, but understand that they are often necessary. Andy and Simon's talk gave me a clear path toward beginning to audit and understand exactly how these components are affecting my site. I just love a talk that is so actionable.
 
-* Slides: [http://www.slideshare.net/simonhearne/what-are-thirdpartiy-components-doing-to-your-site](http://www.slideshare.net/simonhearne/what-are-thirdpartiy-components-doing-to-your-site)
-* Twitter: [@AndyDavies](https://twitter.com/AndyDavies) / [@simonhearne](https://twitter.com/simonhearne)
-* Websites: [Webperf Ninja](http://blog.webperf.ninja/) / [Andy Davies](http://andydavies.me/)
+- Slides: [http://www.slideshare.net/simonhearne/what-are-thirdpartiy-components-doing-to-your-site](http://www.slideshare.net/simonhearne/what-are-thirdpartiy-components-doing-to-your-site)
+- Twitter: [@AndyDavies](https://twitter.com/AndyDavies) / [@simonhearne](https://twitter.com/simonhearne)
+- Websites: [Webperf Ninja](http://blog.webperf.ninja/) / [Andy Davies](http://andydavies.me/)
 
 ### Tim Kadlec: Mobile image processing
 
 Tim spoke twice in one day at Velocity. As I understand it, this talk was his second talk as he was filling in for another speaker who couldn't make it at the last minute. Both talks were great, but this was by far my favorite of the two. The talk was absolutely fantastic and am glad I was able to see it.
 
-We all kinda know that serving big images on mobile and underpowered devices isn't a great idea. Well, in his talk, Tim filled in the missing details to explain *precisely* why this is such a significant faux pas. Tim explained that for a browser to display an image, it needs to:
+We all kinda know that serving big images on mobile and underpowered devices isn't a great idea. Well, in his talk, Tim filled in the missing details to explain _precisely_ why this is such a significant faux pas. Tim explained that for a browser to display an image, it needs to:
 
 1. Make the HTTP request to download the image
 1. Decode the image
@@ -43,7 +43,7 @@ We all kinda know that serving big images on mobile and underpowered devices isn
 
 None of these steps are cheap. He focused on the expensive operations that occur in steps 2 and 3. For an image to initially be encoded, a computer must convert [RGB](http://en.wikipedia.org/wiki/RGB_color_model) to [YUV](http://en.wikipedia.org/wiki/YUV), perform [chroma subsampling](http://en.wikipedia.org/wiki/Chroma_subsampling), compress via [DCT data quantization](http://en.wikipedia.org/wiki/Quantization_%28image_processing%29), and finally encode with [Huffman's algorithm](http://en.wikipedia.org/wiki/Huffman_coding). Step 2 is concerned with reversing this whole process in order to get back to the original RGB values in order to eventually pain the pixels to the screen. Yes...there is a lot going on here.
 
-In step 3, the decoded information is copied to and stored in GPU prior to painting. The big realization at this step is that you can quickly overwhelm the GPU's allotted memory because on many devices, the GPU is quite limited. Tim used an example 1280x520 px image to illustrate this point. The rough calculation is *Bytes of memory = W x H x 4*. Thus, this image uses 1280 x 520 x 4 = 2,662,400 bytes (2.54 MB) of memory. That's a ton of memory especially when you consider Jen Fitzpatrick's (VP of Product Management for Google Maps) quote from Google I/O this week:
+In step 3, the decoded information is copied to and stored in GPU prior to painting. The big realization at this step is that you can quickly overwhelm the GPU's allotted memory because on many devices, the GPU is quite limited. Tim used an example 1280x520 px image to illustrate this point. The rough calculation is _Bytes of memory = W x H x 4_. Thus, this image uses 1280 x 520 x 4 = 2,662,400 bytes (2.54 MB) of memory. That's a ton of memory especially when you consider Jen Fitzpatrick's (VP of Product Management for Google Maps) quote from Google I/O this week:
 
 > 25% of new Android phones only have 512 MB RAM
 
@@ -70,15 +70,15 @@ In summary, Tim made these four recommendations:
 1. Meta viewport is your friend
 1. Use 4:2:0 subsampling
 
-* Slides: [https://speakerdeck.com/tkadlec/mobile-image-processing-at-velocity-sc-2015](https://speakerdeck.com/tkadlec/mobile-image-processing-at-velocity-sc-2015)
-* Twitter: [@tkadlec](https://twitter.com/tkadlec)
-* Website: [http://timkadlec.com/](http://timkadlec.com/)
+- Slides: [https://speakerdeck.com/tkadlec/mobile-image-processing-at-velocity-sc-2015](https://speakerdeck.com/tkadlec/mobile-image-processing-at-velocity-sc-2015)
+- Twitter: [@tkadlec](https://twitter.com/tkadlec)
+- Website: [http://timkadlec.com/](http://timkadlec.com/)
 
 ### Ilya Grigorik: HTTP/2 is here: Let's optimize
 
 What would Velocity be without a talk from Ilya? This was a highlight for me and a great way to end the conference. Ilya discussed the transition from HTTP/1.1 to HHTP/2, especially with regard to all of the performance hacks that we have championed in order to overcome the shortcomings of HTTP/1.1. Much of this material has been covered in [Ilya's book](http://chimera.labs.oreilly.com/books/1230000000545?utm_source=igvita&utm_medium=referral&utm_campaign=igvita-homepage), but this presentation addressed some [updated information](http://chimera.labs.oreilly.com/books/1230000000545/ch12.html#_brief_history_of_spdy_and_http_2) about the state of the protocol.
 
-Rather than me going on about differences between HTTP/2 and HTTP/1.1, you should just read Ilya's book. It's a better use of your time; however, there were a few *really interesting* things that Ilya discussed that I want to highlight.
+Rather than me going on about differences between HTTP/2 and HTTP/1.1, you should just read Ilya's book. It's a better use of your time; however, there were a few _really interesting_ things that Ilya discussed that I want to highlight.
 
 First, he provided a [quote from Patrick McManus](https://docs.google.com/presentation/d/1r7QXGYOLCh4fcUq0jDdDwKJWNqWK1o4xMtYpKZCJYjM/present?slide=id.g518e3c87f_0_19) from Mozilla stating that HTTP/2 is already being used more that SPDY. Furthermore, as of May 26th 2015, [Chrome telemetry](https://www.chromium.org/developers/telemetry) is already showing that 45% of connections are being made over HTTP/2, with only 28% over SPDY and 27% over HTTP/1.1. HTTP/2 is already here. I feel like I've been waiting for it and didn't even realize that it's already in heavy use. I guess we just need Apache and Nginx to ship support!
 
@@ -88,15 +88,15 @@ Fortunately for us, HTTP/2 brings true multiplexing allowing developers to stop 
 
 This whole presentation was quite good and Ilya's slides are very detailed. I recommend a read through them if you are wanting to learn about the differences between HTTP/1.1 and HTTP/2.
 
-* Slides: [http://bit.ly/http2-opt](https://docs.google.com/presentation/d/1r7QXGYOLCh4fcUq0jDdDwKJWNqWK1o4xMtYpKZCJYjM/present?slide=id.p19)
-* Twitter: [@igrigorik](https://twitter.com/igrigorik)
-* Website: [https://www.igvita.com/](https://www.igvita.com/)
+- Slides: [http://bit.ly/http2-opt](https://docs.google.com/presentation/d/1r7QXGYOLCh4fcUq0jDdDwKJWNqWK1o4xMtYpKZCJYjM/present?slide=id.p19)
+- Twitter: [@igrigorik](https://twitter.com/igrigorik)
+- Website: [https://www.igvita.com/](https://www.igvita.com/)
 
 ### Zach Leatherman: The performance and usability of font loading
 
 Webfonts present a major challenge for the modern web. They are beautiful, but come with a steep performance cost. Zach's presentation expertly explained exactly how fonts are rendered in a browser. This explanation was one of the clearest and most detailed explanations of font rendering behavior that I've ever seen or read. I highly recommend looking at some of the visuals in his slide deck as they make the concepts crystal clear.
 
-The main message I got from Zach's presentation is that Flash of Invisible Text (FOIT) and Flash of Unstyled Text (FOUT) should be first class concerns when building a website and thus, you *must have a strategy for font rendering*. I particularly enjoyed his emphasis on FOIT more so than FOUT. He demonstrated that FOIT can obscure the meaning of your content, whereas FOUT only lacks the font decoration yet maintains the meaning of the content. He showed a screenshot of a headline from Slate that appeared to say "Mitt Romney is Officially Running for President", when the real headline was "Mitt Romney is Officially *not* Running for President". The "*not*" did not render on the page immediately because it required another font download because *not* was in italics. Thus, FOIT obscured the meaning of this text (how ironic would it be if the italics I just used in this paragraph also didn't render? #FOITception).
+The main message I got from Zach's presentation is that Flash of Invisible Text (FOIT) and Flash of Unstyled Text (FOUT) should be first class concerns when building a website and thus, you _must have a strategy for font rendering_. I particularly enjoyed his emphasis on FOIT more so than FOUT. He demonstrated that FOIT can obscure the meaning of your content, whereas FOUT only lacks the font decoration yet maintains the meaning of the content. He showed a screenshot of a headline from Slate that appeared to say "Mitt Romney is Officially Running for President", when the real headline was "Mitt Romney is Officially _not_ Running for President". The "_not_" did not render on the page immediately because it required another font download because _not_ was in italics. Thus, FOIT obscured the meaning of this text (how ironic would it be if the italics I just used in this paragraph also didn't render? #FOITception).
 
 You can see the results of FOIT below in the images he used to illustrate this point:
 
@@ -104,9 +104,9 @@ You can see the results of FOIT below in the images he used to illustrate this p
 
 ![](/media/images/mitt-not-president.jpg "Mitt Romney is Officially not Running for President")
 
-* Slides: [https://speakerdeck.com/zachleat/the-performance-and-usability-of-font-loading](https://speakerdeck.com/zachleat/the-performance-and-usability-of-font-loading)
-* Twitter: [@zachleat](https://twitter.com/zachleat)
-* Website: [http://www.zachleat.com/](http://www.zachleat.com/web/)
+- Slides: [https://speakerdeck.com/zachleat/the-performance-and-usability-of-font-loading](https://speakerdeck.com/zachleat/the-performance-and-usability-of-font-loading)
+- Twitter: [@zachleat](https://twitter.com/zachleat)
+- Website: [http://www.zachleat.com/](http://www.zachleat.com/web/)
 
 ### Mike Arpaia: osquery: Approaching security the hacker way
 
@@ -173,9 +173,9 @@ How cool is that? There are hundreds of tables of information that you can acces
 
 In addition to Mike talking about `osquery`, he generally discussed the need for openness in the world of security. He discussed his frustration with the amount of secrecy around security tooling and expressed his interest in the need for more of these sorts of tools being built openly. To that effect, `osquery` is open source, and you guessed it, [pull requests](https://github.com/facebook/osquery/pulls) are welcome.
 
-* Slides: [https://speakerdeck.com/marpaia/osquery-approaching-security-the-hacker-way](https://speakerdeck.com/marpaia/osquery-approaching-security-the-hacker-way)
-* Twitter: [@mikearpaia](https://twitter.com/mikearpaia)
-* Website: [http://arpaia.co/](http://arpaia.co/)
+- Slides: [https://speakerdeck.com/marpaia/osquery-approaching-security-the-hacker-way](https://speakerdeck.com/marpaia/osquery-approaching-security-the-hacker-way)
+- Twitter: [@mikearpaia](https://twitter.com/mikearpaia)
+- Website: [http://arpaia.co/](http://arpaia.co/)
 
 ### Rasmus Lerdorf: PHP 7
 
@@ -196,9 +196,9 @@ $ make -j8 prof-use
 
 Finally, Rasmus pointed to a [PHP 7 Vagrant box](https://github.com/rlerdorf/php7dev) that he is encouraging people to spin up and use to test PHP 7. Rasmus hinted of an RC for PHP 7 landing soon. Combined with [a Tweet](https://twitter.com/elePHPant_off/status/604437201120722944) from [elePHPant Offical](https://twitter.com/elePHPant_off), I'm assuming we'll be seeing it drop on June 8th.
 
-* Slides: [http://talks.php.net/velocity15](http://talks.php.net/velocity15)
-* Twitter: [@rasmus](https://twitter.com/rasmus)
-* Website: [https://toys.lerdorf.com/](https://toys.lerdorf.com/)
+- Slides: [http://talks.php.net/velocity15](http://talks.php.net/velocity15)
+- Twitter: [@rasmus](https://twitter.com/rasmus)
+- Website: [https://toys.lerdorf.com/](https://toys.lerdorf.com/)
 
 ### Allison McKnight: Crafting performance alerting tools
 
@@ -210,10 +210,10 @@ The point of this talk was not to give a play-by-play of how to set up a state o
 
 A few resources that Allison shared during the talk:
 
-* [Logster](https://github.com/etsy/logster): Logster monitors and parses logs to turn the information into useful metrics.
-* [Nagios Herald](https://github.com/etsy/nagios-herald): This Nagios extension allows you to create more meaningful Nagios alerts. It can be used to generate helpful information to be sent along with an alert to automate many of the on-call engineer's tasks by doing them as part of the event escalation.
+- [Logster](https://github.com/etsy/logster): Logster monitors and parses logs to turn the information into useful metrics.
+- [Nagios Herald](https://github.com/etsy/nagios-herald): This Nagios extension allows you to create more meaningful Nagios alerts. It can be used to generate helpful information to be sent along with an alert to automate many of the on-call engineer's tasks by doing them as part of the event escalation.
 
 Thanks for the great talk, Allison!
 
-* Slides: [https://speakerdeck.com/aemcknig/crafting-performance-alerting-tools](https://speakerdeck.com/aemcknig/crafting-performance-alerting-tools)
-* Twitter: [@aemcknig](https://twitter.com/aemcknig)
+- Slides: [https://speakerdeck.com/aemcknig/crafting-performance-alerting-tools](https://speakerdeck.com/aemcknig/crafting-performance-alerting-tools)
+- Twitter: [@aemcknig](https://twitter.com/aemcknig)

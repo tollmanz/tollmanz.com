@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "I Have a Website"
-date:       2012-05-18 03:30:00
+title: "I Have a Website"
+date: 2012-05-18 03:30:00
 categories: site
 permalink: /i-have-a-website/
 ---
@@ -12,7 +12,7 @@ As I open the doors to this site, I am again excited about the technology. The s
 
 In addition to the server technology, I went to great strides to minimize adding unnecessary code to the frontend. I am proud to say that the only JS file added to the site for non-logged in users is the standard Google Analytics code. I even wrote functionality to locally cache GitHub gists to avoid the extra weight of enqueuing another JS file or files on the site. I am contemplating adding social media buttons, but with most implementations, the overhead is not worth the degraded user experience. I heavily cached things that should not be a burden to the reader (e.g., pseudo-breadcrumbs). I am currently only using one plugin, Akismet. I will likely add more plugins as I further build out the site.
 
-When creating the theme, I was very inspired by [Readability](http://www.readability.com/ "Readability"). I really appreciate how these services focus on the important part of webpages--the content. Similarly, I would like this site to draw people in because of the content and them keep them here because that content is simple to engage. 
+When creating the theme, I was very inspired by [Readability](http://www.readability.com/ "Readability"). I really appreciate how these services focus on the important part of webpages--the content. Similarly, I would like this site to draw people in because of the content and them keep them here because that content is simple to engage.
 
 For whatever reason, I could not help thinking about all of the open source software that this site stands on while I was developing it. Because I often work for individuals who are paying me to build sites using this technology, I often forget the fact that so much of the "materials" are free and exist because of others' hard work. I am pleased that I thought about that while developing this site and am so appreciate to everyone who has played a part in building this site and billions of others around the internet.
 

@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Typography.com's CSSOM Blocking Font Loader"
-date:       2014-06-20 01:45:00
+title: "Typography.com's CSSOM Blocking Font Loader"
+date: 2014-06-20 01:45:00
 categories: web-performance
 permalink: /typography-coms-cssom-blocking-font-loader/
 ---

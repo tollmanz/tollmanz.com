@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Implementing Public Key Pinning"
-date:       2015-01-25 20:25:00
+title: "Implementing Public Key Pinning"
+date: 2015-01-25 20:25:00
 categories: security
 permalink: /public-key-pinning-for-http/
 ---
@@ -24,7 +24,7 @@ The header provides the pinning information, a time-to-live (TTL) for the pins, 
 
 HPKP requires deploying multiple pins in order to have a backup public key in case you have to revoke your current key. With this in mind, I decided to buy a second certificate from my website. To be honest, I've been really wanting to try [SSLMate](https://sslmate.com/), a command line based certificate management system, so I used this occasion as an excuse to try it out (and it was wonderful!).
 
-With two fully functionally certificates from two independent CAs with independent root certificates, I needed to figure out what certificate's public key to hash using the SHA-256 hashing algorithm. To clarify, HPKP only requires that a *single public key* in the full certificate chain is pinned. You can choose which keys to pin. I decided to create pins out of the intermediate certificate's public keys for each CA. I decided not to hash my public key in order to make it easier to reissue my certificate if necessary. This decision was based on the fact that I want to experiment with regular certificate rotation, so I thought it would be better to not hash my certificate.
+With two fully functionally certificates from two independent CAs with independent root certificates, I needed to figure out what certificate's public key to hash using the SHA-256 hashing algorithm. To clarify, HPKP only requires that a _single public key_ in the full certificate chain is pinned. You can choose which keys to pin. I decided to create pins out of the intermediate certificate's public keys for each CA. I decided not to hash my public key in order to make it easier to reissue my certificate if necessary. This decision was based on the fact that I want to experiment with regular certificate rotation, so I thought it would be better to not hash my certificate.
 
 I grabbed the cert that I needed and hashed it:
 
@@ -83,8 +83,8 @@ If you are not clear on what HPKP is at this point, that is ok. I prefer that yo
 
 I found some excellent articles that helped me with setting up pinning and wanted to share an annotated reading list if you are interested in the subject.
 
-* [Everything you Need to Know about HTTP Public Key Pinning](http://blog.rlove.org/2015/01/public-key-pinning-hpkp.html) - Robert Love: Robert really nails the primary concept of HPKP. He writes in a clear, matter of fact matter that allows you to really understand the subject. He finishes by providing a great guide to implementing HPKP.
-* [HTTP Public Key Pinning Explained](https://timtaubert.de/blog/2014/10/http-public-key-pinning-explained/) - Tim Taubert; Tim's article dives much deeper into the internals of what a certificate contains and what is used to generate a pin. After reading his article, I had a much better sense of what is actually "pinned". I also really appreciated his exploration of the need for a backup key and the situations in which your key might be revoked. In fact, this article influenced me to pin my CA's intermediate certs, not my cert.
-* [HTTP Public Key Pinning Extension HPKP for Apache, NGINX and Lighttpd](https://raymii.org/s/articles/HTTP_Public_Key_Pinning_Extension_HPKP.html) - Remy van Elst; Remy's article did not provide much beyond the first two articles, but reaffirmed my decision of what to pin. I also really liked the source material from Adam Langley that he highlighted.
-* [Public Key Pinning](https://developer.mozilla.org/en-US/docs/Web/Security/Public_Key_Pinning) - Mozilla; I really enjoy the Mozilla Developer Network articles, especially ones on TLS. This one is straight to the point and is a great guide for how to set up pinning if you do not want to be too bogged down by theory.
-* [JavaScript Public-Key-Pins (HPKP) calculator v1.0.2](https://projects.dm.id.lv/s/pkp-online/calculator.html) - Dāvis Mošenkovs: Dāvis wrote a really helpful tool for creating your pins. He even automates creating the header if you want. I found this useful for verifying my commands for creating hashes as well as easily seeing the pins for each cert in my certificate chain.
+- [Everything you Need to Know about HTTP Public Key Pinning](http://blog.rlove.org/2015/01/public-key-pinning-hpkp.html) - Robert Love: Robert really nails the primary concept of HPKP. He writes in a clear, matter of fact matter that allows you to really understand the subject. He finishes by providing a great guide to implementing HPKP.
+- [HTTP Public Key Pinning Explained](https://timtaubert.de/blog/2014/10/http-public-key-pinning-explained/) - Tim Taubert; Tim's article dives much deeper into the internals of what a certificate contains and what is used to generate a pin. After reading his article, I had a much better sense of what is actually "pinned". I also really appreciated his exploration of the need for a backup key and the situations in which your key might be revoked. In fact, this article influenced me to pin my CA's intermediate certs, not my cert.
+- [HTTP Public Key Pinning Extension HPKP for Apache, NGINX and Lighttpd](https://raymii.org/s/articles/HTTP_Public_Key_Pinning_Extension_HPKP.html) - Remy van Elst; Remy's article did not provide much beyond the first two articles, but reaffirmed my decision of what to pin. I also really liked the source material from Adam Langley that he highlighted.
+- [Public Key Pinning](https://developer.mozilla.org/en-US/docs/Web/Security/Public_Key_Pinning) - Mozilla; I really enjoy the Mozilla Developer Network articles, especially ones on TLS. This one is straight to the point and is a great guide for how to set up pinning if you do not want to be too bogged down by theory.
+- [JavaScript Public-Key-Pins (HPKP) calculator v1.0.2](https://projects.dm.id.lv/s/pkp-online/calculator.html) - Dāvis Mošenkovs: Dāvis wrote a really helpful tool for creating your pins. He even automates creating the header if you want. I found this useful for verifying my commands for creating hashes as well as easily seeing the pins for each cert in my certificate chain.

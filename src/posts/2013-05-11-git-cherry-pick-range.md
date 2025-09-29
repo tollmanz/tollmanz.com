@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Cherry Picking a Range of Commits with Git"
-date:       2013-05-11 08:25:00
+title: "Cherry Picking a Range of Commits with Git"
+date: 2013-05-11 08:25:00
 categories: git merge cherry-pick
 permalink: /git-cherry-pick-range/
 ---
@@ -26,4 +26,4 @@ This syntax will include the first commit object. This inclusion is what I assum
 
 References:
 
-* [Stackoverflow: How to cherry pick a range of commits and merge into another branch](http://stackoverflow.com/questions/1994463/how-to-cherry-pick-a-range-of-commits-and-merge-into-another-branch)
+- [Stackoverflow: How to cherry pick a range of commits and merge into another branch](http://stackoverflow.com/questions/1994463/how-to-cherry-pick-a-range-of-commits-and-merge-into-another-branch)

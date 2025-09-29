@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "Caching in WordPress: Invalidation Schemes"
-date:       2012-10-13 13:24:00
+title: "Caching in WordPress: Invalidation Schemes"
+date: 2012-10-13 13:24:00
 categories: caching
 permalink: /invalidation-schemes/
 ---
@@ -93,7 +93,7 @@ function zt_generate_top_posts() {
 }
 ```
 
-To regenerate this cache, you could save a new version of the data over the old version by setting data to the cache using the  "zt-top-posts" key. Alternatively, you could use the "wp_cache_delete" function to delete the object from cache, which would ultimately cause the data to regenerate the next time that "zt_get_top_posts" is called. The problem with this current code is that there is nothing that does that for us. Let us improve the get function to help us with this task.
+To regenerate this cache, you could save a new version of the data over the old version by setting data to the cache using the "zt-top-posts" key. Alternatively, you could use the "wp_cache_delete" function to delete the object from cache, which would ultimately cause the data to regenerate the next time that "zt_get_top_posts" is called. The problem with this current code is that there is nothing that does that for us. Let us improve the get function to help us with this task.
 
 ```php
 <?php
@@ -239,7 +239,7 @@ function zt_get_top_posts( $args, $force = false ) {
 }
 ```
 
-The only way that the function can create a unique object ID for each set of function arguments is to use those arguments when generating the cache key. As such, the function serializes the $args array and creates a reproduceable hash of the parameters using the "md5" function<span class="footnote-article-number">2</span>. In addition to creating the unique identifier, I also use the "group" parameter of the "wp_cache_*" family of functions in order to group the items. This is more or less a way of namespacing these keys and does not offer a major advantage over not adding the "group" parameter.
+The only way that the function can create a unique object ID for each set of function arguments is to use those arguments when generating the cache key. As such, the function serializes the $args array and creates a reproduceable hash of the parameters using the "md5" function<span class="footnote-article-number">2</span>. In addition to creating the unique identifier, I also use the "group" parameter of the "wp*cache*\*" family of functions in order to group the items. This is more or less a way of namespacing these keys and does not offer a major advantage over not adding the "group" parameter.
 
 ### Now, Invalidation is Tricky
 
@@ -336,7 +336,7 @@ function zt_get_incrementor( $refresh = false ) {
 }
 ```
 
-In this case, instead of salting the cache key, I salt the cache group with the incrementor. There is no difference in how this affects the design pattern or the ability to invalidate the cache; rather, I salt the group for semantic reasons. Since my goal is ultimately to invalidate a whole *group* of objects, I salt the *group* so that will ultimately change the *group*, which invalidates the whole *group*.
+In this case, instead of salting the cache key, I salt the cache group with the incrementor. There is no difference in how this affects the design pattern or the ability to invalidate the cache; rather, I salt the group for semantic reasons. Since my goal is ultimately to invalidate a whole _group_ of objects, I salt the _group_ so that will ultimately change the _group_, which invalidates the whole _group_.
 
 Salting the groups will result in the following two calls to "zt_get_top_posts" generating keys that look like the following:
 
@@ -372,7 +372,7 @@ The important thing to remember when trying to implement this method is that you
 
 ### Conclusion
 
-In WordPress, invalidating groups of objects is a tough enterprise. To effectively design a system to handle cache invalidations requires thorough planning before a single line of code is written. I have presented one method of invalidating groups of cached items in the present article. I want to emphasize that this is *not the only* method for invalidating groups of cached items. If you are not aware of how your cache stores and evicts items, you should not utilize this method. Doing so will likely lead to a very difficult to debug issue. So long as you are aware of the potential pitfalls of this method, it is a powerful tool for handling a tricky scenario in WordPress development.
+In WordPress, invalidating groups of objects is a tough enterprise. To effectively design a system to handle cache invalidations requires thorough planning before a single line of code is written. I have presented one method of invalidating groups of cached items in the present article. I want to emphasize that this is _not the only_ method for invalidating groups of cached items. If you are not aware of how your cache stores and evicts items, you should not utilize this method. Doing so will likely lead to a very difficult to debug issue. So long as you are aware of the potential pitfalls of this method, it is a powerful tool for handling a tricky scenario in WordPress development.
 
 <p class="footnote"><span class="footnote-footer-number">1</span> I am not discussing re-writing the "zt_refresh_top_posts" function because it is just not worth it at this point. There really is no reason to use that function anymore as it is just a simple wrapper for the "get_top_posts" function. Instead of relying on the "refresh_top_posts" function, the "zt_get_top_posts" function with the "$force" parameter set to boolean true should be used.</p>
 

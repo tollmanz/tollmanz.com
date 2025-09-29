@@ -33,7 +33,6 @@ For automated deployment on commits to the `main` branch:
 1. Go to the GitHub repository settings
 2. Navigate to "Secrets and variables" → "Actions"
 3. Add the following repository secrets:
-
    - `B2_APPLICATION_KEY_ID`: Backblaze B2 Application Key ID
    - `B2_APPLICATION_KEY`: Backblaze B2 Application Key
    - `B2_BUCKET_NAME`: Backblaze B2 bucket name

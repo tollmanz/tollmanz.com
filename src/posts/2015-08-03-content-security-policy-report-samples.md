@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "What to Expect When Expecting Content Security Policy Reports"
-date:       2015-08-09 17:30:00
+title: "What to Expect When Expecting Content Security Policy Reports"
+date: 2015-08-09 17:30:00
 categories: content security policy, monitoring, security
 permalink: /content-security-policy-report-samples/
 ---
@@ -16,23 +16,23 @@ I have been slowly working on an OSS app to express an API for storing and retri
 
 This article is going to get deep into the weeds and if you just want the high level findings, here they are:
 
-* I captured more than 2,200 CSP reports that are broken into browser and version and include header information.
-* Generally speaking, I found four repeatable variations of reports. I classify them as "Blink", "Firefox", "Webkit", and "Old Webkit" variants. There is variation within these reports; however, these four buckets generally capture the meaningful variation. Scroll down to the discussion to see samples of these reports.
-* Most important variation that I observed were with the `blocked-uri` property, the potential absence of a `csp-report` property, inconsistent cookie handling, and different content types.
-* The current Blink CSP implementation is nearly perfect as far as I can tell, which means Chrome and Opera are delivering excellent CSP reports. Webkit and Gecko are all over the place with different variations of reports.
-* I have a useful list of tips at the end of this article if you are wanting to deliver CSP headers on your site.
+- I captured more than 2,200 CSP reports that are broken into browser and version and include header information.
+- Generally speaking, I found four repeatable variations of reports. I classify them as "Blink", "Firefox", "Webkit", and "Old Webkit" variants. There is variation within these reports; however, these four buckets generally capture the meaningful variation. Scroll down to the discussion to see samples of these reports.
+- Most important variation that I observed were with the `blocked-uri` property, the potential absence of a `csp-report` property, inconsistent cookie handling, and different content types.
+- The current Blink CSP implementation is nearly perfect as far as I can tell, which means Chrome and Opera are delivering excellent CSP reports. Webkit and Gecko are all over the place with different variations of reports.
+- I have a useful list of tips at the end of this article if you are wanting to deliver CSP headers on your site.
 
 # Method
 
 To capture these reports, I wrote a series of Node scripts to build a page with CSP violations, a naive CSP report collector, and some additional scripts for post-processing the data. All of these scripts and resources can be viewed in the [Report Only Capture repository](https://github.com/tollmanz/report-only-capture). I attempted to trigger alerts on most of the directives that are allowed; however, I was unable to trigger on all of them primarily due to lack of time. My sample includes violations of the following directives:
 
-* script-src
-* style-src
-* img-src
-* frame-src
-* child-src
-* media-src
-* object-src
+- script-src
+- style-src
+- img-src
+- frame-src
+- child-src
+- media-src
+- object-src
 
 I set the following CSP directives to trigger reports:
 
@@ -60,13 +60,13 @@ Manual testing involved painstakingly firing up a new VM and navigating to the C
 
 Reports were collected from 92 different browsers, including:
 
-* Chrome 14.0 - 44.0
-* Safari 5.1, 6.0, 6.1, 7.0, & 8.0 (OS X)
-* Safari 5.1, 6.0, 7.0, 8.0, 9.0 (iOS)
-* Opera 15.0 - 32.0
-* Firefox 5.0 - 41.0
-* Edge 0.11
-* Android 4.4, 5.0
+- Chrome 14.0 - 44.0
+- Safari 5.1, 6.0, 6.1, 7.0, & 8.0 (OS X)
+- Safari 5.1, 6.0, 7.0, 8.0, 9.0 (iOS)
+- Opera 15.0 - 32.0
+- Firefox 5.0 - 41.0
+- Edge 0.11
+- Android 4.4, 5.0
 
 More browser versions and browsers were tested, but if they did not send a report, they were not included in the final sample because they produced no data. I did observe that some browsers (most notably IE 10 and 11) would adhere to the CSP directives, but not produce a report.
 
@@ -82,24 +82,24 @@ All browsers properly sent CSP violation reports as POST requests with a JSON pa
 
 Content Security Report violations varied widely across the spectrum of browsers tested. In total, 14 different properties were observed in the `csp-report` object:
 
-* blocked-uri
-* document-uri
-* effective-directive
-* original-policy
-* referrer
-* status-code
-* violated-directive
-* source-file
-* line-number
-* column-number
-* request
-* request-headers
-* script-sample
+- blocked-uri
+- document-uri
+- effective-directive
+- original-policy
+- referrer
+- status-code
+- violated-directive
+- source-file
+- line-number
+- column-number
+- request
+- request-headers
+- script-sample
 
 Additionally, two properties were observed outside of the `csp-report` property:
 
-* document-url
-* violated-directive
+- document-url
+- violated-directive
 
 `document-url` was fulfilled the same purpose of `document-uri`, but only ever appeared outside of the `csp-report` object; thus, special care needs to be taken when handling this property.
 
@@ -107,9 +107,9 @@ The last four items in the list of properties are not specified by the CSP2 spec
 
 The other three non-standard properties were observed in the following browsers:
 
-* `request`, contained the full HTTP request string (e.g., `GET http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=5.0&browser=firefox&os_version=Yosemite HTTP/1.1`); Firefox 5.0 - 13.0
-* `request-headers`: contains headers sent with request separated by new lines; Firefox 5.0
-* `document-url`: synonymous with `document-uri`; Safari 5.1, 6.1 (OS X), Safari 5.1, 6.0 (iOS);
+- `request`, contained the full HTTP request string (e.g., `GET http://45.55.25.245:8123/csp?os=OS%20X&device=&browser_version=5.0&browser=firefox&os_version=Yosemite HTTP/1.1`); Firefox 5.0 - 13.0
+- `request-headers`: contains headers sent with request separated by new lines; Firefox 5.0
+- `document-url`: synonymous with `document-uri`; Safari 5.1, 6.1 (OS X), Safari 5.1, 6.0 (iOS);
 
 The individual CSP report properties also varied depending on the browser. I will discuss properties that were implemented inconsistently across browsers. Any property not mentioned is assumed to be consistent across browsers.
 
@@ -145,8 +145,8 @@ This property is different than `violated-directive` in that `violated-directive
 
 The only browsers supporting the `effective-directive` at the time of this writing are:
 
-* Chrome 40.0 - 44.0
-* Opera 27.0 - 32.0
+- Chrome 40.0 - 44.0
+- Opera 27.0 - 32.0
 
 The lesson here is that you absolutely should not rely on `effective-directive` for categorizing your reports, as this will lead to missing data. In the discussion below, I have a tip for how you can normalize this across browsers.
 
@@ -160,23 +160,23 @@ In addition to seeing variation across the JSON payload sent, the request header
 
 In total, 17 different request headers were observed:
 
-* host
-* user-agent
-* accept
-* accept-language
-* accept-encoding
-* content-length
-* content-type
-* connection
-* cookie
-* referer
-* cache-control
-* origin
-* x-requested-with
-* accept-charset
-* pragma
-* ua-cpu
-* x-forwarded-for
+- host
+- user-agent
+- accept
+- accept-language
+- accept-encoding
+- content-length
+- content-type
+- connection
+- cookie
+- referer
+- cache-control
+- origin
+- x-requested-with
+- accept-charset
+- pragma
+- ua-cpu
+- x-forwarded-for
 
 Like with the CSP report payload, I will only discuss noteworthy differences between browsers here.
 
@@ -184,18 +184,18 @@ Like with the CSP report payload, I will only discuss noteworthy differences bet
 
 Cookie handling was wildly different between browsers. The CSP2 spec's [only comment](http://www.w3.org/TR/CSP2/#violation-reports) on the matter is (their emphasis):
 
->  If the origin of *report URL* is **not** the same as the origin of the protected resource, the block cookies flag MUST also be set.
+> If the origin of _report URL_ is **not** the same as the origin of the protected resource, the block cookies flag MUST also be set.
 
 I interpret this to mean that cookies should only be set if `document-uri` shares the same origin as the CSP report URI. This sharing is sensible given that resources on the same origin should be able to share cookies.
 
 The browsers that sent a cookie during testing were:
 
-* Chrome 14.0 - 44.0
-* Edge 0.11
-* Firefox 9.0 - 14.0
-* Safari 5.1, 6.0, 6.1, 7.0, & 8.0 (OS X)
-* Safari 5.1, 6.0, 7.0, 8.0, 9.0 (iOS)
-* Opera 15.0 - 32.0
+- Chrome 14.0 - 44.0
+- Edge 0.11
+- Firefox 9.0 - 14.0
+- Safari 5.1, 6.0, 6.1, 7.0, & 8.0 (OS X)
+- Safari 5.1, 6.0, 7.0, 8.0, 9.0 (iOS)
+- Opera 15.0 - 32.0
 
 Most notably, Firefox stopped sending any cookies at version 14.0. You simply cannot get cookies out of the report in Firefox.
 
@@ -203,9 +203,9 @@ As for other browsers, my tests were inconclusive as to whether they were treati
 
 That said, I did collect some data on reporting to different ports and can at least comment on that. Here are a few things I learned:
 
-* As of Chrome 28.0, if the report URI does not match the URI origin and port of the `document-uri`, cookies will not be sent. They are treating separate ports essentially as separate domains.
-* All versions of Opera tested (15.0 - 32.0) must have a port match to send cookies.
-* Firefox (9.0 - 14.0), Safari, and Edge will send cookies regardless of the port match.
+- As of Chrome 28.0, if the report URI does not match the URI origin and port of the `document-uri`, cookies will not be sent. They are treating separate ports essentially as separate domains.
+- All versions of Opera tested (15.0 - 32.0) must have a port match to send cookies.
+- Firefox (9.0 - 14.0), Safari, and Edge will send cookies regardless of the port match.
 
 I would like to test this again with different domains to see how the behavior changes; however, given the Firefox results, I feel confident in saying that without a change to Firefox, a CSP report collector should not depend on cookies as a major browser would be completely ignored.
 
@@ -213,30 +213,30 @@ I would like to test this again with different domains to see how the behavior c
 
 The CSP2 spec [states that CSP report requests](http://www.w3.org/TR/CSP2/#violation-reports) need to use a `content-type` header of `application/csp-report`. In my sample, I observed four different `content-type` headers:
 
-* application/x-www-form-urlencoded
-* application/json
-* application/csp-report
-* application/json; charset=UTF-8
+- application/x-www-form-urlencoded
+- application/json
+- application/csp-report
+- application/json; charset=UTF-8
 
 Browsers that are sending the correct `application/csp-report` content-type include:
 
-* Chrome 30.0 - 44.0
-* Opera 17.0 - 32.0
+- Chrome 30.0 - 44.0
+- Opera 17.0 - 32.0
 
 Browsers that send the `application/json` or `application/json; charset=UTF-8` include:
 
-* Safari 7.0, 8.0 (OS X)
-* Safari 7.0, 8.0, 9.0 (iOS)
-* Opera 15.0 - 16.0
-* Firefox 5.0 - 41.0 (5.0 - 14.0 added `charset=UTF-8`)
-* Chrome 21.0 - 29.0
-* Edge 0.11
+- Safari 7.0, 8.0 (OS X)
+- Safari 7.0, 8.0, 9.0 (iOS)
+- Opera 15.0 - 16.0
+- Firefox 5.0 - 41.0 (5.0 - 14.0 added `charset=UTF-8`)
+- Chrome 21.0 - 29.0
+- Edge 0.11
 
 Finally, browsers that send the `application/x-www-form-urlencoded` content type are:
 
-* Chrome 14.0 - 20.0
-* Safari 5.1, 6.0, 6.1 (OS X)
-* Safari 5.1, 6.0 (iOS)
+- Chrome 14.0 - 20.0
+- Safari 5.1, 6.0, 6.1 (OS X)
+- Safari 5.1, 6.0 (iOS)
 
 Interestingly, in building a very naive collector, I had some troubles handling the `application/csp-report` content type. I used [Hapi](http://hapijs.com/) as a Node framework for building this collector, and I had to trick Hapi into thinking it was [dealing with JSON](https://www.tollmanz.com/hapi-415-unsupported-media-type/) in order for the application to properly handle the data. Content negotiation is a tricky subject so beware of the `application/csp-report` content type with your server of choice.
 
@@ -246,14 +246,14 @@ It is clear that different browsers handle CSP reports differently. On the brigh
 
 From what I observed, there are essentially four categories of CSP reports:
 
-* Blink
-* Firefox
-* Webkit
-* Old Webkit
+- Blink
+- Firefox
+- Webkit
+- Old Webkit
 
 Each of these four categories have variation within, but you can see sample reports, including headers for each below. Please note that this should only serve as rough guidelines of the different representations. These will vary from browser to browser and version to version:
 
-* Blink: Modern Chrome and Opera; exemplifies adherence to the CSP standard
+- Blink: Modern Chrome and Opera; exemplifies adherence to the CSP standard
 
 ```bash
 "header": {
@@ -282,7 +282,7 @@ Each of these four categories have variation within, but you can see sample repo
 }
 ```
 
-* Firefox: Mostly seen in Firefox, but also similar to Edge's implementation
+- Firefox: Mostly seen in Firefox, but also similar to Edge's implementation
 
 ```bash
 "header": {
@@ -306,7 +306,7 @@ Each of these four categories have variation within, but you can see sample repo
 }
 ```
 
-* Webkit: Current Webkit implementation (e.g., Safari, per-blink Chrome). I get the sense that after Chrome forked Webkit to Blink, CSP handling stagnated in Webkit, but that is purely conjecture.
+- Webkit: Current Webkit implementation (e.g., Safari, per-blink Chrome). I get the sense that after Chrome forked Webkit to Blink, CSP handling stagnated in Webkit, but that is purely conjecture.
 
 ```bash
 "header": {
@@ -333,7 +333,7 @@ Each of these four categories have variation within, but you can see sample repo
 }
 ```
 
-* Old Webkit: primarily seen in older Webkit based browsers (e.g., pre-blink Chrome, Safari)
+- Old Webkit: primarily seen in older Webkit based browsers (e.g., pre-blink Chrome, Safari)
 
 ```bash
 "header": {
@@ -375,10 +375,10 @@ Testing report URIs across domains needs to be conducted, as well as across prot
 
 In doing this work, I learned some useful tricks and tips with regard to CSP usage and would be remiss if I did not share them.
 
-* I found the `'self'` keyword to be tricky to use. Some reports would convert it to the URI origin when reporting it in the `original-policy` property. As you can imagine, this led to confusion as to why my policy was being changed and whether or not my headers were wrong. I found that if I used the URI origin instead of `'self'`, everything was more clear and policies were easier to validate. If you take this advice, make sure that you change the URI origin for each of your staging environments. While you gain clarity, you trade it for some convenience.
-* The `effective-directive` property is immensely helpful for categorizing reports; however, only two browsers support it and they only do so in recent versions. If you want to "polyfill" this for other browsers, you can do so if you define a really specific CSP header and parse the `violated-directive` property. For instance, if your policy is `default-src https://www.example.com; img-src https://www.example.com` and an image triggers a violation, you will receive the `violated-directive` property in a reliable way across most browsers. It will be `img-src https://www.example.com`. You can then use the `img-src` bit in that string to get the "effective directive" information. Note that this only works if your policy is specific.
-* While you cannot change the information that is sent in a report, you can vary the report URL per page. I used this strategy to categorize browsers. For instance, to test Chrome 44.0, I set the following CSP report URI: `http://localhost:8123/csp-report?os=OS+X&os_version=Lion&browser=Chrome&browser_version=44.0`. I can then collect the information sent in the query. This strategy can be useful for any sort of segmentation that you want, so long as you can vary headers on a page by page basis in your app. I can imagine this being used to track violations per vertical for instance.
-* <strike>You should use all three CSP related headers in your deployment: `Content-Security-Policy`, `X-Content-Security-Policy`, and `X-Webkit-CSP`. Without the Webkit variant, you'll miss reports from older Safari clients. `X-Content-Security-Policy` has no bearing on reports as the only clients that use it are IE 10 and 11; however, this is still important for blocking resources in those browsers.</strike> After a [warning from Neil Matatall](https://twitter.com/ndm/status/631175644622106624), I take back this recommendation. I certainly would be ok with `X-Webkit-CSP` sending mangled reports, but the fact that it can cause a white screen in some browsers is reason enough to never use it. Sorry for the bad advice.
+- I found the `'self'` keyword to be tricky to use. Some reports would convert it to the URI origin when reporting it in the `original-policy` property. As you can imagine, this led to confusion as to why my policy was being changed and whether or not my headers were wrong. I found that if I used the URI origin instead of `'self'`, everything was more clear and policies were easier to validate. If you take this advice, make sure that you change the URI origin for each of your staging environments. While you gain clarity, you trade it for some convenience.
+- The `effective-directive` property is immensely helpful for categorizing reports; however, only two browsers support it and they only do so in recent versions. If you want to "polyfill" this for other browsers, you can do so if you define a really specific CSP header and parse the `violated-directive` property. For instance, if your policy is `default-src https://www.example.com; img-src https://www.example.com` and an image triggers a violation, you will receive the `violated-directive` property in a reliable way across most browsers. It will be `img-src https://www.example.com`. You can then use the `img-src` bit in that string to get the "effective directive" information. Note that this only works if your policy is specific.
+- While you cannot change the information that is sent in a report, you can vary the report URL per page. I used this strategy to categorize browsers. For instance, to test Chrome 44.0, I set the following CSP report URI: `http://localhost:8123/csp-report?os=OS+X&os_version=Lion&browser=Chrome&browser_version=44.0`. I can then collect the information sent in the query. This strategy can be useful for any sort of segmentation that you want, so long as you can vary headers on a page by page basis in your app. I can imagine this being used to track violations per vertical for instance.
+- <strike>You should use all three CSP related headers in your deployment: `Content-Security-Policy`, `X-Content-Security-Policy`, and `X-Webkit-CSP`. Without the Webkit variant, you'll miss reports from older Safari clients. `X-Content-Security-Policy` has no bearing on reports as the only clients that use it are IE 10 and 11; however, this is still important for blocking resources in those browsers.</strike> After a [warning from Neil Matatall](https://twitter.com/ndm/status/631175644622106624), I take back this recommendation. I certainly would be ok with `X-Webkit-CSP` sending mangled reports, but the fact that it can cause a white screen in some browsers is reason enough to never use it. Sorry for the bad advice.
 
 ## Acknowledgments
 

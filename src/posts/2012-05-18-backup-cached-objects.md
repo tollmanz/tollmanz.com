@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "A Case for \"Backing Up\" Cached Objects"
-date:       2012-05-18 03:42:00
+title: 'A Case for "Backing Up" Cached Objects'
+date: 2012-05-18 03:42:00
 categories: caching
 permalink: /backup-cached-objects/
 ---

@@ -1,7 +1,7 @@
 ---
 layout: post.njk
-title:      "HTTPS Mixed Content Detector 1.1.0 Update: WP CLI, HTTPS Status, and Specific Policies"
-date:       2015-01-04 14:30:00
+title: "HTTPS Mixed Content Detector 1.1.0 Update: WP CLI, HTTPS Status, and Specific Policies"
+date: 2015-01-04 14:30:00
 categories: security
 permalink: /wordpress-https-mixed-content-detector-1-1-0-update/
 ---
@@ -16,13 +16,13 @@ I am a huge fan of WP CLI and always planned on eventually adding some command l
 
 This command lists all of the CSP violations that are currently logged on your site. I find the WP CLI tables to be a great way to quickly access information and spare me from having to log into a website and navigate around the WP dashboard. The table reveals the following information for each report:
 
-* **ID**: The WordPress post ID for the report
-* **Blocked URI**: The URI that was blocked
-* **Document URI**: The URI being accessed when the report was generated
-* **Referrer**: The URI that loaded the blocked URI
-* **Violated Directive**: The specific directive that was violated
-* **R**: Indicates whether or not a report is marked as resolved or not
-* **S**: Indicates if the HTTPS variant of the blocked URI is accessible
+- **ID**: The WordPress post ID for the report
+- **Blocked URI**: The URI that was blocked
+- **Document URI**: The URI being accessed when the report was generated
+- **Referrer**: The URI that loaded the blocked URI
+- **Violated Directive**: The specific directive that was violated
+- **R**: Indicates whether or not a report is marked as resolved or not
+- **S**: Indicates if the HTTPS variant of the blocked URI is accessible
 
 Check out an example of the table:
 

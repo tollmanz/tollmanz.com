@@ -8,7 +8,9 @@
     "dev": "eleventy --serve",
     "deploy": "node scripts/deploy.js",
     "deploy:dry-run": "node scripts/deploy.js --dry-run",
-    "deploy:force": "node scripts/deploy.js --force"
+    "deploy:force": "node scripts/deploy.js --force",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "author": "Zack Tollman <tollmanz@gmail.com>",
   "license": "MIT",
@@ -21,6 +23,7 @@
     "html-minifier-terser": "7.2.0",
     "luxon": "3.7.2",
     "markdown-it": "14.1.0",
-    "mime-types": "2.1.35"
+    "mime-types": "2.1.35",
+    "prettier": "3.6.2"
   }
 }
