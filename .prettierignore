@@ -55,7 +55,3 @@ pnpm-lock.yaml
 
 # Third-party libraries (should not be formatted)
 src/js/boomerang-2.js
-
-# CSS files handled by different minification process
-src/css/main.css
-src/css/syntax-highlighting.css
