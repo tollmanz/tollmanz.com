@@ -2,18 +2,18 @@
 
 /* Base code block styling */
 pre[class*="language-"] {
-  background: #F8F8F8;
+  background: #f8f8f8;
   color: #414141;
-  line-height: 1.0;
+  line-height: 1;
   margin-bottom: 30px;
   padding: 8px 12px;
   overflow-x: auto;
-  border-top: 1px solid #DDD;
-  border-bottom: 1px solid #DDD;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
 }
 
 code[class*="language-"] {
-  font-family: 'Ubuntu Mono', monospace;
+  font-family: "Ubuntu Mono", monospace;
   font-size: 16px;
   line-height: 1.25;
 }
