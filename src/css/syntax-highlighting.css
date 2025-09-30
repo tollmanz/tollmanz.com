@@ -1,0 +1,135 @@
+/* Syntax highlighting styles for token-based markup */
+
+/* Base code block styling */
+pre[class*="language-"] {
+  background: #F8F8F8;
+  color: #414141;
+  line-height: 1.0;
+  margin-bottom: 30px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  border-top: 1px solid #DDD;
+  border-bottom: 1px solid #DDD;
+}
+
+code[class*="language-"] {
+  font-family: 'Ubuntu Mono', monospace;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+/* Token-based syntax highlighting */
+
+/* Comments */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #999988;
+  font-style: italic;
+}
+
+/* Punctuation */
+.token.punctuation {
+  color: #999999;
+}
+
+/* Properties, tags, boolean, number, constant, symbol, deleted */
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: #4cc0cb;
+}
+
+/* Selectors, attributes, strings, chars, built-ins, inserted */
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: #d14;
+}
+
+/* Operators, entities, url, language-css .string, style .string, variables */
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string,
+.token.variable {
+  color: #849a22;
+  font-weight: bold;
+}
+
+/* Keywords, at-rules, important */
+.token.keyword,
+.token.atrule,
+.token.attr-value,
+.token.important {
+  color: #a79d00;
+  font-weight: normal;
+}
+
+/* Functions */
+.token.function,
+.token.function-variable {
+  color: #657b83;
+  font-weight: normal;
+}
+
+/* Class names */
+.token.class-name {
+  color: #445588;
+  font-weight: bold;
+}
+
+/* Parameters */
+.token.parameter {
+  color: #258ad1;
+}
+
+/* Regex, important */
+.token.regex,
+.token.important {
+  color: #009926;
+}
+
+/* Bold */
+.token.important,
+.token.bold {
+  font-weight: bold;
+}
+
+/* Italic */
+.token.italic {
+  font-style: italic;
+}
+
+/* Entity */
+.token.entity {
+  cursor: help;
+}
+
+/* Language-specific overrides */
+
+/* Bash/Shell specific */
+.language-bash .token.assign-left,
+.language-bash .token.builtin {
+  color: #657b83;
+}
+
+/* JavaScript specific */
+.language-javascript .token.literal-property {
+  color: #657b83;
+}
+
+/* Error highlighting */
+.token.error {
+  color: #a61717;
+  background-color: #e3d2d2;
+}
