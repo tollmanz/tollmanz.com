@@ -1,13 +1,21 @@
 const { DateTime } = require("luxon");
 const { minify } = require("html-minifier-terser");
 const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
-const fs = require("fs");
-const path = require("path");
 const CleanCSS = require("clean-css");
 
 module.exports = function (eleventyConfig) {
   // Add syntax highlighting plugin
   eleventyConfig.addPlugin(syntaxHighlight);
+
+  // Add a simple template engine for CSS files (just pass through content)
+  eleventyConfig.addExtension("css", {
+    outputFileExtension: "css",
+    compile: function(inputContent) {
+      return function() {
+        return inputContent;
+      };
+    }
+  });
   // HTML minification transform
   eleventyConfig.addTransform("htmlmin", function (content) {
     if ((this.page.outputPath || "").endsWith(".html")) {
@@ -24,59 +32,43 @@ module.exports = function (eleventyConfig) {
     return content;
   });
 
-  // Process and minify CSS files
-  eleventyConfig.on("eleventy.before", async () => {
-    const srcCssDir = "src/css";
-    const outputCssDir = "public/css";
-
-    // Ensure output directory exists
-    if (!fs.existsSync(outputCssDir)) {
-      fs.mkdirSync(outputCssDir, { recursive: true });
-    }
-
-    // Get all CSS files from src/css
-    const cssFiles = fs
-      .readdirSync(srcCssDir)
-      .filter(file => file.endsWith(".css"));
-
-    // Initialize CleanCSS
-    const cleanCSS = new CleanCSS({
-      level: 2, // Advanced optimizations
-      returnPromise: false,
-    });
-
-    // Process each CSS file
-    for (const file of cssFiles) {
-      const inputPath = path.join(srcCssDir, file);
-      const outputPath = path.join(outputCssDir, file);
+  // CSS minification transform
+  eleventyConfig.addTransform("cssmin", function (content) {
+    if ((this.page.outputPath || "").endsWith(".css")) {
+      // Initialize CleanCSS
+      const cleanCSS = new CleanCSS({
+        level: 2, // Advanced optimizations
+        returnPromise: false,
+      });
 
       try {
-        // Read the source CSS file
-        const cssContent = fs.readFileSync(inputPath, "utf8");
-
-        // Minify the CSS
-        const result = cleanCSS.minify(cssContent);
+        // Minify the CSS content
+        const result = cleanCSS.minify(content);
 
         if (result.errors.length > 0) {
-          console.error(`CSS minification errors for ${inputPath}:`, result.errors);
-          // Fallback: copy the file without minification
-          fs.copyFileSync(inputPath, outputPath);
+          console.error(`CSS minification errors for ${this.page.outputPath}:`, result.errors);
+          // Fallback: return original content
+          return content;
         } else {
-          // Write the minified CSS
-          fs.writeFileSync(outputPath, result.styles);
-          console.log(`Minified CSS: ${inputPath} -> ${outputPath}`);
+          console.log(`Minified CSS: ${this.page.inputPath} -> ${this.page.outputPath}`);
 
           if (result.warnings.length > 0) {
-            console.warn(`CSS minification warnings for ${inputPath}:`, result.warnings);
+            console.warn(`CSS minification warnings for ${this.page.outputPath}:`, result.warnings);
           }
+
+          return result.styles;
         }
       } catch (error) {
-        console.error(`Error processing CSS file ${inputPath}:`, error.message);
-        // Fallback: copy the file without minification
-        fs.copyFileSync(inputPath, outputPath);
+        console.error(`Error minifying CSS file ${this.page.outputPath}:`, error.message);
+        // Fallback: return original content
+        return content;
       }
     }
+    // If not a CSS output, return content as-is
+    return content;
   });
+
+
 
   // Copy other static assets
   eleventyConfig.addPassthroughCopy("src/js");
@@ -166,7 +158,7 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.setLibrary("md", markdownIt(markdownItOptions));
 
   return {
-    templateFormats: ["md", "njk", "html", "liquid"],
+    templateFormats: ["md", "njk", "html", "liquid", "css"],
     markdownTemplateEngine: "njk",
     htmlTemplateEngine: "njk",
     dataTemplateEngine: "njk",
