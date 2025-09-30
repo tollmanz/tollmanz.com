@@ -7,15 +7,7 @@ module.exports = function (eleventyConfig) {
   // Add syntax highlighting plugin
   eleventyConfig.addPlugin(syntaxHighlight);
 
-  // Add a simple template engine for CSS files (just pass through content)
-  eleventyConfig.addExtension("css", {
-    outputFileExtension: "css",
-    compile: function(inputContent) {
-      return function() {
-        return inputContent;
-      };
-    }
-  });
+
   // HTML minification transform
   eleventyConfig.addTransform("htmlmin", function (content) {
     if ((this.page.outputPath || "").endsWith(".html")) {
@@ -32,43 +24,42 @@ module.exports = function (eleventyConfig) {
     return content;
   });
 
-  // CSS minification transform
-  eleventyConfig.addTransform("cssmin", function (content) {
-    if ((this.page.outputPath || "").endsWith(".css")) {
-      // Initialize CleanCSS
-      const cleanCSS = new CleanCSS({
-        level: 2, // Advanced optimizations
-        returnPromise: false,
-      });
+  // CSS processing with minification
+  eleventyConfig.addExtension("css", {
+    outputFileExtension: "css",
+    compile: function(inputContent, inputPath) {
+      return function() {
+        // Initialize CleanCSS
+        const cleanCSS = new CleanCSS({
+          level: 2, // Advanced optimizations
+          returnPromise: false,
+        });
 
-      try {
-        // Minify the CSS content
-        const result = cleanCSS.minify(content);
+        try {
+          // Minify the CSS content
+          const result = cleanCSS.minify(inputContent);
 
-        if (result.errors.length > 0) {
-          console.error(`CSS minification errors for ${this.page.outputPath}:`, result.errors);
-          // Fallback: return original content
-          return content;
-        } else {
-          console.log(`Minified CSS: ${this.page.inputPath} -> ${this.page.outputPath}`);
+          if (result.errors.length > 0) {
+            console.error(`CSS minification errors for ${inputPath}:`, result.errors);
+            // Fallback: return original content
+            return inputContent;
+          } else {
+            console.log(`Minified CSS: ${inputPath}`);
 
-          if (result.warnings.length > 0) {
-            console.warn(`CSS minification warnings for ${this.page.outputPath}:`, result.warnings);
+            if (result.warnings.length > 0) {
+              console.warn(`CSS minification warnings for ${inputPath}:`, result.warnings);
+            }
+
+            return result.styles;
           }
-
-          return result.styles;
+        } catch (error) {
+          console.error(`Error minifying CSS file ${inputPath}:`, error.message);
+          // Fallback: return original content
+          return inputContent;
         }
-      } catch (error) {
-        console.error(`Error minifying CSS file ${this.page.outputPath}:`, error.message);
-        // Fallback: return original content
-        return content;
-      }
+      };
     }
-    // If not a CSS output, return content as-is
-    return content;
   });
-
-
 
   // Copy other static assets
   eleventyConfig.addPassthroughCopy("src/js");
