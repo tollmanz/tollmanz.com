@@ -58,3 +58,4 @@ src/js/boomerang-2.js
 
 # CSS files handled by different minification process
 src/css/main.css
+src/css/syntax-highlighting.css

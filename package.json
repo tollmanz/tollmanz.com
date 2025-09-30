@@ -25,5 +25,8 @@
     "markdown-it": "14.1.0",
     "mime-types": "2.1.35",
     "prettier": "3.6.2"
+  },
+  "dependencies": {
+    "@11ty/eleventy-plugin-syntaxhighlight": "^5.0.2"
   }
 }

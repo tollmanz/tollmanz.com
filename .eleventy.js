@@ -1,7 +1,10 @@
 const { DateTime } = require("luxon");
 const { minify } = require("html-minifier-terser");
+const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
 
 module.exports = function (eleventyConfig) {
+  // Add syntax highlighting plugin
+  eleventyConfig.addPlugin(syntaxHighlight);
   // HTML minification transform
   eleventyConfig.addTransform("htmlmin", function (content) {
     if ((this.page.outputPath || "").endsWith(".html")) {
@@ -85,6 +88,13 @@ module.exports = function (eleventyConfig) {
     // Ensure url starts with /
     const cleanUrl = url.startsWith("/") ? url : `/${url}`;
     return `${cleanBase}${cleanUrl}`;
+  });
+
+  // Filter to detect if content has code blocks
+  eleventyConfig.addFilter("hasCodeBlocks", function (content) {
+    if (!content) return false;
+    // Check for code blocks with language classes or highlight classes
+    return /<pre[^>]*><code[^>]*class="[^"]*language-|<pre[^>]*class="[^"]*highlight/.test(content);
   });
 
   // Configure markdown

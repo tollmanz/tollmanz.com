@@ -11,6 +11,9 @@
   <meta name="description" content="{{ description or site.description }}">
 
   <link href='/css/main.css' rel="stylesheet" type='text/css'>
+  {% if content | hasCodeBlocks %}
+  <link href='/css/syntax-highlighting.css' rel="stylesheet" type='text/css'>
+  {% endif %}
 
   <link rel="canonical" href="{{ site.url }}{{ page.url }}">
   <link rel="sitemap" type="application/xml" href="/sitemap.xml">
