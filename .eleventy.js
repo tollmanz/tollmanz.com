@@ -3,26 +3,24 @@ const { minify } = require("html-minifier-terser");
 const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
 const fs = require("fs");
 const path = require("path");
-const CleanCSS = require("clean-css");
 
 module.exports = function (eleventyConfig) {
   // Add syntax highlighting plugin
   eleventyConfig.addPlugin(syntaxHighlight);
-  // HTML minification transform
-  eleventyConfig.addTransform("htmlmin", function (content) {
-    if ((this.page.outputPath || "").endsWith(".html")) {
-      let minified = minify(content, {
-        collapseWhitespace: true,
-        minifyJS: true,
-        minifyCSS: true,
-        removeAttributeQuotes: true,
-        removeComments: true,
-      });
-      return minified;
-    }
-    // If not an HTML output, return content as-is
-    return content;
-  });
+
+  // Simple CSS minification function
+  function minifyCSS(content) {
+    return content
+      .replace(/\/\*[\s\S]*?\*\//g, '') // Remove comments
+      .replace(/\s+/g, ' ') // Replace multiple whitespace with single space
+      .replace(/;\s*}/g, '}') // Remove semicolon before closing brace
+      .replace(/\s*{\s*/g, '{') // Remove spaces around opening brace
+      .replace(/\s*}\s*/g, '}') // Remove spaces around closing brace
+      .replace(/\s*;\s*/g, ';') // Remove spaces around semicolons
+      .replace(/\s*,\s*/g, ',') // Remove spaces around commas
+      .replace(/\s*:\s*/g, ':') // Remove spaces around colons
+      .trim();
+  }
 
   // Process and minify CSS files
   eleventyConfig.on("eleventy.before", async () => {
@@ -39,12 +37,6 @@ module.exports = function (eleventyConfig) {
       .readdirSync(srcCssDir)
       .filter(file => file.endsWith(".css"));
 
-    // Initialize CleanCSS
-    const cleanCSS = new CleanCSS({
-      level: 2, // Advanced optimizations
-      returnPromise: false,
-    });
-
     // Process each CSS file
     for (const file of cssFiles) {
       const inputPath = path.join(srcCssDir, file);
@@ -55,27 +47,63 @@ module.exports = function (eleventyConfig) {
         const cssContent = fs.readFileSync(inputPath, "utf8");
 
         // Minify the CSS
-        const result = cleanCSS.minify(cssContent);
+        const minifiedCSS = minifyCSS(cssContent);
 
-        if (result.errors.length > 0) {
-          console.error(`CSS minification errors for ${inputPath}:`, result.errors);
-          // Fallback: copy the file without minification
-          fs.copyFileSync(inputPath, outputPath);
-        } else {
-          // Write the minified CSS
-          fs.writeFileSync(outputPath, result.styles);
-          console.log(`Minified CSS: ${inputPath} -> ${outputPath}`);
-
-          if (result.warnings.length > 0) {
-            console.warn(`CSS minification warnings for ${inputPath}:`, result.warnings);
-          }
-        }
+        // Write the minified CSS
+        fs.writeFileSync(outputPath, minifiedCSS);
+        console.log(`Minified CSS: ${inputPath} -> ${outputPath}`);
       } catch (error) {
         console.error(`Error processing CSS file ${inputPath}:`, error.message);
         // Fallback: copy the file without minification
         fs.copyFileSync(inputPath, outputPath);
       }
     }
+  });
+
+  // HTML minification transform
+  eleventyConfig.addTransform("htmlmin", function (content) {
+    if ((this.page.outputPath || "").endsWith(".html")) {
+      let minified = minify(content, {
+        collapseWhitespace: true,
+        minifyJS: true,
+        minifyCSS: true,
+        removeAttributeQuotes: true,
+        removeComments: true,
+      });
+      return minified;
+    }
+    // If not an HTML output, return content as-is
+    return content;
+  });
+
+
+
+  // Add a global data function to read CSS files
+  eleventyConfig.addGlobalData("cssFiles", () => {
+    const srcCssDir = "src/css";
+
+    if (!fs.existsSync(srcCssDir)) {
+      return {};
+    }
+
+    const cssFiles = fs
+      .readdirSync(srcCssDir)
+      .filter(file => file.endsWith(".css"));
+
+    const cssData = {};
+    for (const file of cssFiles) {
+      const inputPath = path.join(srcCssDir, file);
+      const fileName = path.basename(file, '.css');
+
+      try {
+        cssData[fileName] = fs.readFileSync(inputPath, "utf8");
+      } catch (error) {
+        console.error(`Error reading CSS file ${inputPath}:`, error.message);
+        cssData[fileName] = "";
+      }
+    }
+
+    return cssData;
   });
 
   // Copy other static assets
