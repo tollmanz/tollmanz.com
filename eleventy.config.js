@@ -24,8 +24,44 @@ module.exports = function (eleventyConfig) {
     return content;
   });
 
+  // CSS processing with minification
+  eleventyConfig.addExtension("css", {
+    outputFileExtension: "css",
+    compile: function(inputContent, inputPath) {
+      return function() {
+        // Initialize CleanCSS
+        const cleanCSS = new CleanCSS({
+          level: 2, // Advanced optimizations
+          returnPromise: false,
+        });
+
+        try {
+          // Minify the CSS content
+          const result = cleanCSS.minify(inputContent);
+
+          if (result.errors.length > 0) {
+            console.error(`CSS minification errors for ${inputPath}:`, result.errors);
+            // Fallback: return original content
+            return inputContent;
+          } else {
+            console.log(`Minified CSS: ${inputPath}`);
+
+            if (result.warnings.length > 0) {
+              console.warn(`CSS minification warnings for ${inputPath}:`, result.warnings);
+            }
+
+            return result.styles;
+          }
+        } catch (error) {
+          console.error(`Error minifying CSS file ${inputPath}:`, error.message);
+          // Fallback: return original content
+          return inputContent;
+        }
+      };
+    }
+  });
+
   // Copy other static assets
-  eleventyConfig.addPassthroughCopy("src/css");
   eleventyConfig.addPassthroughCopy("src/js");
   eleventyConfig.addPassthroughCopy("src/fonts");
   eleventyConfig.addPassthroughCopy("src/media");
@@ -113,7 +149,7 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.setLibrary("md", markdownIt(markdownItOptions));
 
   return {
-    templateFormats: ["md", "njk", "html", "liquid"],
+    templateFormats: ["md", "njk", "html", "liquid", "css"],
     markdownTemplateEngine: "njk",
     htmlTemplateEngine: "njk",
     dataTemplateEngine: "njk",
