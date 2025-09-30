@@ -3,7 +3,7 @@ const { minify } = require("html-minifier-terser");
 const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
 const fs = require("fs");
 const path = require("path");
-const { execSync } = require("child_process");
+const CleanCSS = require("clean-css");
 
 module.exports = function (eleventyConfig) {
   // Add syntax highlighting plugin
@@ -39,19 +39,39 @@ module.exports = function (eleventyConfig) {
       .readdirSync(srcCssDir)
       .filter(file => file.endsWith(".css"));
 
+    // Initialize CleanCSS
+    const cleanCSS = new CleanCSS({
+      level: 2, // Advanced optimizations
+      returnPromise: false,
+    });
+
     // Process each CSS file
     for (const file of cssFiles) {
       const inputPath = path.join(srcCssDir, file);
       const outputPath = path.join(outputCssDir, file);
 
       try {
-        // Use clean-css-cli to minify the CSS
-        execSync(`npx cleancss -o "${outputPath}" "${inputPath}"`, {
-          stdio: "inherit",
-        });
-        console.log(`Minified CSS: ${inputPath} -> ${outputPath}`);
+        // Read the source CSS file
+        const cssContent = fs.readFileSync(inputPath, "utf8");
+
+        // Minify the CSS
+        const result = cleanCSS.minify(cssContent);
+
+        if (result.errors.length > 0) {
+          console.error(`CSS minification errors for ${inputPath}:`, result.errors);
+          // Fallback: copy the file without minification
+          fs.copyFileSync(inputPath, outputPath);
+        } else {
+          // Write the minified CSS
+          fs.writeFileSync(outputPath, result.styles);
+          console.log(`Minified CSS: ${inputPath} -> ${outputPath}`);
+
+          if (result.warnings.length > 0) {
+            console.warn(`CSS minification warnings for ${inputPath}:`, result.warnings);
+          }
+        }
       } catch (error) {
-        console.error(`Error minifying CSS file ${inputPath}:`, error.message);
+        console.error(`Error processing CSS file ${inputPath}:`, error.message);
         // Fallback: copy the file without minification
         fs.copyFileSync(inputPath, outputPath);
       }
