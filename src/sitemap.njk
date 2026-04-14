@@ -6,14 +6,14 @@ eleventyExcludeFromCollections: true
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>{{ "/" | absoluteUrl(site.url) }}</loc>
-    <lastmod>{{ collections.posts[0].date | dateISO }}</lastmod>
+    <lastmod>{{ collections.posts[0].date | dateToRfc3339 }}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 {%- for post in collections.posts %}
   <url>
     <loc>{{ post.url | absoluteUrl(site.url) }}</loc>
-    <lastmod>{{ post.date | dateISO }}</lastmod>
+    <lastmod>{{ post.date | dateToRfc3339 }}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -21,7 +21,7 @@ eleventyExcludeFromCollections: true
 {%- for page in collections.pages %}
   <url>
     <loc>{{ page.url | absoluteUrl(site.url) }}</loc>
-    <lastmod>{{ page.date | dateISO }}</lastmod>
+    <lastmod>{{ page.date | dateToRfc3339 }}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

@@ -4,17 +4,12 @@
   font-family: "Coustard";
   font-style: normal;
   font-weight: 400;
-  src: url("../fonts/coustard-b11804b12b0c5a2414b00623d30e904ed1eda00f.eot");
   src:
     local("Coustard"),
     url("../fonts/coustard-42be12704ef50999d53a7c55da2bb7522ef1efde.woff2")
       format("woff2"),
     url("../fonts/coustard-047cecb729edc84ebbfff371ab07726904c7856e.woff")
-      format("woff"),
-    url("../fonts/coustard-b11804b12b0c5a2414b00623d30e904ed1eda00f.eot")
-      format("embedded-opentype"),
-    url("../fonts/coustard-081672b2c072e4d8d12174a1c41dcca8cebc45a4.ttf")
-      format("truetype");
+      format("woff");
 }
 
 @font-face {
@@ -22,18 +17,13 @@
   font-family: "Ubuntu Mono";
   font-style: normal;
   font-weight: 400;
-  src: url("../fonts/ubuntumono-984071d42ae365f45a992ee42b940ef8df1a3fe7.eot");
   src:
     local("Ubuntu Mono"),
     local("UbuntuMono-Regular"),
     url("../fonts/ubuntumono-84b73f5b59a742a668f218d10172f8dd66738a4d.woff2")
       format("woff2"),
     url("../fonts/ubuntumono-828b42bb81d9d1d12bedd533d93cc466ebb59bac.woff")
-      format("woff"),
-    url("../fonts/ubuntumono-984071d42ae365f45a992ee42b940ef8df1a3fe7.eot")
-      format("embedded-opentype"),
-    url("../fonts/ubuntumono-b3462a376e9d5a5a245f770a8d3b78e8717850a2.ttf")
-      format("truetype");
+      format("woff");
 }
 
 @font-face {
@@ -47,9 +37,7 @@
     url("../fonts/ubuntu-d1c3d1baea4ab0249aa137cc8b3e1c6f94d5d28c.woff2")
       format("woff2"),
     url("../fonts/ubuntu-047f76fbceab3e22ce8f729ffef77ba99188312e.woff")
-      format("woff"),
-    url("../fonts/ubuntu-1cab20d74ec6b53d9874b6baae36a7714d719bec.ttf")
-      format("truetype");
+      format("woff");
 }
 
 @font-face {
@@ -63,9 +51,7 @@
     url("../fonts/ubuntu-bbdd0957cff7ea4b8ca8cef54b8d48ab66d5643b.woff2")
       format("woff2"),
     url("../fonts/ubuntu-83d2526710ef570fb5770b92eb107aa166495751.woff")
-      format("woff"),
-    url("../fonts/ubuntu-c9829fb9e1d6c247a2f9ea2c017db7d152def1ef.ttf")
-      format("truetype");
+      format("woff");
 }
 
 @font-face {
@@ -79,19 +65,7 @@
     url("../fonts/ubuntu-e4c86e820c9a5f86c6832a68e432c6bf6981084b.woff2")
       format("woff2"),
     url("../fonts/ubuntu-b384751d9bfe0f33fa07fe4c36d6a0a251651576.woff")
-      format("woff"),
-    url("../fonts/ubuntu-9173149224f50cfdcdd71d11be8505e69d53ed22.ttf")
-      format("truetype");
-}
-
-@font-face {
-  font-display: swap;
-  font-family: "Ubuntu";
-  font-style: normal;
-  font-weight: 400;
-  src: url("../fonts/ubuntu-c13e3671f9946dde285ae04d4118ba149eba9801.eot");
-  src: url("../fonts/ubuntu-c13e3671f9946dde285ae04d4118ba149eba9801.eot")
-    format("embedded-opentype");
+      format("woff");
 }
 
 @font-face {
@@ -105,9 +79,7 @@
     url("../fonts/ubuntu-ea34e91a0860ecad502410e6f10b10e5929400ff.woff2")
       format("woff2"),
     url("../fonts/ubuntu-140b699a9d0dd0cef6287ef712ae1933beb82b22.woff")
-      format("woff"),
-    url("../fonts/ubuntu-037348c981b49a1a91aadd9eaa512d79788dc564.ttf")
-      format("truetype");
+      format("woff");
 }
 
 /* Reset */
