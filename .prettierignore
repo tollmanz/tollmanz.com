@@ -52,6 +52,3 @@ pnpm-lock.yaml
 # Temporary files
 *.tmp
 *.temp
-
-# Third-party libraries (should not be formatted)
-src/js/boomerang-2.js

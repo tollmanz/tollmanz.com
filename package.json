@@ -2,13 +2,14 @@
   "name": "tollmanz.com",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "build": "eleventy",
     "dev": "eleventy --serve",
-    "deploy": "node scripts/deploy.js",
-    "deploy:dry-run": "node scripts/deploy.js --dry-run",
-    "deploy:force": "node scripts/deploy.js --force",
+    "deploy": "node scripts/deploy.cjs",
+    "deploy:dry-run": "node scripts/deploy.cjs --dry-run",
+    "deploy:force": "node scripts/deploy.cjs --force",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -16,6 +17,7 @@
   "license": "MIT",
   "devDependencies": {
     "@11ty/eleventy": "3.1.2",
+    "@11ty/eleventy-plugin-rss": "3.0.0",
     "@11ty/eleventy-plugin-syntaxhighlight": "5.0.2",
     "backblaze-b2": "1.7.1",
     "chalk": "5.6.2",

@@ -1,25 +1,29 @@
-const { DateTime } = require("luxon");
-const { minify } = require("html-minifier-terser");
-const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
-const CleanCSS = require("clean-css");
+import { DateTime } from "luxon";
+import { minify } from "html-minifier-terser";
+import syntaxHighlight from "@11ty/eleventy-plugin-syntaxhighlight";
+import pluginRss from "@11ty/eleventy-plugin-rss";
+import CleanCSS from "clean-css";
+import markdownIt from "markdown-it";
 
-module.exports = function (eleventyConfig) {
-  // Add syntax highlighting plugin
+export default function (eleventyConfig) {
+  // Add plugins
   eleventyConfig.addPlugin(syntaxHighlight);
+  eleventyConfig.addPlugin(pluginRss);
 
   // Add a simple template engine for CSS files (just pass through content)
   eleventyConfig.addExtension("css", {
     outputFileExtension: "css",
-    compile: function(inputContent) {
-      return function() {
+    compile: function (inputContent) {
+      return function () {
         return inputContent;
       };
-    }
+    },
   });
+
   // HTML minification transform
-  eleventyConfig.addTransform("htmlmin", function (content) {
+  eleventyConfig.addTransform("htmlmin", async function (content) {
     if ((this.page.outputPath || "").endsWith(".html")) {
-      let minified = minify(content, {
+      let minified = await minify(content, {
         collapseWhitespace: true,
         minifyJS: true,
         minifyCSS: true,
@@ -35,32 +39,35 @@ module.exports = function (eleventyConfig) {
   // CSS minification transform
   eleventyConfig.addTransform("cssmin", function (content) {
     if ((this.page.outputPath || "").endsWith(".css")) {
-      // Initialize CleanCSS
       const cleanCSS = new CleanCSS({
-        level: 2, // Advanced optimizations
+        level: 2,
         returnPromise: false,
       });
 
       try {
-        // Minify the CSS content
         const result = cleanCSS.minify(content);
 
         if (result.errors.length > 0) {
-          console.error(`CSS minification errors for ${this.page.outputPath}:`, result.errors);
-          // Fallback: return original content
+          console.error(
+            `CSS minification errors for ${this.page.outputPath}:`,
+            result.errors
+          );
           return content;
         } else {
-          console.log(`Minified CSS: ${this.page.inputPath} -> ${this.page.outputPath}`);
-
           if (result.warnings.length > 0) {
-            console.warn(`CSS minification warnings for ${this.page.outputPath}:`, result.warnings);
+            console.warn(
+              `CSS minification warnings for ${this.page.outputPath}:`,
+              result.warnings
+            );
           }
 
           return result.styles;
         }
       } catch (error) {
-        console.error(`Error minifying CSS file ${this.page.outputPath}:`, error.message);
-        // Fallback: return original content
+        console.error(
+          `Error minifying CSS file ${this.page.outputPath}:`,
+          error.message
+        );
         return content;
       }
     }
@@ -68,10 +75,7 @@ module.exports = function (eleventyConfig) {
     return content;
   });
 
-
-
-  // Copy other static assets
-  eleventyConfig.addPassthroughCopy("src/js");
+  // Copy static assets
   eleventyConfig.addPassthroughCopy("src/fonts");
   eleventyConfig.addPassthroughCopy("src/media");
   eleventyConfig.addPassthroughCopy("src/favicon.ico");
@@ -81,7 +85,7 @@ module.exports = function (eleventyConfig) {
     return collectionApi
       .getFilteredByGlob("src/posts/*.md")
       .sort(function (a, b) {
-        return b.date - a.date; // Sort by date descending
+        return b.date - a.date;
       });
   });
 
@@ -89,26 +93,11 @@ module.exports = function (eleventyConfig) {
     return collectionApi.getFilteredByGlob("src/pages/*.md");
   });
 
-  // Date filters
+  // Date display filter
   eleventyConfig.addFilter("dateDisplay", function (dateObj) {
     return DateTime.fromJSDate(dateObj, { zone: "utc" }).toFormat(
       "LLL dd, yyyy"
     );
-  });
-
-  eleventyConfig.addFilter("dateISO", function (dateObj) {
-    return DateTime.fromJSDate(dateObj, { zone: "utc" }).toISO();
-  });
-
-  // Permalink filter for clean URLs
-  eleventyConfig.addFilter("slug", function (str) {
-    if (!str) return "";
-    return str
-      .toLowerCase()
-      .replace(/[^a-z0-9 -]/g, "") // Remove special characters
-      .replace(/\s+/g, "-") // Replace spaces with hyphens
-      .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
-      .trim("-"); // Remove leading/trailing hyphens
   });
 
   // Head filter for RSS feed
@@ -122,33 +111,15 @@ module.exports = function (eleventyConfig) {
     return array.slice(0, n);
   });
 
-  // HTML to absolute URLs filter for RSS feed
-  eleventyConfig.addFilter("htmlToAbsoluteUrls", function (htmlContent, base) {
-    if (!htmlContent) return htmlContent;
-    return htmlContent.replace(/href="\/([^"]*)/g, `href="${base}/$1`);
-  });
-
-  // Absolute URL filter for sitemap
-  eleventyConfig.addFilter("absoluteUrl", function (url, base) {
-    if (!url) return base;
-    // Remove trailing slash from base if present
-    const cleanBase = base.replace(/\/$/, "");
-    // Ensure url starts with /
-    const cleanUrl = url.startsWith("/") ? url : `/${url}`;
-    return `${cleanBase}${cleanUrl}`;
-  });
-
   // Filter to detect if content has code blocks
   eleventyConfig.addFilter("hasCodeBlocks", function (content) {
     if (!content) return false;
-    // Check for code blocks with language classes or highlight classes
     return /<pre[^>]*><code[^>]*class="[^"]*language-|<pre[^>]*class="[^"]*highlight/.test(
       content
     );
   });
 
   // Configure markdown
-  let markdownIt = require("markdown-it");
   let markdownItOptions = {
     html: true,
     breaks: false,
@@ -169,4 +140,4 @@ module.exports = function (eleventyConfig) {
       output: "public",
     },
   };
-};
+}
