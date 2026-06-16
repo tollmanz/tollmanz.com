@@ -2,6 +2,8 @@
 layout: page.njk
 title: About
 permalink: /about/
+date: 2025-09-22
+description: Zack Tollman is an Application Performance Architect at Condé Nast, writing about WordPress, performance, and security.
 ---
 
 My name is Zack Tollman. I am Application Performance Architect at Condé Nast. While I am well versed in general web development, WordPress is my bread and butter. I enjoy working on WordPress projects, writing plugins, and helping other learn about appreciate how incredible the WordPress software is. Additionally, I am interested in performance and security.
