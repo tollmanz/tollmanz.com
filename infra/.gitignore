@@ -1,0 +1,11 @@
+node_modules/
+bin/
+
+# Pulumi local plugin/state scratch (Pulumi.yaml and Pulumi.<stack>.yaml are committed)
+.pulumi/
+
+# Import scratch output (may contain plaintext secrets)
+generated.ts
+
+# Local secrets (use GitHub Actions secrets in CI)
+.env

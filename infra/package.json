@@ -1,0 +1,25 @@
+{
+  "name": "tollmanz-com-infra",
+  "version": "1.0.0",
+  "description": "Fastly CDN configuration for tollmanz.com, managed with Pulumi",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "preview": "dotenv -- pulumi preview",
+    "up": "dotenv -- pulumi up",
+    "refresh": "dotenv -- pulumi refresh",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write ."
+  },
+  "dependencies": {
+    "@pulumi/fastly": "12.2.1",
+    "@pulumi/pulumi": "3.246.0"
+  },
+  "devDependencies": {
+    "@types/node": "25.9.3",
+    "dotenv-cli": "11.0.0",
+    "prettier": "3.6.2",
+    "ts-node": "10.9.2",
+    "typescript": "6.0.3"
+  }
+}

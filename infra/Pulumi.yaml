@@ -1,0 +1,3 @@
+name: tollmanz-com-infra
+runtime: nodejs
+description: Fastly CDN configuration for tollmanz.com, managed with Pulumi
