@@ -1,9 +1,9 @@
 {
   "name": "tollmanz.com",
   "version": "1.0.0",
-  "description": "",
+  "description": "Personal website (www.tollmanz.com) built with Eleventy and deployed to GitHub Pages.",
   "type": "module",
-  "main": "index.js",
+  "private": true,
   "scripts": {
     "build": "eleventy",
     "dev": "eleventy --serve",
@@ -12,6 +12,9 @@
   },
   "author": "Zack Tollman <tollmanz@gmail.com>",
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
   "devDependencies": {
     "@11ty/eleventy": "3.1.6",
     "@11ty/eleventy-plugin-rss": "3.0.0",
