@@ -10,23 +10,26 @@
     </div>
     {% include "footer.njk" %}
     <script>
-      // Theme switch. Not render-blocking: the stored theme is already applied
-      // by the inline script in <head>. Clicking cycles system -> light -> dark
-      // and persists the choice. data-theme drives both color-scheme and icon.
+      // Theme picker. Not render-blocking: the stored theme is already applied
+      // by the inline script in <head>. This syncs the radio to that choice and
+      // persists changes. "system" needs no matchMedia listener here: data-theme
+      // stays "system", so color-scheme: light dark re-resolves with the OS live.
       (function () {
-        var order = ["system", "light", "dark"];
         var root = document.documentElement;
-        var toggle = document.querySelector("[data-theme-toggle]");
-        if (!toggle) return;
-        toggle.addEventListener("click", function () {
-          var next =
-            order[(order.indexOf(root.dataset.theme) + 1) % order.length];
-          root.dataset.theme = next;
-          try {
-            localStorage.setItem("theme", next);
-          } catch (e) {
-            /* storage blocked; choice applies for this page only */
-          }
+        var radios = document.querySelectorAll('.theme-picker input[name="theme"]');
+        if (!radios.length) return;
+        var current = root.dataset.theme || "system";
+        radios.forEach(function (radio) {
+          radio.checked = radio.value === current;
+          radio.addEventListener("change", function () {
+            if (!radio.checked) return;
+            root.dataset.theme = radio.value;
+            try {
+              localStorage.setItem("theme", radio.value);
+            } catch (e) {
+              /* storage blocked; choice applies for this page only */
+            }
+          });
         });
       })();
     </script>

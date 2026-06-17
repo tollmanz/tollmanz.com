@@ -107,6 +107,10 @@
   --color-icon: light-dark(#828282, #a89f93);
   --color-accent: light-dark(#dc322f, #eed3b1);
   --color-code-bg: light-dark(#f8f8f8, #241f1a);
+
+  /* Segmented control surfaces: a sunken track and a raised selected segment. */
+  --color-surface: light-dark(#ffffff, #2e2823);
+  --color-surface-sunken: light-dark(#ececec, #13100d);
 }
 
 /* The switch forces one scheme; "system" (or no attribute) keeps "light dark". */
@@ -134,6 +138,8 @@
     --color-icon: #828282;
     --color-accent: #dc322f;
     --color-code-bg: #f8f8f8;
+    --color-surface: #ffffff;
+    --color-surface-sunken: #ececec;
   }
 }
 
@@ -322,6 +328,7 @@ pre > code {
 
 .site-header .wrapper {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -779,66 +786,107 @@ pre > code {
   color: #258bd2;
 }
 
-/* Theme toggle */
-.theme-toggle {
-  /* Hidden until the inline script sets data-theme on <html>, so it never
-     shows when JavaScript is unavailable and could not function. */
+/* Theme picker
+
+   A labeled, three-state segmented control built on native radios, so it
+   announces correctly and arrow keys move between options. Hidden until the
+   inline script sets data-theme on <html>, since it cannot work without JS. */
+.theme-picker {
   display: none;
   flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
+  min-width: 0; /* opt out of the fieldset min-width that breaks flex layouts */
   margin: 0;
   padding: 0;
   border: 0;
-  border-radius: 50%;
-  background: none;
-  color: var(--color-icon);
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
 }
 
-:root[data-theme] .theme-toggle {
+:root[data-theme] .theme-picker {
+  display: block;
+}
+
+/* The site does not set border-box globally, so scope it here to keep the
+   width: 100% track from overflowing once padding and border are added. */
+.theme-picker,
+.theme-picker * {
+  box-sizing: border-box;
+}
+
+.theme-picker__options {
   display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
-.theme-toggle:hover {
+.theme-picker label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--color-text);
+  white-space: nowrap;
+  -webkit-user-select: none;
+  user-select: none;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.theme-picker label svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.theme-picker label:hover {
   color: var(--color-link);
-  background-color: var(--color-border);
 }
 
-.theme-toggle:focus-visible {
+/* Active option: a raised surface plus shadow, not color alone, so the choice
+   stays clear in high-contrast and color-blind contexts. Driven by the real
+   :checked state and, before the script syncs the radios, by data-theme, so the
+   selection is correct from the first paint. */
+.theme-picker input:checked + label,
+:root[data-theme="light"] .theme-picker label[for="theme-light"],
+:root[data-theme="dark"] .theme-picker label[for="theme-dark"],
+:root[data-theme="system"] .theme-picker label[for="theme-system"] {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.theme-picker input:focus-visible + label {
   outline: 2px solid var(--color-link);
   outline-offset: 2px;
 }
 
-.theme-toggle svg {
-  display: block;
-  width: 20px;
-  height: 20px;
-  transition: transform 0.2s ease;
-}
+/* Small screens: the control drops below the title and fills the row as three
+   equal segments. */
+@media screen and (max-width: 600px) {
+  .theme-picker {
+    width: 100%;
+  }
 
-.theme-toggle:hover svg {
-  transform: rotate(15deg) scale(1.08);
-}
+  .theme-picker__options {
+    display: flex;
+    width: 100%;
+  }
 
-/* Only the state matching the current theme is rendered; its label provides
-   the button's accessible name and updates as the theme changes. */
-.theme-toggle__state {
-  display: none;
-  align-items: center;
-}
-
-:root[data-theme="system"] .theme-toggle__state[data-state="system"],
-:root[data-theme="light"] .theme-toggle__state[data-state="light"],
-:root[data-theme="dark"] .theme-toggle__state[data-state="dark"] {
-  display: inline-flex;
+  .theme-picker label {
+    flex: 1;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -846,9 +894,5 @@ pre > code {
   *::before,
   *::after {
     transition-duration: 0.01ms !important;
-  }
-
-  .theme-toggle:hover svg {
-    transform: none;
   }
 }
