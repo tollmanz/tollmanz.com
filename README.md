@@ -26,6 +26,29 @@ npm run deploy:force
 
 ## Deployment Setup
 
+### GitHub Pages (under evaluation, parallel deploy)
+
+`.github/workflows/pages.yml` publishes the site to GitHub Pages on every push to
+`main`, in parallel with the Backblaze deploy below. Production traffic still
+flows through Fastly to Backblaze; this is a staging step to validate GitHub
+Pages before any Fastly cutover, so the two run side by side for now.
+
+One-time repo setup required to serve the custom domain from Pages:
+
+1. Settings -> Pages -> Source: "GitHub Actions"
+2. Settings -> Pages -> Custom domain: `www.tollmanz.com`
+
+Verify the Pages origin without affecting production (Fastly still serves
+Backblaze), using the Host header Fastly will eventually send:
+
+```bash
+# homepage and a pretty-URL post should both return 200
+curl -sSI -H 'Host: www.tollmanz.com' https://tollmanz.github.io/
+curl -sSI -H 'Host: www.tollmanz.com' https://tollmanz.github.io/wp-kses-performance/
+# without the override, GitHub should 301 github.io -> the custom domain
+curl -sSI https://tollmanz.github.io/
+```
+
 ### GitHub Actions CI/CD Setup
 
 For automated deployment on commits to the `main` branch:
