@@ -9,6 +9,3 @@ site/themes/ananke
 
 # Environment variables
 .env
-
-# Deployment cache
-.deployment-cache.json
