@@ -39,6 +39,12 @@ jobs:
         run: npm ci
 
       - name: Build site
+        env:
+          # Ship the RUM bundle, pointed at the same-origin /v1/traces path that
+          # Fastly proxies to Honeycomb. No Honeycomb key is present here; it is
+          # injected at the edge (see infra/).
+          RUM_MODE: production
+          RUM_SERVICE_NAME: tollmanz-com-web
         run: npm run build
 
       - name: Upload Pages artifact

@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Generated Pulumi SDK (bridged Terraform provider, see infra/honeycomb)
+sdks/
+
 # Build outputs
 public/
 dist/
