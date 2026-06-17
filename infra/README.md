@@ -1,24 +1,24 @@
 # Fastly infrastructure (Pulumi)
 
 Fastly CDN configuration for tollmanz.com, managed as code with Pulumi on Pulumi
-Cloud. State lives in Pulumi Cloud. No secrets are committed: all credentials
-come from the environment, from a gitignored `.env` locally and from GitHub
-Actions secrets in CI.
+Cloud. State lives in Pulumi Cloud. No secrets are committed: the only credential
+comes from the environment, from a gitignored `.env` locally and from a GitHub
+Actions secret in CI.
+
+The origin is GitHub Pages (`tollmanz.github.io`). Because GitHub Pages routes by
+the HTTP Host header, the backend sends `Host: www.tollmanz.com` (the custom
+domain configured on the repo) while doing TLS against the `tollmanz.github.io`
+certificate. GitHub Pages is public, so the origin needs no request signing.
 
 ## Secrets
 
-Three values are required at run time:
+One value is required at run time:
 
-| Variable                | Used by                        | Source                          |
-| ----------------------- | ------------------------------ | ------------------------------- |
-| `FASTLY_API_KEY`        | Fastly provider authentication | Fastly personal token (write)   |
-| `B2_APPLICATION_KEY_ID` | B2 signing snippet (keyID)     | Backblaze B2 application key id |
-| `B2_APPLICATION_KEY`    | B2 signing snippet (appKey)    | Backblaze B2 application key    |
+| Variable         | Used by                        | Source                        |
+| ---------------- | ------------------------------ | ----------------------------- |
+| `FASTLY_API_KEY` | Fastly provider authentication | Fastly personal token (write) |
 
-The two `B2_*` variables are the same Backblaze key pair the content-deploy
-workflow already uses, so the names are shared rather than duplicated.
-
-The `pulumi` scripts below are wrapped with `dotenv`, so locally they read these
+The `pulumi` scripts below are wrapped with `dotenv`, so locally they read this
 from `infra/.env`. Copy the template and fill it in:
 
 ```bash
@@ -51,14 +51,9 @@ repository secrets:
 
 - `PULUMI_ACCESS_TOKEN` (from https://app.pulumi.com, for non-interactive login)
 - `FASTLY_API_KEY`
-- `B2_APPLICATION_KEY_ID`
-- `B2_APPLICATION_KEY`
 
 ## How secrets stay out of the repo
 
-`index.ts` reads `B2_APPLICATION_KEY_ID` / `B2_APPLICATION_KEY` from
-`process.env` and wraps
-them with `pulumi.secret()`. The Fastly provider reads `FASTLY_API_KEY` from the
-environment. Nothing is stored in `Pulumi.<stack>.yaml`. The values still reach
-Fastly (where the signing runs) and Pulumi Cloud state (encrypted), never the
-committed source.
+The Fastly provider reads `FASTLY_API_KEY` from the environment. Nothing is
+stored in `Pulumi.<stack>.yaml`. The token reaches Pulumi Cloud state (encrypted)
+and the Fastly API, never the committed source.

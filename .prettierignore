@@ -22,7 +22,6 @@ yarn-error.log*
 # Cache files
 .cache/
 .parcel-cache/
-.deployment-cache.json
 
 # OS generated files
 .DS_Store

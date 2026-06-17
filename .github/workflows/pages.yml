@@ -1,9 +1,7 @@
 name: Deploy to GitHub Pages
 
-# Publishes the site to GitHub Pages in parallel with the Backblaze deploy
-# (deploy.yml) while GitHub Pages is being evaluated. Production traffic still
-# flows through Fastly to Backblaze; this only keeps the Pages origin in sync so
-# it can be verified before any Fastly cutover.
+# Builds the Eleventy site and publishes it to GitHub Pages, which Fastly fronts
+# as the CDN and TLS terminator. Runs on push to main and on manual dispatch.
 
 on:
   push:
