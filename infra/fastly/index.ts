@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import * as pulumi from "@pulumi/pulumi";
 import * as fastly from "@pulumi/fastly";
 
 // The site is served by GitHub Pages and fronted by Fastly. GitHub Pages is
@@ -29,6 +30,24 @@ const apexRedirectError = fs.readFileSync(
   "utf8"
 );
 
+// Browser RUM telemetry is proxied to Honeycomb at the edge. The Honeycomb
+// ingest key is created and owned by the Honeycomb Pulumi project; read it as a
+// secret output here so there is a single source of truth and no manual copy
+// step. Bring up the Honeycomb stack before this one (see infra/README.md). The
+// proxy snippet carries a placeholder that is replaced with the key here, so the
+// key reaches Fastly and Pulumi Cloud state (encrypted) but never the browser.
+const honeycombStack = new pulumi.StackReference(
+  "tollmanz-gmail-com/tollmanz-com-honeycomb/prod"
+);
+const honeycombIngestKey = honeycombStack.getOutput("ingestKey");
+const honeycombProxyTemplate = fs.readFileSync(
+  path.join(snippetsDir, "honeycomb-proxy.vcl"),
+  "utf8"
+);
+const honeycombProxyContent = honeycombIngestKey.apply(key =>
+  honeycombProxyTemplate.replace("__HONEYCOMB_INGEST_KEY__", key as string)
+);
+
 const site = new fastly.ServiceVcl(
   "site",
   {
@@ -45,6 +64,18 @@ const site = new fastly.ServiceVcl(
         overrideHost: "www.tollmanz.com",
         sslCertHostname: "tollmanz.github.io",
         sslSniHostname: "tollmanz.github.io",
+      },
+      {
+        // Backend for the browser RUM proxy. The "Honeycomb RUM proxy" snippet
+        // selects this backend for POST /v1/traces. overrideHost forces the
+        // Host header so TLS and routing reach Honeycomb's OTLP endpoint.
+        name: "honeycomb",
+        address: "api.honeycomb.io",
+        port: 443,
+        useSsl: true,
+        overrideHost: "api.honeycomb.io",
+        sslCertHostname: "api.honeycomb.io",
+        sslSniHostname: "api.honeycomb.io",
       },
     ],
     gzips: [
@@ -100,6 +131,15 @@ const site = new fastly.ServiceVcl(
     ],
     http3: true,
     snippets: [
+      {
+        // Priority below the apex redirect (100) so /v1/traces is proxied before
+        // any host-based redirect, and its return(pass) keeps the request off the
+        // GitHub Pages origin and out of cache.
+        name: "Honeycomb RUM proxy",
+        type: "recv",
+        priority: 90,
+        content: honeycombProxyContent,
+      },
       {
         name: "Apex to www redirect",
         type: "recv",
