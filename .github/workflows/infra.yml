@@ -46,6 +46,12 @@ jobs:
           pulumi-version: 3.246.0
           comment-on-pr: true
         env:
+          # pulumi/actions runs on Node 24 and bundles got@11 -> cacheable-request,
+          # which calls the deprecated url.parse() and triggers DEP0169. The call
+          # is in third-party code, so silence only that one warning. Remove once
+          # pulumi/actions#1429 (bump got 11 -> 15, dropping the url.parse call)
+          # ships in a release: https://github.com/pulumi/actions/pull/1429
+          NODE_OPTIONS: --disable-warning=DEP0169
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           FASTLY_API_KEY: ${{ secrets.FASTLY_API_KEY }}
           B2_APPLICATION_KEY_ID: ${{ secrets.B2_APPLICATION_KEY_ID }}
