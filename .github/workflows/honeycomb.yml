@@ -1,0 +1,62 @@
+name: Honeycomb infra (Pulumi)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/honeycomb/**"
+      - ".github/workflows/honeycomb.yml"
+  pull_request:
+    paths:
+      - "infra/honeycomb/**"
+      - ".github/workflows/honeycomb.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  pulumi:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/honeycomb
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install Pulumi CLI
+        run: |
+          curl -fsSL https://get.pulumi.com | sh -s -- --version 3.246.0
+          echo "$HOME/.pulumi/bin" >> "$GITHUB_PATH"
+
+      # Regenerates the bridged Honeycomb SDK declared in Pulumi.yaml (sdks/ is
+      # gitignored) and installs node dependencies. No Pulumi Cloud auth needed.
+      - name: Pulumi install
+        run: pulumi install
+
+      # preview on pull requests, up (apply) on push to main / manual dispatch
+      - name: Pulumi ${{ github.event_name == 'pull_request' && 'preview' || 'up' }}
+        uses: pulumi/actions@v7
+        with:
+          command: ${{ github.event_name == 'pull_request' && 'preview' || 'up' }}
+          stack-name: tollmanz-gmail-com/tollmanz-com-honeycomb/prod
+          work-dir: infra/honeycomb
+          pulumi-version: 3.246.0
+          comment-on-pr: true
+        env:
+          # pulumi/actions runs on Node 24 and bundles got@11 -> cacheable-request,
+          # which calls the deprecated url.parse() and triggers DEP0169. The call
+          # is in third-party code, so silence only that one warning. Remove once
+          # pulumi/actions#1429 (bump got 11 -> 15, dropping the url.parse call)
+          # ships in a release: https://github.com/pulumi/actions/pull/1429
+          NODE_OPTIONS: --disable-warning=DEP0169
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          HONEYCOMB_KEY_ID: ${{ secrets.HONEYCOMB_KEY_ID }}
+          HONEYCOMB_KEY_SECRET: ${{ secrets.HONEYCOMB_KEY_SECRET }}

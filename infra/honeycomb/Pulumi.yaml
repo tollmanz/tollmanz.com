@@ -1,0 +1,10 @@
+name: tollmanz-com-honeycomb
+runtime: nodejs
+description: Honeycomb observability configuration for tollmanz.com, managed with Pulumi
+packages:
+  honeycombio:
+    source: pulumi/pulumi/terraform-provider
+    version: 1.1.4
+    parameters:
+      - honeycombio/honeycombio
+      - 0.51.0
