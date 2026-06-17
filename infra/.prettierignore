@@ -1,0 +1,10 @@
+node_modules/
+bin/
+package-lock.json
+
+# VCL snippets must stay byte-identical to the live service; do not reformat
+*.vcl
+
+# Pulumi-managed files (the CLI rewrites these)
+Pulumi.yaml
+Pulumi.*.yaml
