@@ -89,21 +89,24 @@
    no duplicated dark block and no prefers-color-scheme media query here. */
 :root {
   /* "light dark" follows the OS. The switch narrows this to a single scheme
-     through the data-theme attribute set by the inline script in head.njk. */
+     through the data-theme attribute set by the inline script in head.njk.
+     Dark palette: warm charcoal base with a tan callout.
+     #1a1613 bg, #f4f1ea warm-white text, #eed3b1 tan link/accent,
+     #241f1a raised surfaces, #a89f93 warm-gray muted text. */
   color-scheme: light dark;
 
-  --color-bg: light-dark(#f8f8f8, #1a1a1a);
-  --color-text: light-dark(#414141, #e6e6e6);
-  --color-text-muted: light-dark(#828282, #9a9a9a);
-  --color-link: light-dark(#e4322e, #ff6b67);
-  --color-link-hover: light-dark(#af1a17, #ff8f8c);
-  --color-border: light-dark(#e8e8e8, #333333);
-  --color-border-code: light-dark(#dddddd, #383838);
-  --color-rule-top: light-dark(#424242, #555555);
-  --color-logo: light-dark(#313131, #d6d6d6);
-  --color-icon: light-dark(#828282, #9a9a9a);
-  --color-accent: light-dark(#dc322f, #ff6b67);
-  --color-code-bg: light-dark(#f8f8f8, #242424);
+  --color-bg: light-dark(#f8f8f8, #1a1613);
+  --color-text: light-dark(#414141, #f4f1ea);
+  --color-text-muted: light-dark(#828282, #a89f93);
+  --color-link: light-dark(#e4322e, #eed3b1);
+  --color-link-hover: light-dark(#af1a17, #f6e6cf);
+  --color-border: light-dark(#e8e8e8, #332e27);
+  --color-border-code: light-dark(#dddddd, #332e27);
+  --color-rule-top: light-dark(#424242, #4a443b);
+  --color-logo: light-dark(#313131, #f4f1ea);
+  --color-icon: light-dark(#828282, #a89f93);
+  --color-accent: light-dark(#dc322f, #eed3b1);
+  --color-code-bg: light-dark(#f8f8f8, #241f1a);
 }
 
 /* The switch forces one scheme; "system" (or no attribute) keeps "light dark". */
