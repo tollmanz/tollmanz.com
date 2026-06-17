@@ -2,20 +2,22 @@
 
 /* Token palette. Each token pairs its light and dark value in one light-dark()
    call, resolved from the color-scheme set on :root in main.css. The code-block
-   frame (background, text, border) reuses the shared --color-* tokens. */
+   frame (background, text, border) reuses the shared --color-* tokens. The dark
+   accents are a Gruvbox-style warm set, chosen to sit on the warm charcoal code
+   background and stay distinct from one another. */
 :root {
-  --tok-comment: light-dark(#999988, #8b919b);
-  --tok-punctuation: light-dark(#999999, #abb2bf);
-  --tok-property: light-dark(#4cc0cb, #56b6c2);
-  --tok-string: light-dark(#dd1144, #98c379);
-  --tok-operator: light-dark(#849a22, #d19a66);
-  --tok-keyword: light-dark(#a79d00, #c678dd);
-  --tok-function: light-dark(#657b83, #61afef);
-  --tok-class: light-dark(#445588, #e5c07b);
-  --tok-parameter: light-dark(#258ad1, #d19a66);
-  --tok-regex: light-dark(#009926, #56b6c2);
-  --tok-error-fg: light-dark(#a61717, #ff8a87);
-  --tok-error-bg: light-dark(#e3d2d2, #4a2a2a);
+  --tok-comment: light-dark(#999988, #9c8d7c);
+  --tok-punctuation: light-dark(#999999, #a89f93);
+  --tok-property: light-dark(#4cc0cb, #d3869b);
+  --tok-string: light-dark(#dd1144, #b8bb26);
+  --tok-operator: light-dark(#849a22, #fe8019);
+  --tok-keyword: light-dark(#a79d00, #fb4934);
+  --tok-function: light-dark(#657b83, #8ec07c);
+  --tok-class: light-dark(#445588, #fabd2f);
+  --tok-parameter: light-dark(#258ad1, #83a598);
+  --tok-regex: light-dark(#009926, #8ec07c);
+  --tok-error-fg: light-dark(#a61717, #fb4934);
+  --tok-error-bg: light-dark(#e3d2d2, #2a1814);
 }
 
 /* Fallback for browsers without light-dark(): the light token palette. */
