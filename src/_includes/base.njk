@@ -9,5 +9,26 @@
       </div>
     </div>
     {% include "footer.njk" %}
+    <script>
+      // Theme switch. Not render-blocking: the stored theme is already applied
+      // by the inline script in <head>. Clicking cycles system -> light -> dark
+      // and persists the choice. data-theme drives both color-scheme and icon.
+      (function () {
+        var order = ["system", "light", "dark"];
+        var root = document.documentElement;
+        var toggle = document.querySelector("[data-theme-toggle]");
+        if (!toggle) return;
+        toggle.addEventListener("click", function () {
+          var next =
+            order[(order.indexOf(root.dataset.theme) + 1) % order.length];
+          root.dataset.theme = next;
+          try {
+            localStorage.setItem("theme", next);
+          } catch (e) {
+            /* storage blocked; choice applies for this page only */
+          }
+        });
+      })();
+    </script>
   </body>
 </html>

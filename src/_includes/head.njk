@@ -2,6 +2,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  <script>
+    // Set the saved theme before first paint so the page never flashes. This is
+    // the only render-blocking script; it just maps the stored preference to a
+    // color-scheme via data-theme. The switch behavior loads at end of <body>.
+    (function () {
+      var pref;
+      try {
+        pref = localStorage.getItem("theme");
+      } catch (e) {
+        /* storage blocked; fall through to system */
+      }
+      document.documentElement.dataset.theme =
+        pref === "light" || pref === "dark" ? pref : "system";
+    })();
+  </script>
+
   {% set pageTitle = title or site.title %}
   {% set fullTitle = pageTitle if page.url == "/" else pageTitle + " | " + site.title %}
   {% set pageDescription = description or site.description %}

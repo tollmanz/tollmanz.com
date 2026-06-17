@@ -1,15 +1,51 @@
 /* Syntax highlighting styles for token-based markup */
 
+/* Token palette. Each token pairs its light and dark value in one light-dark()
+   call, resolved from the color-scheme set on :root in main.css. The code-block
+   frame (background, text, border) reuses the shared --color-* tokens. */
+:root {
+  --tok-comment: light-dark(#999988, #8b919b);
+  --tok-punctuation: light-dark(#999999, #abb2bf);
+  --tok-property: light-dark(#4cc0cb, #56b6c2);
+  --tok-string: light-dark(#dd1144, #98c379);
+  --tok-operator: light-dark(#849a22, #d19a66);
+  --tok-keyword: light-dark(#a79d00, #c678dd);
+  --tok-function: light-dark(#657b83, #61afef);
+  --tok-class: light-dark(#445588, #e5c07b);
+  --tok-parameter: light-dark(#258ad1, #d19a66);
+  --tok-regex: light-dark(#009926, #56b6c2);
+  --tok-error-fg: light-dark(#a61717, #ff8a87);
+  --tok-error-bg: light-dark(#e3d2d2, #4a2a2a);
+}
+
+/* Fallback for browsers without light-dark(): the light token palette. */
+@supports not (color: light-dark(#000, #fff)) {
+  :root {
+    --tok-comment: #999988;
+    --tok-punctuation: #999999;
+    --tok-property: #4cc0cb;
+    --tok-string: #dd1144;
+    --tok-operator: #849a22;
+    --tok-keyword: #a79d00;
+    --tok-function: #657b83;
+    --tok-class: #445588;
+    --tok-parameter: #258ad1;
+    --tok-regex: #009926;
+    --tok-error-fg: #a61717;
+    --tok-error-bg: #e3d2d2;
+  }
+}
+
 /* Base code block styling */
 pre[class*="language-"] {
-  background: #f8f8f8;
-  color: #414141;
+  background: var(--color-code-bg);
+  color: var(--color-text);
   line-height: 1;
   margin-bottom: 30px;
   padding: 8px 12px;
   overflow-x: auto;
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
+  border-top: 1px solid var(--color-border-code);
+  border-bottom: 1px solid var(--color-border-code);
 }
 
 code[class*="language-"] {
@@ -25,13 +61,13 @@ code[class*="language-"] {
 .token.prolog,
 .token.doctype,
 .token.cdata {
-  color: #999988;
+  color: var(--tok-comment);
   font-style: italic;
 }
 
 /* Punctuation */
 .token.punctuation {
-  color: #999999;
+  color: var(--tok-punctuation);
 }
 
 /* Properties, tags, boolean, number, constant, symbol, deleted */
@@ -42,7 +78,7 @@ code[class*="language-"] {
 .token.constant,
 .token.symbol,
 .token.deleted {
-  color: #4cc0cb;
+  color: var(--tok-property);
 }
 
 /* Selectors, attributes, strings, chars, built-ins, inserted */
@@ -52,7 +88,7 @@ code[class*="language-"] {
 .token.char,
 .token.builtin,
 .token.inserted {
-  color: #d14;
+  color: var(--tok-string);
 }
 
 /* Operators, entities, url, language-css .string, style .string, variables */
@@ -62,7 +98,7 @@ code[class*="language-"] {
 .language-css .token.string,
 .style .token.string,
 .token.variable {
-  color: #849a22;
+  color: var(--tok-operator);
   font-weight: bold;
 }
 
@@ -71,32 +107,32 @@ code[class*="language-"] {
 .token.atrule,
 .token.attr-value,
 .token.important {
-  color: #a79d00;
+  color: var(--tok-keyword);
   font-weight: normal;
 }
 
 /* Functions */
 .token.function,
 .token.function-variable {
-  color: #657b83;
+  color: var(--tok-function);
   font-weight: normal;
 }
 
 /* Class names */
 .token.class-name {
-  color: #445588;
+  color: var(--tok-class);
   font-weight: bold;
 }
 
 /* Parameters */
 .token.parameter {
-  color: #258ad1;
+  color: var(--tok-parameter);
 }
 
 /* Regex, important */
 .token.regex,
 .token.important {
-  color: #009926;
+  color: var(--tok-regex);
 }
 
 /* Bold */
@@ -120,16 +156,16 @@ code[class*="language-"] {
 /* Bash/Shell specific */
 .language-bash .token.assign-left,
 .language-bash .token.builtin {
-  color: #657b83;
+  color: var(--tok-function);
 }
 
 /* JavaScript specific */
 .language-javascript .token.literal-property {
-  color: #657b83;
+  color: var(--tok-function);
 }
 
 /* Error highlighting */
 .token.error {
-  color: #a61717;
-  background-color: #e3d2d2;
+  color: var(--tok-error-fg);
+  background-color: var(--tok-error-bg);
 }
