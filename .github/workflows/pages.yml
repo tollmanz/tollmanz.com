@@ -1,0 +1,60 @@
+name: Deploy to GitHub Pages
+
+# Publishes the site to GitHub Pages in parallel with the Backblaze deploy
+# (deploy.yml) while GitHub Pages is being evaluated. Production traffic still
+# flows through Fastly to Backblaze; this only keeps the Pages origin in sync so
+# it can be verified before any Fastly cutover.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # Allow manual triggering
+
+# Minimum permissions the official Pages deployment flow requires:
+# contents:read for checkout, pages:write to publish, id-token:write for the
+# OIDC token deploy-pages uses to prove the deployment's origin.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Serialize Pages deployments. cancel-in-progress is false so an in-flight
+# deploy is allowed to finish rather than be left half-applied by a newer run.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site
+        run: npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
