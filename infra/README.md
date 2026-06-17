@@ -37,8 +37,8 @@ service.
 npm run preview   # dotenv -- pulumi preview (dry run)
 npm run up        # dotenv -- pulumi up (apply; new active version on real changes)
 npm run refresh   # dotenv -- pulumi refresh (pull live state)
-npm run format    # prettier --check .
-npm run format:fix
+npm run format       # prettier --write .
+npm run format:check # prettier --check .
 ```
 
 First-time Pulumi auth (once per machine): `pulumi login`.
