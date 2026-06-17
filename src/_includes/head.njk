@@ -1,9 +1,13 @@
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <title>{% if title %}{{ title }}{% else %}{{ site.title }}{% endif %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <meta name="description" content="{{ description or site.description }}">
+  {% set pageTitle = title or site.title %}
+  {% set fullTitle = pageTitle if page.url == "/" else pageTitle + " | " + site.title %}
+  {% set pageDescription = description or site.description %}
+
+  <title>{{ fullTitle }}</title>
+  <meta name="description" content="{{ pageDescription }}">
 
   <link href='/css/main.css' rel="stylesheet" type='text/css'>
   {% if content | hasCodeBlocks %}
@@ -15,4 +19,15 @@
   <link rel="sitemap" type="application/xml" href="/sitemap.xml">
 
   <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+
+  <meta property="og:type" content="{{ 'article' if layout == 'post.njk' else 'website' }}">
+  <meta property="og:title" content="{{ fullTitle }}">
+  <meta property="og:description" content="{{ pageDescription }}">
+  <meta property="og:url" content="{{ site.url }}{{ page.url }}">
+  <meta property="og:site_name" content="{{ site.title }}">
+  {% if image %}<meta property="og:image" content="{{ site.url }}{{ image }}">{% endif %}
+  <meta name="twitter:card" content="{{ 'summary_large_image' if image else 'summary' }}">
+  <meta name="twitter:title" content="{{ fullTitle }}">
+  <meta name="twitter:description" content="{{ pageDescription }}">
+  {% if image %}<meta name="twitter:image" content="{{ site.url }}{{ image }}">{% endif %}
 </head>

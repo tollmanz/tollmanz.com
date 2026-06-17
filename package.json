@@ -1,26 +1,40 @@
 {
   "name": "tollmanz.com",
   "version": "1.0.0",
-  "description": "",
+  "description": "Personal website (www.tollmanz.com) built with Eleventy and deployed to GitHub Pages.",
   "type": "module",
-  "main": "index.js",
+  "private": true,
   "scripts": {
+    "clean": "node -e \"require('fs').rmSync('public', { recursive: true, force: true })\"",
+    "prebuild": "npm run clean",
     "build": "eleventy",
     "dev": "eleventy --serve",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "lint": "eslint .",
+    "lint:check": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prettier": "prettier --write .",
+    "prettier:check": "prettier --check .",
+    "prettier:fix": "prettier --write .",
+    "format": "npm run lint:fix && npm run prettier:fix",
+    "format:check": "npm run lint:check && npm run prettier:check"
   },
   "author": "Zack Tollman <tollmanz@gmail.com>",
   "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
   "devDependencies": {
     "@11ty/eleventy": "3.1.6",
     "@11ty/eleventy-plugin-rss": "3.0.0",
     "@11ty/eleventy-plugin-syntaxhighlight": "5.0.2",
+    "@eslint/js": "10.0.1",
     "clean-css": "5.3.3",
+    "eslint": "10.5.0",
+    "globals": "17.6.0",
     "html-minifier-terser": "7.2.0",
     "luxon": "3.7.2",
     "markdown-it": "14.2.0",
-    "prettier": "3.6.2"
+    "prettier": "3.8.4"
   },
   "overrides": {
     "js-yaml": "4.2.0"

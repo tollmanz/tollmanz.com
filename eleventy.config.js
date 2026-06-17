@@ -111,12 +111,11 @@ export default function (eleventyConfig) {
     return array.slice(0, n);
   });
 
-  // Filter to detect if content has code blocks
+  // Detect Prism-highlighted code blocks so syntax CSS can be loaded only on
+  // pages that need it. The syntaxhighlight plugin emits language- classes.
   eleventyConfig.addFilter("hasCodeBlocks", function (content) {
     if (!content) return false;
-    return /<pre[^>]*><code[^>]*class="[^"]*language-|<pre[^>]*class="[^"]*highlight/.test(
-      content
-    );
+    return /<pre[^>]*><code[^>]*class="[^"]*language-/.test(content);
   });
 
   // Configure markdown
@@ -129,10 +128,9 @@ export default function (eleventyConfig) {
   eleventyConfig.setLibrary("md", markdownIt(markdownItOptions));
 
   return {
-    templateFormats: ["md", "njk", "html", "liquid", "css"],
+    templateFormats: ["md", "njk", "html", "css"],
     markdownTemplateEngine: "njk",
     htmlTemplateEngine: "njk",
-    dataTemplateEngine: "njk",
     dir: {
       input: "src",
       includes: "_includes",
