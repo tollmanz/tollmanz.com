@@ -1,6 +1,7 @@
 # www.tollmanz.com
 
-Personal website built with [Eleventy (11ty)](https://www.11ty.dev/) with automated deployment to Backblaze B2.
+Personal website built with [Eleventy (11ty)](https://www.11ty.dev/), deployed to
+GitHub Pages and served through Fastly.
 
 ## Development
 
@@ -11,65 +12,35 @@ npm install
 # Start development server
 npm run dev
 
-# Build for production
+# Build for production (output in public/)
 npm run build
-
-# Deploy Site
-npm run deploy
-
-# Test deployment without uploading (dry-run mode)
-npm run deploy:dry-run
-
-# Force redeploy all files (bypass cache)
-npm run deploy:force
 ```
 
-## Deployment Setup
+## Deployment
 
-### GitHub Actions CI/CD Setup
+The site deploys to GitHub Pages via `.github/workflows/deploy.yml`: a build job
+runs Eleventy and uploads `public/` as a Pages artifact, then a deploy job
+publishes it with `actions/deploy-pages`. It triggers on pushes to `main` and can
+be run manually from the Actions tab ("Deploy Site" -> "Run workflow"). No
+deployment secrets are required; the workflow authenticates to Pages with an OIDC
+token.
 
-For automated deployment on commits to the `main` branch:
+Fastly sits in front of GitHub Pages as the CDN and TLS terminator. Its
+configuration is managed with Pulumi in [`infra/`](infra/).
 
-1. Go to the GitHub repository settings
-2. Navigate to "Secrets and variables" → "Actions"
-3. Add the following repository secrets:
-   - `B2_APPLICATION_KEY_ID`: Backblaze B2 Application Key ID
-   - `B2_APPLICATION_KEY`: Backblaze B2 Application Key
-   - `B2_BUCKET_NAME`: Backblaze B2 bucket name
+### One-time GitHub Pages setup
 
-4. The workflow will automatically trigger on pushes to the `main` branch
+DNS for `tollmanz.com` and `www.tollmanz.com` is managed at Fastly and must
+resolve to Fastly, not to GitHub's Pages IPs or a `tollmanz.github.io` CNAME.
+Fastly is the only path to the GitHub Pages origin; pointing these records at
+GitHub would bypass Fastly entirely.
 
-### Manual Deployment
+The rest are repo settings, configured once outside this codebase:
 
-1. Go to the "Actions" tab
-2. Select the "Deploy Site" workflow
-3. Click "Run workflow" and select the branch
-4. Optional: Check "Force redeploy all files (bypass cache)" to force upload all files
-5. Click "Run workflow"
-
-### Local Deployment
-
-1. Copy the environment template:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Configure Backblaze B2 credentials in the `.env` file:
-
-   ```bash
-   # Backblaze B2 Configuration
-   B2_APPLICATION_KEY_ID=your_application_key_id_here
-   B2_APPLICATION_KEY=your_application_key_here
-   B2_BUCKET_NAME=your_bucket_name_here
-   ```
-
-3. Run the deployment script:
-
-   ```bash
-   # Test first (recommended)
-   npm run deploy:dry-run
-
-   # Actual deployment
-   npm run deploy
-   ```
+1. Settings -> Pages -> Source: "GitHub Actions"
+2. Settings -> Pages -> Custom domain: `www.tollmanz.com` (must match the
+   `overrideHost` in `infra/index.ts`). A `CNAME` file in the build output is
+   ignored on the Actions deploy flow, so the domain is set here instead.
+3. "Enforce HTTPS" stays off and is unavailable: because the DNS above points at
+   Fastly rather than GitHub's IPs, GitHub cannot issue a certificate for the
+   domain. Visitor TLS is terminated at Fastly.

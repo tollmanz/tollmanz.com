@@ -1,44 +1,33 @@
 import * as fs from "fs";
 import * as path from "path";
-import * as pulumi from "@pulumi/pulumi";
 import * as fastly from "@pulumi/fastly";
 
-// All secrets come from the environment, never from committed Pulumi config:
-// a gitignored .env locally, GitHub Actions secrets in CI. The Fastly API token
-// is read by the provider from FASTLY_API_KEY. The Backblaze B2 origin
-// credentials are read here and injected into the AWS-v4 signing snippet below.
-function requireSecretEnv(name: string): pulumi.Output<string> {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(
-      `Missing required environment variable ${name}. Set it in infra/.env locally or as a GitHub Actions secret in CI.`
-    );
-  }
-  return pulumi.secret(value);
-}
+// The site is served by GitHub Pages and fronted by Fastly. GitHub Pages is
+// multi-tenant and routes purely by the HTTP Host header, so the backend's
+// connection identity is deliberately decoupled from its routing identity:
+//   - address / SNI / cert hostname = tollmanz.github.io (the github.io origin,
+//     whose TLS cert is valid for *.github.io)
+//   - overrideHost = www.tollmanz.com (the custom domain configured on the repo,
+//     which selects this repo's site and avoids the github.io -> custom-domain
+//     301 redirect)
+// The custom domain must be set in the repo's Settings > Pages to match
+// overrideHost. The Fastly API token is read by the provider from FASTLY_API_KEY;
+// no secrets are committed. GitHub Pages is public, so no origin signing is
+// needed.
 
-const b2AccessKey = requireSecretEnv("B2_APPLICATION_KEY_ID");
-const b2SecretKey = requireSecretEnv("B2_APPLICATION_KEY");
-
-// Custom VCL snippets live in ./snippets as plain .vcl files so the source is
-// readable and exactly matches what runs at the edge. The B2 auth snippet
-// carries placeholder tokens that are replaced with the env secrets here.
+// Custom VCL lives in ./snippets as plain .vcl files so the source is readable
+// and exactly matches what runs at the edge. The apex-to-www redirect is split
+// across a recv snippet (detects the apex Host and raises a sentinel error) and
+// an error snippet (synthesizes the 301).
 const snippetsDir = path.join(__dirname, "snippets");
-const appendIndexHtml = fs.readFileSync(
-  path.join(snippetsDir, "append-index-html.vcl"),
+const apexRedirectRecv = fs.readFileSync(
+  path.join(snippetsDir, "apex-to-www-recv.vcl"),
   "utf8"
 );
-const b2AuthTemplate = fs.readFileSync(
-  path.join(snippetsDir, "b2-private-auth.vcl"),
+const apexRedirectError = fs.readFileSync(
+  path.join(snippetsDir, "apex-to-www-error.vcl"),
   "utf8"
 );
-const b2AuthContent = pulumi
-  .all([b2AccessKey, b2SecretKey])
-  .apply(([accessKey, secretKey]) =>
-    b2AuthTemplate
-      .replace("__B2_ACCESS_KEY__", accessKey)
-      .replace("__B2_SECRET_KEY__", secretKey)
-  );
 
 const site = new fastly.ServiceVcl(
   "site",
@@ -48,15 +37,14 @@ const site = new fastly.ServiceVcl(
     domains: [{ name: "tollmanz.com" }, { name: "www.tollmanz.com" }],
     backends: [
       {
-        name: "backblaze",
-        address: "www-tollmanz-com.s3.us-east-005.backblazeb2.com",
+        name: "github-pages",
+        address: "tollmanz.github.io",
         port: 443,
         useSsl: true,
         shield: "iad-va-us",
-        sslCertHostname: "www-tollmanz-com.s3.us-east-005.backblazeb2.com",
-        sslSniHostname: "www-tollmanz-com.s3.us-east-005.backblazeb2.com",
-        sslClientCert: pulumi.secret(""),
-        sslClientKey: pulumi.secret(""),
+        overrideHost: "www.tollmanz.com",
+        sslCertHostname: "tollmanz.github.io",
+        sslSniHostname: "tollmanz.github.io",
       },
     ],
     gzips: [
@@ -113,15 +101,15 @@ const site = new fastly.ServiceVcl(
     http3: true,
     snippets: [
       {
-        name: "Append index.html",
+        name: "Apex to www redirect",
         type: "recv",
-        priority: 150,
-        content: appendIndexHtml,
+        priority: 100,
+        content: apexRedirectRecv,
       },
       {
-        name: "B2 Private Auth",
-        type: "miss",
-        content: b2AuthContent,
+        name: "Apex to www redirect response",
+        type: "error",
+        content: apexRedirectError,
       },
     ],
   },
