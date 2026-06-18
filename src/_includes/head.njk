@@ -33,9 +33,9 @@
   <title>{{ fullTitle }}</title>
   <meta name="description" content="{{ pageDescription }}">
 
-  <link href='/css/main.css' rel="stylesheet" type='text/css'>
+  <link href="{{ assets.css.main.url }}" rel="stylesheet" type="text/css">
   {% if content | hasCodeBlocks %}
-  <link href='/css/syntax-highlighting.css' rel="stylesheet" type='text/css'>
+  <link href="{{ assets.css['syntax-highlighting'].url }}" rel="stylesheet" type="text/css">
   {% endif %}
 
   <link rel="canonical" href="{{ site.url }}{{ page.url }}">

@@ -28,6 +28,10 @@ const apexRedirectError = fs.readFileSync(
   path.join(snippetsDir, "apex-to-www-error.vcl"),
   "utf8"
 );
+const cacheControlFetch = fs.readFileSync(
+  path.join(snippetsDir, "cache-control-fetch.vcl"),
+  "utf8"
+);
 const forceIdentityFetch = fs.readFileSync(
   path.join(snippetsDir, "force-identity-fetch.vcl"),
   "utf8"
@@ -125,6 +129,12 @@ const site = new fastly.ServiceVcl(
         name: "Apex to www redirect response",
         type: "error",
         content: apexRedirectError,
+      },
+      {
+        name: "Cache-Control by asset class",
+        type: "fetch",
+        priority: 100,
+        content: cacheControlFetch,
       },
       {
         name: "Force identity fetch for edge compression - miss",
