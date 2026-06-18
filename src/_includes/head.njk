@@ -2,6 +2,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  {# Preload the above-the-fold fonts (Coustard headings, Ubuntu 300 body) so
+     they are applied before first paint. A view transition snapshots the new
+     page at first paint; without this the snapshot captures the fallback font
+     and the swap-in becomes a visible FOUT frozen by the transition. The
+     crossorigin attr is required even same-origin or the font downloads twice. #}
+  <link rel="preload" href="/fonts/coustard-42be12704ef50999d53a7c55da2bb7522ef1efde.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/ubuntu-e4c86e820c9a5f86c6832a68e432c6bf6981084b.woff2" as="font" type="font/woff2" crossorigin>
+
   <script>
     // Set the saved theme before first paint so the page never flashes. This is
     // the only render-blocking script; it just maps the stored preference to a

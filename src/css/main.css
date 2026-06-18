@@ -966,3 +966,54 @@ pre > code {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* View transitions */
+/* Cross-document (MPA) slide-and-fade. One CSS opt-in animates between page
+   loads with zero JavaScript; engines without support navigate normally, so
+   this is pure progressive enhancement. The opt-in must be on every page,
+   which it is, since this stylesheet is loaded sitewide. */
+@view-transition {
+  navigation: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Hold the masthead and footer still across pages so they don't shimmer:
+     the same name in the same position is treated as one continuous element. */
+  .site-header {
+    view-transition-name: site-header;
+  }
+  .site-footer {
+    view-transition-name: site-footer;
+  }
+
+  /* Content lifts out on exit and settles in from a small offset on enter.
+     transform + opacity only, so the animation stays on the GPU compositor. */
+  ::view-transition-old(root) {
+    animation: 220ms ease both vt-slide-out;
+  }
+  ::view-transition-new(root) {
+    animation: 220ms ease both vt-slide-in;
+  }
+
+  @keyframes vt-slide-out {
+    to {
+      opacity: 0;
+      transform: translateY(-16px);
+    }
+  }
+  @keyframes vt-slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+  }
+}
+
+/* Respect reduced motion: keep the instant DOM swap, drop the animation. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
