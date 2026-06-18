@@ -1,0 +1,51 @@
+name: Edge verification
+
+# Smoke-tests the live production edge (Fastly in front of GitHub Pages) against
+# the contract in docs/edge-caching.md: Cache-Control by asset class, 304
+# revalidation, brotli/gzip negotiation, redirects, HSTS, HTTP/2 and HTTP/3, and
+# TLS resumption / 0-RTT. The tests need no npm dependencies, just curl and
+# openssl, which the runner already has.
+#
+# It runs after either deploy pipeline finishes on main (the site via
+# "Deploy to GitHub Pages", the Fastly VCL via "Fastly infra (Pulumi)"), on
+# manual dispatch, and weekly to catch edge config drift between deploys.
+
+on:
+  workflow_run:
+    workflows: ["Deploy to GitHub Pages", "Fastly infra (Pulumi)"]
+    types: [completed]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 12 * * 1" # Mondays 12:17 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    # On a workflow_run trigger, only proceed when the upstream deploy succeeded
+    # on main. This skips infra pull-request previews, which do not change the
+    # production edge. Manual and scheduled runs always proceed.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+
+      # The deploy job purges the edge as its last step, so by the time this runs
+      # the purge is done. Allow a brief settle for new objects to propagate from
+      # the origin before asserting; the tests also retry the cache checks.
+      - name: Let the deploy settle
+        if: github.event_name == 'workflow_run'
+        run: sleep 15
+
+      - name: Run edge verification
+        run: npm run test:edge

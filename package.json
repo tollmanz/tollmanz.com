@@ -9,6 +9,8 @@
     "prebuild": "npm run clean",
     "build": "eleventy",
     "dev": "eleventy --serve",
+    "test": "npm run test:edge",
+    "test:edge": "node --test \"tests/edge/**/*.test.js\"",
     "lint": "eslint .",
     "lint:check": "eslint .",
     "lint:fix": "eslint . --fix",
