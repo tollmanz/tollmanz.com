@@ -14,7 +14,7 @@ My [HTTPS Mixed Content Detector](https://wordpress.org/plugins/https-mixed-cont
 
 To use the HTTPS Mixed Content Detector plugin, simply install it from the [WordPress plugin repository](https://wordpress.org/plugins/https-mixed-content-detector/). Once the plugin is installed, browse the front end of your website as a logged in admin using either Safari or Chrome (Firefox will not work right now<span class="footnote-article-number">1</span>). As you browse your site, any unsecure assets will be logged. I recommend starting off by browsing the primary templates for your site (e.g., home page, single post, single page, category page, tag page, etc). Once you have visited a number of pages on your site, click the "Content Security Policy Reports" menu item in your WordPress dashboard. You will see a list of all of the unsecure items served on the pages that you visited. For example, you might see something like:
 
-![](/media/images/csp-violations.jpg "CSP Violations screen")
+![Content Security Policy Reports admin screen listing logged violations with columns for date, blocked URI, document URI, referrer, and violated directive](/media/images/csp-violations.png)
 
 When you are finished logging reports, simply deactivate the plugin. There currently is no "on/off" switch, so just deactivate it.
 
