@@ -2,6 +2,7 @@ import { DateTime } from "luxon";
 import { minify } from "html-minifier-terser";
 import syntaxHighlight from "@11ty/eleventy-plugin-syntaxhighlight";
 import pluginRss from "@11ty/eleventy-plugin-rss";
+import { eleventyImageTransformPlugin } from "@11ty/eleventy-img";
 import CleanCSS from "clean-css";
 import markdownIt from "markdown-it";
 
@@ -9,6 +10,21 @@ export default function (eleventyConfig) {
   // Add plugins
   eleventyConfig.addPlugin(syntaxHighlight);
   eleventyConfig.addPlugin(pluginRss);
+
+  // Build-time responsive images: rewrite the bare <img> that markdown-it emits
+  // into <picture>/srcset with width/height. Sources are PNGs under src/media;
+  // emitted derivatives land in public/img with hashed, immutable filenames.
+  eleventyConfig.addPlugin(eleventyImageTransformPlugin, {
+    formats: ["avif", "webp", "jpeg"],
+    widths: [780, 1560],
+    htmlOptions: {
+      imgAttributes: {
+        loading: "lazy",
+        decoding: "async",
+        sizes: "(max-width: 800px) calc(100vw - 30px), 780px",
+      },
+    },
+  });
 
   // Add a simple template engine for CSS files (just pass through content)
   eleventyConfig.addExtension("css", {
@@ -77,7 +93,10 @@ export default function (eleventyConfig) {
 
   // Copy static assets
   eleventyConfig.addPassthroughCopy("src/fonts");
-  eleventyConfig.addPassthroughCopy("src/media");
+  // Rasters under src/media/images are consumed by eleventyImageTransformPlugin
+  // and emitted to public/img, so copy only the PDFs to avoid shipping the
+  // unreferenced originals next to public/img.
+  eleventyConfig.addPassthroughCopy("src/media/pdf");
   eleventyConfig.addPassthroughCopy("src/favicon.ico");
 
   // Create collections
