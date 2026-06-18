@@ -127,13 +127,13 @@ const site = new fastly.ServiceVcl(
         content: apexRedirectError,
       },
       {
-        name: "Force identity fetch for edge compression (miss)",
+        name: "Force identity fetch for edge compression - miss",
         type: "miss",
         priority: 100,
         content: forceIdentityFetch,
       },
       {
-        name: "Force identity fetch for edge compression (pass)",
+        name: "Force identity fetch for edge compression - pass",
         type: "pass",
         priority: 100,
         content: forceIdentityFetch,
