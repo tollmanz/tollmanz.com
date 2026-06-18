@@ -110,6 +110,10 @@
 
   /* Surface for the floating theme panel and its button. */
   --color-surface: light-dark(#ffffff, #2e2823);
+
+  /* Accent for the active picker option. Darker than --color-link in light so
+     it clears WCAG AA (4.5:1) on the white panel surface; dark keeps the tan. */
+  --color-accent-strong: light-dark(#cf2b27, #eed3b1);
 }
 
 /* The switch forces one scheme; "system" (or no attribute) keeps "light dark". */
@@ -138,6 +142,7 @@
     --color-accent: #dc322f;
     --color-code-bg: #f8f8f8;
     --color-surface: #ffffff;
+    --color-accent-strong: #cf2b27;
   }
 }
 
@@ -886,7 +891,7 @@ pre > code {
 }
 
 .theme-picker label:hover {
-  color: var(--color-link);
+  color: var(--color-accent-strong);
 }
 
 /* Active option: accent color plus bold weight, not color alone. Driven by the
@@ -895,7 +900,7 @@ pre > code {
 :root[data-theme="light"] .theme-picker label[for="theme-light"],
 :root[data-theme="dark"] .theme-picker label[for="theme-dark"],
 :root[data-theme="system"] .theme-picker label[for="theme-system"] {
-  color: var(--color-link);
+  color: var(--color-accent-strong);
   font-weight: 700;
 }
 
