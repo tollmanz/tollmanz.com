@@ -108,9 +108,8 @@
   --color-accent: light-dark(#dc322f, #eed3b1);
   --color-code-bg: light-dark(#f8f8f8, #241f1a);
 
-  /* Segmented control surfaces: a sunken track and a raised selected segment. */
+  /* Surface for the floating theme panel and its button. */
   --color-surface: light-dark(#ffffff, #2e2823);
-  --color-surface-sunken: light-dark(#ececec, #13100d);
 }
 
 /* The switch forces one scheme; "system" (or no attribute) keeps "light dark". */
@@ -139,7 +138,6 @@
     --color-accent: #dc322f;
     --color-code-bg: #f8f8f8;
     --color-surface: #ffffff;
-    --color-surface-sunken: #ececec;
   }
 }
 
@@ -786,83 +784,119 @@ pre > code {
   color: #258bd2;
 }
 
-/* Theme picker
+/* Theme control
 
-   A labeled, three-state segmented control built on native radios, so it
-   announces correctly and arrow keys move between options. Hidden until the
-   inline script sets data-theme on <html>, since it cannot work without JS. */
-.theme-picker {
+   Wide screens: a floating panel pinned to the far right, in the gutter beside
+   the left-aligned content column, so it never overlaps the page. Narrow
+   screens: a small header button that opens the options as a dropdown menu.
+   Built on native radios; the active option is shown by the accent color and
+   bold weight (not color alone). Hidden until the inline script sets data-theme
+   on <html>, since it needs JS to function. */
+.theme-control {
+  position: relative;
   display: none;
   flex: none;
-  min-width: 0; /* opt out of the fieldset min-width that breaks flex layouts */
-  margin: 0;
-  padding: 0;
-  border: 0;
 }
 
-:root[data-theme] .theme-picker {
+:root[data-theme] .theme-control {
   display: block;
 }
 
-/* The site does not set border-box globally, so scope it here to keep the
-   width: 100% track from overflowing once padding and border are added. */
-.theme-picker,
-.theme-picker * {
-  box-sizing: border-box;
+/* Button that opens the menu on narrow screens (hidden on wide screens). */
+.theme-control__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-icon);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    color 0.18s ease,
+    border-color 0.2s ease;
 }
 
-.theme-picker__options {
-  display: inline-flex;
-  gap: 4px;
-  padding: 4px;
-  background: var(--color-surface-sunken);
+.theme-control__toggle:hover {
+  color: var(--color-link);
+}
+
+.theme-control__toggle:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+/* Show only the icon for the active theme. */
+.theme-control__icon {
+  display: none;
+}
+
+:root[data-theme="system"] .theme-control__icon[data-icon="system"],
+:root[data-theme="light"] .theme-control__icon[data-icon="light"],
+:root[data-theme="dark"] .theme-control__icon[data-icon="dark"] {
+  display: block;
+}
+
+/* The panel/menu, shared by both presentations. */
+.theme-picker {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 12px;
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease;
 }
 
+.theme-picker__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.theme-picker__options {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .theme-picker label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 8px 14px;
-  border-radius: 9px;
+  display: block;
+  padding: 8px 12px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  line-height: 1;
+  line-height: 1.4;
   color: var(--color-text);
   white-space: nowrap;
   -webkit-user-select: none;
   user-select: none;
-  transition:
-    background-color 0.18s ease,
-    color 0.18s ease;
-}
-
-.theme-picker label svg {
-  flex: none;
-  width: 16px;
-  height: 16px;
+  transition: color 0.15s ease;
 }
 
 .theme-picker label:hover {
   color: var(--color-link);
 }
 
-/* Active option: a raised surface plus shadow, not color alone, so the choice
-   stays clear in high-contrast and color-blind contexts. Driven by the real
-   :checked state and, before the script syncs the radios, by data-theme, so the
-   selection is correct from the first paint. */
+/* Active option: accent color plus bold weight, not color alone. Driven by the
+   real :checked state and, before the script syncs the radios, by data-theme. */
 .theme-picker input:checked + label,
 :root[data-theme="light"] .theme-picker label[for="theme-light"],
 :root[data-theme="dark"] .theme-picker label[for="theme-dark"],
 :root[data-theme="system"] .theme-picker label[for="theme-system"] {
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  color: var(--color-link);
+  font-weight: 700;
 }
 
 .theme-picker input:focus-visible + label {
@@ -870,22 +904,53 @@ pre > code {
   outline-offset: 2px;
 }
 
-/* Small screens: the control drops below the title and fills the row as three
-   equal segments. */
-@media screen and (max-width: 600px) {
+/* Narrow screens: the menu drops down under the header button. */
+@media (max-width: 1119px) {
   .theme-picker {
-    width: 100%;
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 50;
+    min-width: 150px;
+  }
+
+  .theme-control.is-open .theme-picker {
+    display: block;
+  }
+}
+
+/* Wide screens: float the panel at the far right, outside the content column;
+   no button, panel always visible, label and options in one row. */
+@media (min-width: 1120px) {
+  .theme-control {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 50;
+  }
+
+  .theme-control__toggle {
+    display: none;
+  }
+
+  .theme-picker {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .theme-picker__label {
+    margin-bottom: 0;
   }
 
   .theme-picker__options {
-    display: flex;
-    width: 100%;
+    flex-direction: row;
+    gap: 4px;
   }
 
   .theme-picker label {
-    flex: 1;
-    padding-right: 8px;
-    padding-left: 8px;
+    padding: 6px 10px;
   }
 }
 
