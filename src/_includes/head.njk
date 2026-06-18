@@ -10,6 +10,22 @@
   <link rel="preload" href="/fonts/coustard-42be12704ef50999d53a7c55da2bb7522ef1efde.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/ubuntu-e4c86e820c9a5f86c6832a68e432c6bf6981084b.woff2" as="font" type="font/woff2" crossorigin>
 
+  <script>
+    // Set the saved theme before first paint so the page never flashes. This is
+    // the only render-blocking script; it just maps the stored preference to a
+    // color-scheme via data-theme. The switch behavior loads at end of <body>.
+    (function () {
+      var pref;
+      try {
+        pref = localStorage.getItem("theme");
+      } catch (e) {
+        /* storage blocked; fall through to system */
+      }
+      document.documentElement.dataset.theme =
+        pref === "light" || pref === "dark" ? pref : "system";
+    })();
+  </script>
+
   {% set pageTitle = title or site.title %}
   {% set fullTitle = pageTitle if page.url == "/" else pageTitle + " | " + site.title %}
   {% set pageDescription = description or site.description %}

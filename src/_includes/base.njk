@@ -9,5 +9,52 @@
       </div>
     </div>
     {% include "footer.njk" %}
+    <script>
+      // Theme control. Not render-blocking: the stored theme is already applied
+      // by the inline script in <head>. This syncs the radio to that choice,
+      // persists changes, and runs the narrow-screen dropdown (open/close,
+      // outside-click, Escape). "system" needs no matchMedia listener: data-theme
+      // stays "system", so color-scheme: light dark re-resolves with the OS live.
+      (function () {
+        var root = document.documentElement;
+        var control = document.querySelector(".theme-control");
+        if (!control) return;
+        var toggle = control.querySelector(".theme-control__toggle");
+        var radios = control.querySelectorAll('input[name="theme"]');
+
+        function close() {
+          control.classList.remove("is-open");
+          if (toggle) toggle.setAttribute("aria-expanded", "false");
+        }
+
+        var current = root.dataset.theme || "system";
+        radios.forEach(function (radio) {
+          radio.checked = radio.value === current;
+          radio.addEventListener("change", function () {
+            if (!radio.checked) return;
+            root.dataset.theme = radio.value;
+            try {
+              localStorage.setItem("theme", radio.value);
+            } catch (e) {
+              /* storage blocked; choice applies for this page only */
+            }
+            close();
+          });
+        });
+
+        if (toggle) {
+          toggle.addEventListener("click", function () {
+            var open = control.classList.toggle("is-open");
+            toggle.setAttribute("aria-expanded", open ? "true" : "false");
+          });
+          document.addEventListener("click", function (event) {
+            if (!control.contains(event.target)) close();
+          });
+          document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") close();
+          });
+        }
+      })();
+    </script>
   </body>
 </html>
