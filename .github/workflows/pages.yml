@@ -56,3 +56,13 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+      - name: Purge Fastly cache
+        env:
+          FASTLY_PURGE_TOKEN: ${{ secrets.FASTLY_PURGE_TOKEN }}
+          FASTLY_SERVICE_ID: ${{ vars.FASTLY_SERVICE_ID }}
+        run: |
+          curl --fail --silent --show-error \
+            --request POST \
+            --header "Fastly-Key: ${FASTLY_PURGE_TOKEN}" \
+            --header "Accept: application/json" \
+            "https://api.fastly.com/service/${FASTLY_SERVICE_ID}/purge_all"
