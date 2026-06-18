@@ -56,3 +56,21 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+      # Fastly caches the whole site, so freshly published content stays hidden
+      # behind stale edge copies until their TTL expires. A purge_all after the
+      # deploy clears every object at once; the next request for each URL misses
+      # and re-fetches from GitHub Pages. The site is static and fully
+      # regenerated on each deploy, so purging everything is safe. The token is
+      # scoped to purge_all only (separate from the Pulumi write token), and the
+      # non-secret service ID comes from an Actions variable.
+      - name: Purge Fastly cache
+        env:
+          FASTLY_PURGE_TOKEN: ${{ secrets.FASTLY_PURGE_TOKEN }}
+          FASTLY_SERVICE_ID: ${{ vars.FASTLY_SERVICE_ID }}
+        run: |
+          curl --fail --silent --show-error \
+            --request POST \
+            --header "Fastly-Key: ${FASTLY_PURGE_TOKEN}" \
+            --header "Accept: application/json" \
+            "https://api.fastly.com/service/${FASTLY_SERVICE_ID}/purge_all"
