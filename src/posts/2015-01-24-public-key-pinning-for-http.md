@@ -61,7 +61,7 @@ After enough tinkering, I finally was able to get myself blocked by making the b
 
 Chrome provides an [internal diagnostic page](chrome://net-internals/#hsts) for viewing HTTP Strict Transport Security (HSTS) information. Since HSTS and HPKP are related subjects, it turns out that this page also includes HPKP information (this isn't documented very well). If you visit this page, there is a field that allows you to "query" a domain and get HSTS and HPKP information about the domain. Once you have set up HPKP and visited your site, you should see something like the following if you query your domain:
 
-![](/media/images/domain-query-hpkp.jpg "Results of domain query for HSTS and HPKP information")
+![Chrome net-internals query for tollmanz.com, showing its stored HSTS and HPKP data including upgrade mode, include-subdomains flags, and SPKI hashes](/media/images/domain-query-hpkp.png)
 
 Most importantly, you'll want to see values for `dynamic_pkp_observed` and `dynamic_spki_hashes`. If values are reported here, you have affirmation that the browser has stored your public key pins. If you are still able to access your site, you know that the pins are stored and they are correct other wise you would be presented with a connection error screen.
 

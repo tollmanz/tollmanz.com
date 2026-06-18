@@ -10,6 +10,6 @@ Tonight, I released version 0.1.2 of Debug Bar Cron. [Jeremy Felt](http://jeremy
 
 When viewing the event times, "ago" will be printed after the time difference if the event is in the past. It should be noted that it is not necessarily an issue if you see an event time that is in the past. Due to the way that WordPress scheduled events work, the event will always fire after the scheduled time. If WordPress scheduled events are working correctly, Debug Bar Cron should report "Yes" as the value for "Doing Cron" when past events are shown. That said, if you load the page, notice that an event was scheduled to run prior to the current time **and** the "Doing Cron" indicator is set to "No", there is likely an issue with WordPress scheduled events executing. In that case, the missed events will be highlighted in red as shown below.
 
-![](/media/images/missed-event.jpg "missed-event")
+![Debug Bar Cron panel showing a missed scheduled event, with the next event time highlighted in red and a custom events table listing each hook and interval](/media/images/missed-event.png)
 
 Note that if this is not cleared up with a reload or two, or if you find that you have numerous events showing in red, it is more than likely that wp-cron.php is not working correctly on your WordPress installation and steps need to be taken to remediate the issue. I am considering trying to add some more debug information about what that problem might be, but that takes careful consideration and time to implement.

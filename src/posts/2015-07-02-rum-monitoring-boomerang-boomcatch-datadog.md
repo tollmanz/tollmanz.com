@@ -404,13 +404,13 @@ While it didn't seem like we did much here, we actually did quite a bit by insta
 
 To complete our data tracking journey, open up "Metrics Explorer" in Datadog (Metrics > Explorer). Be sure to visit your site a few times to collect some data. Once data is in the system, go to the "Graph" box on the "Metrics Explorer" dashboard. Type in "rt" to find the data related to round trip time that Boomerang was measuring. If all is working well, you should see something like:
 
-![](/media/images/round-trip-metrics.png "Round trip metrics reported")
+![Datadog Metrics Explorer graph picker filtered to "rt", listing round-trip timing metrics such as rt.load.max, rt.load.avg, and rt.lastbyte.max](/media/images/round-trip-metrics.png)
 
 If you are not seeing this data, try visiting your site some more, waiting a minute and reload the "Metrics Explorer" dashboard.
 
 Now that the data is piping into Datadog, you can begin to experiment with different dashboards to visualize the data. I set up a front end performance dashboard to visualize the navtiming and rt data:
 
-![](/media/images/dashboard-metrics.png "Dashboard for front end metrics")
+![Datadog dashboard visualizing navigation-timing and round-trip data in three time-series charts for Last Byte, DOM Load, and Connect](/media/images/dashboard-metrics.png)
 
 This is not too impressive due to low traffic to my site, but still gives me insight that I need.
 

@@ -100,9 +100,9 @@ The main message I got from Zach's presentation is that Flash of Invisible Text 
 
 You can see the results of FOIT below in the images he used to illustrate this point:
 
-![](/media/images/mitt-president.jpg "Mitt Romney is Officially Running for President")
+![Slate headline during the web font load, reading "Mitt Romney Is Officially Running for President" with the italic word not still missing](/media/images/mitt-president.png)
 
-![](/media/images/mitt-not-president.jpg "Mitt Romney is Officially not Running for President")
+![The same Slate headline once the italic font loads, now reading "Mitt Romney Is Officially Not Running for President" with the word Not highlighted](/media/images/mitt-not-president.png)
 
 - Slides: [https://speakerdeck.com/zachleat/the-performance-and-usability-of-font-loading](https://speakerdeck.com/zachleat/the-performance-and-usability-of-font-loading)
 - Twitter: [@zachleat](https://twitter.com/zachleat)

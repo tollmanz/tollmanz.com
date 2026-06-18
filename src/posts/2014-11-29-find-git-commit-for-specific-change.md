@@ -74,7 +74,7 @@ git difftool 6e6c2d8~1..6e6c2d8
 
 This command led to the following in Kaleidoscope:
 
-![](/media/images/kaleidoscope-diff.jpg "kaleidoscope-diff")
+![Kaleidoscope side-by-side diff of shared.css, highlighting a z-index rule that gains an !important flag between the two revisions](/media/images/kaleidoscope-diff.png)
 
 The command essentially says, "show me the difference between the commit prior to `6e6c2d8` and commit `6e6c2d8` using my `difftool`." This command allowed me to examine the diff in the tool that I am most comfortable with. It showed me the same information as `git show`, but allowed me to use a better UI to view the changes.
 
