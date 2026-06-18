@@ -38,8 +38,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Reuse eleventy-img's encoded derivatives across runs. The plugin skips
+      # the sharp encode when a hashed output already exists in public/img, so a
+      # cache hit turns the build warm. The exact key (no restore-keys) makes it
+      # all-or-nothing: unchanged inputs hit fully, any change rebuilds clean, so
+      # no stale orphan derivatives are ever carried forward. Key on the sources
+      # plus anything that changes the output: image options and the plugin
+      # version.
+      - name: Cache optimized images
+        uses: actions/cache@v4
+        with:
+          path: public/img
+          key: eleventy-img-${{ hashFiles('src/media/images/**', 'eleventy.config.js', 'package-lock.json') }}
+
+      # Run eleventy directly rather than `npm run build`: the build script's
+      # prebuild clean wipes public/ and would delete the restored cache. A fresh
+      # runner has no stale output to clean, so skipping it is safe here.
       - name: Build site
-        run: npm run build
+        run: npx @11ty/eleventy
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
