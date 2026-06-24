@@ -1,0 +1,47 @@
+---
+layout: base.njk
+title: Speaking
+permalink: /speaking/
+description: Conference talks and speaking engagements by Zack Tollman, with links to slides and video where available.
+---
+
+<div class="speaking">
+  <header class="post-header">
+    <h1 class="post-title">Speaking</h1>
+  </header>
+
+  <p class="speaking-intro">
+    A running index of conference talks and other speaking engagements.
+  </p>
+
+  <ul class="talk-list">
+    {% for talk in collections.talks %}
+      <li class="talk">
+        <p class="talk-meta">
+          {% if talk.data.dateText %}
+            <span class="talk-date">{{ talk.data.dateText }}</span>
+          {% else %}
+            <time class="talk-date" datetime="{{ talk.date | htmlDateString }}">{{ talk.date | dateDisplay }}</time>
+          {% endif %}
+          {% if talk.data.conference %}<span class="talk-conference">{{ talk.data.conference }}</span>{% endif %}
+          {% if talk.data.location %}<span class="talk-location">{{ talk.data.location }}</span>{% endif %}
+        </p>
+        <h2 class="talk-title">{{ talk.data.title }}</h2>
+        {% if talk.data.coSpeakers %}
+          <p class="talk-cospeakers">with {{ talk.data.coSpeakers }}</p>
+        {% endif %}
+        {% set paras = talk.data.description | paragraphs %}
+        {% if paras.length %}
+          <div class="talk-description">
+            {% for para in paras %}<p>{{ para }}</p>{% endfor %}
+          </div>
+        {% endif %}
+        <p class="talk-links">
+          {% if talk.data.video %}<a href="{{ talk.data.video }}">Video</a>{% endif %}
+          {% if talk.data.slides %}<a href="{{ talk.data.slides }}">Slides</a>{% endif %}
+          {% for source in talk.data.sources %}<a href="{{ source.url }}">{{ source.label }}</a>{% endfor %}
+        </p>
+      </li>
+    {% endfor %}
+  </ul>
+</div>

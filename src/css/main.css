@@ -430,6 +430,68 @@ pre > code {
   margin-bottom: 30px;
 }
 
+/* Speaking */
+.speaking-intro {
+  margin-bottom: 30px;
+  color: var(--color-text-muted);
+}
+
+.talk-list {
+  margin-left: 0;
+  list-style: none;
+}
+
+.talk-list > li {
+  margin-bottom: 36px;
+}
+
+.talk-meta {
+  font-size: 15.75px;
+  color: var(--color-text-muted);
+}
+
+.talk-meta > * + *::before {
+  content: "·";
+  margin: 0 0.5em;
+}
+
+.talk-title {
+  font-size: 24px;
+  line-height: 1.4;
+  margin: 4px 0 0;
+}
+
+.talk-cospeakers {
+  margin-top: 6px;
+  font-size: 15.75px;
+  color: var(--color-text-muted);
+}
+
+.talk-description {
+  margin-top: 6px;
+}
+
+.talk-description p {
+  margin-bottom: 10px;
+}
+
+.talk-description p:last-child {
+  margin-bottom: 0;
+}
+
+.talk-links {
+  margin-top: 8px;
+  font-size: 15.75px;
+}
+
+.talk-links a + a {
+  margin-left: 1em;
+}
+
+.talk-links:empty {
+  display: none;
+}
+
 .post-content h2 {
   font-size: 32px;
 }

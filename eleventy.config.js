@@ -1,3 +1,4 @@
+import { DateTime } from "luxon";
 import fs from "node:fs";
 import syntaxHighlight from "@11ty/eleventy-plugin-syntaxhighlight";
 import pluginRss from "@11ty/eleventy-plugin-rss";
@@ -64,6 +65,30 @@ export default function (eleventyConfig) {
   // Custom filters (dateDisplay, head, hasCodeBlocks), extracted into the
   // filters/ directory and grouped by concern. See docs/filters.md.
   registerFilters(eleventyConfig);
+
+  eleventyConfig.addCollection("talks", function (collectionApi) {
+    return collectionApi
+      .getFilteredByGlob("src/talks/*.md")
+      .sort(function (a, b) {
+        return b.date - a.date;
+      });
+  });
+
+  // Machine-readable date for <time datetime="..."> attributes
+  eleventyConfig.addFilter("htmlDateString", function (dateObj) {
+    return DateTime.fromJSDate(dateObj, { zone: "utc" }).toFormat("yyyy-LL-dd");
+  });
+
+  // Split a description string into paragraphs on blank lines
+  eleventyConfig.addFilter("paragraphs", function (str) {
+    if (!str) return [];
+    return String(str)
+      .split(/\n{2,}/)
+      .map(function (s) {
+        return s.trim();
+      })
+      .filter(Boolean);
+  });
 
   // Configure markdown
   let markdownItOptions = {
