@@ -79,6 +79,38 @@ export default function (eleventyConfig) {
     return DateTime.fromJSDate(dateObj, { zone: "utc" }).toFormat("yyyy-LL-dd");
   });
 
+  // Build the event-type filter facets from the talks collection: an ordered
+  // list of { slug, label, count } used to render filter chips and rules.
+  const EVENT_LABELS = {
+    wordcamp: "WordCamp",
+    phpworld: "php[world]",
+    loopconf: "LoopConf",
+    midwestphp: "MidwestPHP",
+    velocity: "Velocity",
+    altitude: "Fastly Altitude",
+    meetup: "Meetup",
+    wpsessions: "WPSessions",
+    other: "Other",
+  };
+  eleventyConfig.addFilter("eventFacets", function (talks) {
+    const counts = {};
+    for (const t of talks) {
+      const e = t.data.eventType || "other";
+      counts[e] = (counts[e] || 0) + 1;
+    }
+    return Object.keys(counts)
+      .map(function (slug) {
+        return {
+          slug: slug,
+          label: EVENT_LABELS[slug] || slug,
+          count: counts[slug],
+        };
+      })
+      .sort(function (a, b) {
+        return b.count - a.count || a.label.localeCompare(b.label);
+      });
+  });
+
   // Split a description string into paragraphs on blank lines
   eleventyConfig.addFilter("paragraphs", function (str) {
     if (!str) return [];

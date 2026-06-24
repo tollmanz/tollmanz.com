@@ -14,9 +14,44 @@ description: Conference talks and speaking engagements by Zack Tollman, with lin
     A running index of conference talks and other speaking engagements.
   </p>
 
+  {% set facets = collections.talks | eventFacets %}
+
+  {# Zero-JS filtering: checkboxes/radios drive :has() rules generated below.
+     Format checkboxes combine (AND); the Event radios are single-select. #}
+  <style>
+    .speaking:has(#flt-video:checked) .talk:not(.has-video) { display: none; }
+    .speaking:has(#flt-slides:checked) .talk:not(.has-slides) { display: none; }
+    {%- for f in facets %}
+    .speaking:has(#evt-{{ f.slug }}:checked) .talk:not(.evt-{{ f.slug }}) { display: none; }
+    {%- endfor %}
+  </style>
+
+  <div class="talk-filters">
+    <fieldset class="talk-filters__group">
+      <legend class="talk-filters__legend">Format</legend>
+      <div class="talk-filters__chips">
+        <input class="visually-hidden talk-filter" type="checkbox" id="flt-video" />
+        <label class="talk-chip" for="flt-video">Video</label>
+        <input class="visually-hidden talk-filter" type="checkbox" id="flt-slides" />
+        <label class="talk-chip" for="flt-slides">Slides</label>
+      </div>
+    </fieldset>
+    <fieldset class="talk-filters__group">
+      <legend class="talk-filters__legend">Event</legend>
+      <div class="talk-filters__chips">
+        <input class="visually-hidden talk-filter" type="radio" name="evt" id="evt-all" checked />
+        <label class="talk-chip" for="evt-all">All</label>
+        {% for f in facets %}
+          <input class="visually-hidden talk-filter" type="radio" name="evt" id="evt-{{ f.slug }}" />
+          <label class="talk-chip" for="evt-{{ f.slug }}">{{ f.label }} <span class="talk-chip__count">{{ f.count }}</span></label>
+        {% endfor %}
+      </div>
+    </fieldset>
+  </div>
+
   <ul class="talk-list">
     {% for talk in collections.talks %}
-      <li class="talk">
+      <li class="talk evt-{{ talk.data.eventType or 'other' }}{% if talk.data.video %} has-video{% endif %}{% if talk.data.slides %} has-slides{% endif %}">
         <p class="talk-meta">
           {% if talk.data.dateText %}
             <span class="talk-date">{{ talk.data.dateText }}</span>

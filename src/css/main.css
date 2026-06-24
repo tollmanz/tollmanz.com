@@ -436,6 +436,69 @@ pre > code {
   color: var(--color-text-muted);
 }
 
+/* Filters (zero-JS, driven by :has() rules generated in the template) */
+.talk-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-bottom: 36px;
+}
+
+.talk-filters__group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.talk-filters__legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 15.75px;
+  color: var(--color-text-muted);
+}
+
+.talk-filters__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.talk-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.talk-chip:hover {
+  border-color: var(--color-text-muted);
+}
+
+.talk-filter:checked + .talk-chip {
+  color: var(--color-bg);
+  background-color: var(--color-text);
+  border-color: var(--color-text);
+}
+
+.talk-filter:focus-visible + .talk-chip {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+.talk-chip__count {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.talk-filter:checked + .talk-chip .talk-chip__count {
+  color: inherit;
+}
+
 .talk-list {
   margin-left: 0;
   list-style: none;
