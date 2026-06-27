@@ -560,9 +560,9 @@ pre > code {
 /* Filters (zero-JS, driven by :has() rules generated in the template) */
 .talk-filters {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px 24px;
-  margin-bottom: 36px;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 40px;
 }
 
 .talk-filters__group {
@@ -573,66 +573,61 @@ pre > code {
 
 .talk-filters__legend {
   padding: 0;
-  margin-bottom: 8px;
-  font-size: 15.75px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
   color: var(--color-text-muted);
 }
 
 .talk-filters__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px 24px;
 }
 
+/* Filter tabs: plain labels with an accent underline when active. */
 .talk-chip {
-  display: inline-block;
-  padding: 4px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--color-text);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--color-text-muted);
   cursor: pointer;
   user-select: none;
+  padding-bottom: 2px;
+  border-bottom: 2px solid transparent;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .talk-chip:hover {
-  border-color: var(--color-text-muted);
+  color: var(--color-text);
 }
 
 .talk-filter:checked + .talk-chip {
-  color: var(--color-bg);
-  background-color: var(--color-text);
-  border-color: var(--color-text);
+  color: var(--color-text);
+  border-bottom-color: var(--color-link);
 }
 
 .talk-filter:focus-visible + .talk-chip {
   outline: 2px solid var(--color-link);
-  outline-offset: 2px;
-}
-
-/* Topic filter chips wear their topic color. */
-.talk-chip--topic {
-  border-color: color-mix(in srgb, var(--topic-color) 45%, var(--color-border));
-}
-
-.talk-chip--topic:hover {
-  border-color: var(--topic-color);
-}
-
-.talk-filter:checked + .talk-chip--topic {
-  color: var(--color-bg);
-  background-color: var(--topic-color);
-  border-color: var(--topic-color);
+  outline-offset: 3px;
 }
 
 .talk-chip__count {
+  margin-left: 3px;
+  font-size: 12px;
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
 }
 
-.talk-filter:checked + .talk-chip .talk-chip__count {
-  color: inherit;
+/* Topic tabs carry their topic color on the count and the active underline. */
+.talk-chip--topic .talk-chip__count {
+  color: var(--topic-color);
+}
+
+.talk-filter:checked + .talk-chip--topic {
+  border-bottom-color: var(--topic-color);
 }
 
 /* Index (editorial, rule-separated; deliberately not cards) */
