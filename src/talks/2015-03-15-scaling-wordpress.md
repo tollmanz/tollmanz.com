@@ -3,7 +3,7 @@ title: "Scaling WordPress"
 date: 2015-03-15
 conference: "MidwestPHP 2015"
 eventType: "midwestphp"
-location: "Minneapolis, MN"
+location: "Saint Paul, MN"
 description: "WordPress is powering some of the biggest publishing sites on the web (CNN.com, techcrunch.com, wired.com). It's no accident that one of best CMSes on the web is chosen to be the publishing platform of choice by these content providers. That said, each of these companies have had to work hard to push the limits of the software to scale to meet the needs of their enormous audiences. In my talk, I will discuss the essential ingredients needed for scaling WordPress to millions of users. This talk will include discussion of integrating external services and technologies along with performant PHP practices to provide a stable publishing experience for the masses."
 slides: "https://speakerdeck.com/tollmanz/scaling-wordpress"
 sources:
