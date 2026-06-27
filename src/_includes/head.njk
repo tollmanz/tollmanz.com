@@ -50,7 +50,7 @@
 
   <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
 
-  <meta property="og:type" content="{{ 'article' if layout == 'post.njk' else 'website' }}">
+  <meta property="og:type" content="{{ 'article' if layout in ['post.njk', 'talk.njk'] else 'website' }}">
   <meta property="og:title" content="{{ fullTitle }}">
   <meta property="og:description" content="{{ pageDescription }}">
   <meta property="og:url" content="{{ site.url }}{{ page.url }}">

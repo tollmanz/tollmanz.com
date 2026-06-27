@@ -26,4 +26,12 @@ eleventyExcludeFromCollections: true
     <priority>0.6</priority>
   </url>
 {%- endfor %}
+{%- for talk in collections.talks %}
+  <url>
+    <loc>{{ talk.url | absoluteUrl(site.url) }}</loc>
+    <lastmod>{{ talk.date | dateToRfc3339 }}</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+{%- endfor %}
 </urlset>

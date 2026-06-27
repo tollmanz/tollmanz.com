@@ -2,27 +2,51 @@
 layout: base.njk
 title: Speaking
 permalink: /speaking/
-description: Conference talks and speaking engagements by Zack Tollman, with links to slides and video where available.
+description: Conference talks, keynotes, and meetups by Zack Tollman, with links to slides, video, and individual talk pages.
 ---
 
+{%- set stats = collections.talks | speakingStats -%}
+{%- set topFacets = collections.talks | topicFacets -%}
+{%- set evtFacets = collections.talks | eventFacets -%}
+
 <div class="speaking">
-  <header class="post-header">
-    <h1 class="post-title">Speaking</h1>
+  <header class="speaking-hero">
+    <h1 class="speaking-hero__title">Speaking</h1>
+    <p class="speaking-hero__lede">
+      Conference talks, keynotes, and meetups, mostly about making the web faster and harder to break.
+    </p>
+    <dl class="speaking-stats">
+      <div class="speaking-stat">
+        <dt>Talks</dt>
+        <dd>{{ stats.count }}</dd>
+      </div>
+      {% if stats.firstYear %}
+        <div class="speaking-stat">
+          <dt>Years</dt>
+          <dd>{{ stats.firstYear }}&ndash;{{ stats.lastYear }}</dd>
+        </div>
+      {% endif %}
+      <div class="speaking-stat">
+        <dt>On video</dt>
+        <dd>{{ stats.withVideo }}</dd>
+      </div>
+      <div class="speaking-stat">
+        <dt>With slides</dt>
+        <dd>{{ stats.withSlides }}</dd>
+      </div>
+    </dl>
   </header>
 
-  <p class="speaking-intro">
-    A running index of conference talks and other speaking engagements.
-  </p>
-
-  {% set facets = collections.talks | eventFacets %}
-
-  {# Zero-JS filtering: checkboxes/radios drive :has() rules generated below.
-     Format checkboxes combine (AND); the Event radios are single-select. #}
+  {# Zero-JS filtering: the checkboxes/radios below drive these :has() rules.
+     Format checkboxes combine (AND); the Topic and Event radios are single-select. #}
   <style>
-    .speaking:has(#flt-video:checked) .talk:not(.has-video) { display: none; }
-    .speaking:has(#flt-slides:checked) .talk:not(.has-slides) { display: none; }
-    {%- for f in facets %}
-    .speaking:has(#evt-{{ f.slug }}:checked) .talk:not(.evt-{{ f.slug }}) { display: none; }
+    .speaking:has(#flt-video:checked) .talk-row:not(.has-video) { display: none; }
+    .speaking:has(#flt-slides:checked) .talk-row:not(.has-slides) { display: none; }
+    {%- for f in topFacets %}
+    .speaking:has(#top-{{ f.slug }}:checked) .talk-row:not(.topic-{{ f.slug }}) { display: none; }
+    {%- endfor %}
+    {%- for f in evtFacets %}
+    .speaking:has(#evt-{{ f.slug }}:checked) .talk-row:not(.evt-{{ f.slug }}) { display: none; }
     {%- endfor %}
   </style>
 
@@ -37,11 +61,22 @@ description: Conference talks and speaking engagements by Zack Tollman, with lin
       </div>
     </fieldset>
     <fieldset class="talk-filters__group">
+      <legend class="talk-filters__legend">Topic</legend>
+      <div class="talk-filters__chips">
+        <input class="visually-hidden talk-filter" type="radio" name="top" id="top-all" checked />
+        <label class="talk-chip" for="top-all">All</label>
+        {% for f in topFacets %}
+          <input class="visually-hidden talk-filter" type="radio" name="top" id="top-{{ f.slug }}" />
+          <label class="talk-chip talk-chip--topic t-{{ f.slug }}" for="top-{{ f.slug }}">{{ f.label }} <span class="talk-chip__count">{{ f.count }}</span></label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    <fieldset class="talk-filters__group">
       <legend class="talk-filters__legend">Event</legend>
       <div class="talk-filters__chips">
         <input class="visually-hidden talk-filter" type="radio" name="evt" id="evt-all" checked />
         <label class="talk-chip" for="evt-all">All</label>
-        {% for f in facets %}
+        {% for f in evtFacets %}
           <input class="visually-hidden talk-filter" type="radio" name="evt" id="evt-{{ f.slug }}" />
           <label class="talk-chip" for="evt-{{ f.slug }}">{{ f.label }} <span class="talk-chip__count">{{ f.count }}</span></label>
         {% endfor %}
@@ -49,33 +84,36 @@ description: Conference talks and speaking engagements by Zack Tollman, with lin
     </fieldset>
   </div>
 
-  <ul class="talk-list">
+  <ul class="talk-index">
     {% for talk in collections.talks %}
-      <li class="talk evt-{{ talk.data.eventType or 'other' }}{% if talk.data.video %} has-video{% endif %}{% if talk.data.slides %} has-slides{% endif %}">
-        <p class="talk-meta">
-          {% if talk.data.dateText %}
-            <span class="talk-date">{{ talk.data.dateText }}</span>
-          {% else %}
-            <time class="talk-date" datetime="{{ talk.date | htmlDateString }}">{{ talk.date | dateDisplay }}</time>
+      {%- set ttype = talk.data.title | talkType -%}
+      {%- set tself = { title: talk.data.title, description: talk.data.description } -%}
+      {%- set topics = tself | talkTopics -%}
+      {%- set primary = topics[0].slug if topics.length else "talk" -%}
+      {%- set topicClasses %}{% for top in topics %} topic-{{ top.slug }}{% endfor %}{% endset -%}
+      <li class="talk-row t-{{ primary }} evt-{{ talk.data.eventType or 'other' }} type-{{ ttype.slug }}{{ topicClasses }}{% if talk.data.video %} has-video{% endif %}{% if talk.data.slides %} has-slides{% endif %}">
+        <div class="talk-row__when">
+          <span class="talk-row__year">{{ talk.date | year }}</span>
+          <time class="talk-row__date" datetime="{{ talk.date | htmlDateString }}">{{ talk.date | monthDay }}</time>
+        </div>
+        <div class="talk-row__body">
+          {% if ttype.slug != "talk" %}<p class="talk-row__kind">{{ ttype.label }}</p>{% endif %}
+          <h2 class="talk-row__title">
+            <a class="talk-row__link" href="{{ talk.url }}">{{ talk.data.title | displayTitle }}</a>
+          </h2>
+          <p class="talk-row__meta">
+            {% if talk.data.conference %}{{ talk.data.conference }}{% endif %}
+            {%- if talk.data.location %} &middot; {{ talk.data.location }}{% endif %}
+            {%- if talk.data.coSpeakers %} &middot; with {{ talk.data.coSpeakers }}{% endif %}
+          </p>
+          {% if topics.length or talk.data.video or talk.data.slides %}
+            <p class="talk-row__tags">
+              {% for top in topics %}<span class="talk-row__topic t-{{ top.slug }}">{{ top.label }}</span>{% endfor %}
+              {% if talk.data.video %}<span class="talk-row__fmt">Video</span>{% endif %}
+              {% if talk.data.slides %}<span class="talk-row__fmt">Slides</span>{% endif %}
+            </p>
           {% endif %}
-          {% if talk.data.conference %}<span class="talk-conference">{{ talk.data.conference }}</span>{% endif %}
-          {% if talk.data.location %}<span class="talk-location">{{ talk.data.location }}</span>{% endif %}
-        </p>
-        <h2 class="talk-title">{{ talk.data.title }}</h2>
-        {% if talk.data.coSpeakers %}
-          <p class="talk-cospeakers">with {{ talk.data.coSpeakers }}</p>
-        {% endif %}
-        {% set paras = talk.data.description | paragraphs %}
-        {% if paras.length %}
-          <div class="talk-description">
-            {% for para in paras %}<p>{{ para }}</p>{% endfor %}
-          </div>
-        {% endif %}
-        <p class="talk-links">
-          {% if talk.data.video %}<a href="{{ talk.data.video }}">Video</a>{% endif %}
-          {% if talk.data.slides %}<a href="{{ talk.data.slides }}">Slides</a>{% endif %}
-          {% for source in talk.data.sources %}<a href="{{ source.url }}">{{ source.label }}</a>{% endfor %}
-        </p>
+        </div>
       </li>
     {% endfor %}
   </ul>
