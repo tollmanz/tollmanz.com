@@ -6,8 +6,10 @@ is `tollmanz-gmail-com/tollmanz-com-honeycomb/prod`. No secrets are committed.
 
 This project manages:
 
-- the Honeycomb environment that holds browser RUM telemetry
-- the ingest API key the Fastly edge proxy uses to authenticate that telemetry
+- the `tollmanz-com` environment that holds production browser RUM, and the
+  ingest API key the Fastly edge proxy uses to authenticate that telemetry
+- a `tollmanz-com-local` environment for local RUM testing, isolated from prod,
+  and its own ingest key (exported for local use; see below)
 
 The dataset is not declared here. In Honeycomb's Environments and Services model
 datasets are created on ingest, so the ingest key (with `createDatasets`) creates
@@ -19,13 +21,27 @@ key scoped to this environment rather than the team-level management key used
 here, so they are a clean drop-in later: add a second provider configured with
 that key and the trigger/SLO resources.
 
-## The ingest key never reaches the browser
+## The prod ingest key never reaches the browser
 
-The ingest key is exported as the secret stack output `ingestKey` and read by the
-Fastly project through a Pulumi `StackReference`. Fastly injects it as the
+The prod ingest key is exported as the secret stack output `ingestKey` and read
+by the Fastly project through a Pulumi `StackReference`. Fastly injects it as the
 `x-honeycomb-team` header on the `/v1/traces` edge proxy. The browser only ever
 posts to the same-origin `/v1/traces` path with no credentials. See
 `infra/fastly/`.
+
+## Local testing environment
+
+The `tollmanz-com-local` environment is isolated from prod, so local runs never
+taint production data. Its ingest key is the secret output `localIngestKey`.
+After `pulumi up`, read it and paste it into `local/otel/.env`:
+
+```bash
+pulumi stack output localIngestKey --show-secrets
+```
+
+The local collector uses it to forward browser RUM to this environment alongside
+Jaeger. See `local/otel/README.md`. Nothing about the local environment reaches
+the deployed site.
 
 ## Secrets
 
