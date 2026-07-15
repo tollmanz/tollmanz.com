@@ -38,13 +38,14 @@ One value is required at run time:
 The Honeycomb ingest key is not in this list: it arrives via the StackReference,
 so this project needs no Honeycomb credentials.
 
-The `pulumi` scripts below are wrapped with `dotenv`, so locally they read this
-from `infra/fastly/.env`. Copy the template and fill it in:
+The `pulumi` scripts below are wrapped with `dotenv -e ../../.env`, so locally
+they read this from the single `.env` at the repo root. Copy the template and
+fill it in:
 
 ```bash
+cp .env.example .env   # at the repo root; edit with real values (gitignored)
 cd infra/fastly
 npm install
-cp .env.example .env   # then edit .env with real values (gitignored)
 ```
 
 Create the Fastly token at
@@ -54,9 +55,9 @@ service.
 ## Local workflow
 
 ```bash
-npm run preview   # dotenv -- pulumi preview (dry run)
-npm run up        # dotenv -- pulumi up (apply; new active version on real changes)
-npm run refresh   # dotenv -- pulumi refresh (pull live state)
+npm run preview   # dotenv -e ../../.env -- pulumi preview (dry run)
+npm run up        # dotenv -e ../../.env -- pulumi up (apply; new active version on real changes)
+npm run refresh   # dotenv -e ../../.env -- pulumi refresh (pull live state)
 npm run format       # prettier --write .
 npm run format:check # prettier --check .
 ```

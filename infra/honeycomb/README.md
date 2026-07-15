@@ -33,7 +33,8 @@ posts to the same-origin `/v1/traces` path with no credentials. See
 
 The `tollmanz-com-local` environment is isolated from prod, so local runs never
 taint production data. Its ingest key is the secret output `localIngestKey`.
-After `pulumi up`, read it and paste it into `local/otel/.env`:
+After `pulumi up`, read it and paste it into `HONEYCOMB_LOCAL_INGEST_KEY` in the
+repo-root `.env`:
 
 ```bash
 pulumi stack output localIngestKey --show-secrets
@@ -59,12 +60,12 @@ with these scopes:
 - `environments:write` (create and update the environment)
 - `api-keys:write` (create the ingest key)
 
-The `pulumi` scripts are wrapped with `dotenv`, so locally they read these from
-`infra/honeycomb/.env`:
+The `pulumi` scripts are wrapped with `dotenv -e ../../.env`, so locally they
+read these from the single `.env` at the repo root:
 
 ```bash
+cp .env.example .env   # at the repo root; edit with real values (gitignored)
 cd infra/honeycomb
-cp .env.example .env   # then edit .env with real values (gitignored)
 pulumi install         # generates the bridged SDK (sdks/) and installs deps
 ```
 
@@ -91,9 +92,9 @@ the Honeycomb provider, edit the `0.51.0` parameter and re-run `pulumi install`.
 ## Local workflow
 
 ```bash
-npm run preview   # dotenv -- pulumi preview (dry run)
-npm run up        # dotenv -- pulumi up (apply)
-npm run refresh   # dotenv -- pulumi refresh (pull live state)
+npm run preview   # dotenv -e ../../.env -- pulumi preview (dry run)
+npm run up        # dotenv -e ../../.env -- pulumi up (apply)
+npm run refresh   # dotenv -e ../../.env -- pulumi refresh (pull live state)
 npm run format       # prettier --write .
 npm run format:check # prettier --check .
 ```

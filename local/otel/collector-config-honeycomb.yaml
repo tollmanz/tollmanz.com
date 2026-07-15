@@ -6,7 +6,8 @@
 #
 # Requires HONEYCOMB_LOCAL_INGEST_KEY, an ingest key for a SEPARATE Honeycomb
 # environment used only for local testing (see README). Select this config by
-# setting OTEL_COLLECTOR_CONFIG in local/otel/.env.
+# setting OTEL_COLLECTOR_CONFIG in the repo-root .env and running compose with
+# --env-file ../../.env.
 receivers:
   otlp:
     protocols:

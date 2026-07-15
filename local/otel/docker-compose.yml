@@ -4,8 +4,10 @@
 # at Honeycomb. No API key is involved by default.
 #
 # Optional: set OTEL_COLLECTOR_CONFIG=collector-config-honeycomb.yaml and
-# HONEYCOMB_LOCAL_INGEST_KEY in local/otel/.env to also forward to a separate
-# Honeycomb "local" environment (see README).
+# HONEYCOMB_LOCAL_INGEST_KEY in the repo-root .env and run
+# `docker compose --env-file ../../.env up -d` to also forward to a separate
+# Honeycomb "local" environment (see README). Without --env-file the defaults
+# below give the Jaeger-only setup, no .env needed.
 name: tollmanz-rum-local
 
 services:
@@ -17,7 +19,7 @@ services:
       - ./collector-config.yaml:/etc/otelcol/collector-config.yaml:ro
       - ./collector-config-honeycomb.yaml:/etc/otelcol/collector-config-honeycomb.yaml:ro
     environment:
-      # Empty unless set in .env; only the Honeycomb config reads it.
+      # Empty unless passed via --env-file; only the Honeycomb config reads it.
       HONEYCOMB_LOCAL_INGEST_KEY: ${HONEYCOMB_LOCAL_INGEST_KEY:-}
     ports:
       - "4318:4318" # OTLP/HTTP; the browser posts spans here

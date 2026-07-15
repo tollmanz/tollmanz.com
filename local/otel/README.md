@@ -57,23 +57,24 @@ cd infra/honeycomb
 pulumi stack output localIngestKey --show-secrets   # after `npm run up`
 ```
 
-Then locally:
+Then set two values in the repo-root `.env` (copy `.env.example` at the repo
+root if it does not exist yet): `HONEYCOMB_LOCAL_INGEST_KEY` to that key, and
+`OTEL_COLLECTOR_CONFIG=collector-config-honeycomb.yaml` to select the
+Honeycomb-enabled collector config. Then start compose with that env file:
 
 ```bash
 cd local/otel
-cp .env.example .env     # set HONEYCOMB_LOCAL_INGEST_KEY to that value
-docker compose up -d     # or `docker compose restart collector` if already up
+docker compose --env-file ../../.env up -d   # or restart collector if already up
 ```
 
-`.env` also selects the Honeycomb-enabled collector config
-(`OTEL_COLLECTOR_CONFIG=collector-config-honeycomb.yaml`). Browse the site as
-usual, then open Honeycomb, switch to the `tollmanz-com-local` environment, and
-the `tollmanz-com-web` dataset appears with the same page-load, Web Vitals, and
-interaction data prod would send. Honeycomb groups it by `session.id` and
-`page.url`, so a page view reads as one unit even though it is several traces.
+Browse the site as usual, then open Honeycomb, switch to the
+`tollmanz-com-local` environment, and the `tollmanz-com-web` dataset appears
+with the same page-load, Web Vitals, and interaction data prod would send.
+Honeycomb groups it by `session.id` and `page.url`, so a page view reads as one
+unit even though it is several traces.
 
-The ingest key lives only in `local/otel/.env` (gitignored) and the collector,
-never in the site bundle.
+The ingest key lives only in the repo-root `.env` (gitignored) and the
+collector, never in the site bundle.
 
 ## Teardown
 

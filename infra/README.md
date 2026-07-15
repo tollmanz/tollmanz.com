@@ -41,4 +41,10 @@ In CI the two projects have separate path-gated workflows
 change that rotates the ingest key, the Fastly workflow has to run to pick up
 the new value.
 
-See each project's README for its secrets and workflow.
+## Secrets
+
+All local secrets live in a single `.env` at the repo root (gitignored); each
+project's `pulumi` npm scripts load it with `dotenv -e ../../.env`. Copy
+`.env.example` at the repo root to `.env` and fill it in. CI never reads `.env`;
+it uses GitHub Actions repository secrets. See each project's README for which
+variables it needs.

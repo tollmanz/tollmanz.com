@@ -10,6 +10,3 @@ sdks/
 
 # Pulumi local plugin/state scratch (Pulumi.yaml and Pulumi.<stack>.yaml are committed)
 .pulumi/
-
-# Local secrets (use GitHub Actions secrets in CI)
-.env
