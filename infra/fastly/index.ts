@@ -41,9 +41,15 @@ const forceIdentityFetch = fs.readFileSync(
 // Browser RUM telemetry is proxied to Honeycomb at the edge. The Honeycomb
 // ingest key is created and owned by the Honeycomb Pulumi project; read it as a
 // secret output here so there is a single source of truth and no manual copy
-// step. Bring up the Honeycomb stack before this one (see infra/README.md). The
-// proxy snippet carries a placeholder that is replaced with the key here, so the
-// key reaches Fastly and Pulumi Cloud state (encrypted) but never the browser.
+// step. The proxy snippet carries a placeholder that is replaced with the key
+// here, so the key reaches Fastly and Pulumi Cloud state (encrypted) but never
+// the browser.
+//
+// Until the Honeycomb stack has been applied its ingestKey output is undefined;
+// in that bootstrap window the snippet degrades to a no-op comment (POSTs to
+// /v1/traces fall through to the origin and 404) rather than injecting a bogus
+// key or failing the whole service update. Apply infra/honeycomb, then re-run
+// this stack to activate the proxy (see infra/README.md).
 const honeycombStack = new pulumi.StackReference(
   "tollmanz-gmail-com/tollmanz-com-honeycomb/prod"
 );
@@ -52,9 +58,17 @@ const honeycombProxyTemplate = fs.readFileSync(
   path.join(snippetsDir, "honeycomb-proxy.vcl"),
   "utf8"
 );
-const honeycombProxyContent = honeycombIngestKey.apply(key =>
-  honeycombProxyTemplate.replace("__HONEYCOMB_INGEST_KEY__", key as string)
-);
+const honeycombProxyContent = honeycombIngestKey.apply(key => {
+  if (typeof key !== "string" || key.length === 0) {
+    pulumi.log.warn(
+      "Honeycomb stack has no ingestKey output yet; deploying the RUM proxy " +
+        "snippet as a no-op. Apply infra/honeycomb, then re-run this stack " +
+        "(see infra/README.md)."
+    );
+    return "# RUM proxy disabled: the Honeycomb stack has no ingestKey output yet.\n";
+  }
+  return honeycombProxyTemplate.replace("__HONEYCOMB_INGEST_KEY__", key);
+});
 
 const site = new fastly.ServiceVcl(
   "site",

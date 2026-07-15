@@ -23,7 +23,13 @@ The RUM ingest key is created by the Honeycomb project and consumed by the
 Fastly project through a Pulumi `StackReference`. The browser never carries the
 key; Fastly injects it into the `/v1/traces` proxy at the edge.
 
-Apply order matters: bring up Honeycomb first, then Fastly.
+Apply order matters: bring up Honeycomb first, then Fastly. The order is not
+destructive, just lazy: if Fastly runs while the Honeycomb stack has no
+`ingestKey` output yet, it deploys the RUM proxy snippet as a no-op, logs a
+warning, and activates the real proxy on the next run after Honeycomb is up.
+Until the `HONEYCOMB_KEY_ID` / `HONEYCOMB_KEY_SECRET` repository secrets are
+set, the Honeycomb CI workflow skips its Pulumi steps with a notice instead of
+failing.
 
 ```bash
 cd honeycomb && pulumi install && npm run up

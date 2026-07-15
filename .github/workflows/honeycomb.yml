@@ -23,15 +23,36 @@ jobs:
       run:
         working-directory: infra/honeycomb
     steps:
+      # The provider needs the Honeycomb v2 Management Key pair. Until those
+      # repository secrets are set (see infra/honeycomb/README.md) there is
+      # nothing meaningful to preview or apply, so skip cleanly with a notice
+      # instead of failing every run during bootstrap.
+      - name: Check for Honeycomb credentials
+        id: creds
+        working-directory: .
+        env:
+          KEY_ID: ${{ secrets.HONEYCOMB_KEY_ID }}
+          KEY_SECRET: ${{ secrets.HONEYCOMB_KEY_SECRET }}
+        run: |
+          if [ -n "$KEY_ID" ] && [ -n "$KEY_SECRET" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping Pulumi: HONEYCOMB_KEY_ID / HONEYCOMB_KEY_SECRET repository secrets are not set. See infra/honeycomb/README.md."
+          fi
+
       - name: Checkout code
+        if: steps.creds.outputs.present == 'true'
         uses: actions/checkout@v5
 
       - name: Setup Node.js
+        if: steps.creds.outputs.present == 'true'
         uses: actions/setup-node@v5
         with:
           node-version-file: ".nvmrc"
 
       - name: Install Pulumi CLI
+        if: steps.creds.outputs.present == 'true'
         run: |
           curl -fsSL https://get.pulumi.com | sh -s -- --version 3.246.0
           echo "$HOME/.pulumi/bin" >> "$GITHUB_PATH"
@@ -39,10 +60,12 @@ jobs:
       # Regenerates the bridged Honeycomb SDK declared in Pulumi.yaml (sdks/ is
       # gitignored) and installs node dependencies. No Pulumi Cloud auth needed.
       - name: Pulumi install
+        if: steps.creds.outputs.present == 'true'
         run: pulumi install
 
       # preview on pull requests, up (apply) on push to main / manual dispatch
       - name: Pulumi ${{ github.event_name == 'pull_request' && 'preview' || 'up' }}
+        if: steps.creds.outputs.present == 'true'
         uses: pulumi/actions@v7
         with:
           command: ${{ github.event_name == 'pull_request' && 'preview' || 'up' }}
@@ -50,6 +73,8 @@ jobs:
           work-dir: infra/honeycomb
           pulumi-version: 3.246.0
           comment-on-pr: true
+          # Create the stack on first run rather than failing on stack select.
+          upsert: true
         env:
           # pulumi/actions runs on Node 24 and bundles got@11 -> cacheable-request,
           # which calls the deprecated url.parse() and triggers DEP0169. The call
