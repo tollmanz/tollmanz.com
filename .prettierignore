@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Conductor workspace scratch (gitignored)
+.context/
+
 # Generated Pulumi SDK (bridged Terraform provider, see infra/honeycomb)
 sdks/
 

@@ -74,15 +74,15 @@ Unsurprisingly, the results of the tests show that the `wp_kses` functions are i
 
 If we look at the mean performance for the 5.3-5.6 environments for the long content, `wp_kses` (_M_ = 24.34ms) is 1.68 times slower than `wp_kses_p` (_M_ = 14.70ms), 24.23 times slower than `esc_html` (_M_ = 1.02ms), and 26.13 times slower than `esc_attr` (_M_ = 0.95ms). It is faster to reduce the array of allowed HTML tags and _much_ faster to sanitize using simpler functions. These "fast" functions are performing at the speed of what I usually quantify as a sufficiently fast MySQL query in WordPress and the `wp_kses` functions are much slower than that.
 
-![](/media/images/wp-kses-long.jpg "Long content results")
+![Bar chart, Figure 1, comparing execution time of wp_kses_post, wp_kses_p, esc_html, and esc_attr against long content across PHP 5.3 through 5.6 and HHVM](/media/images/wp-kses-long.png)
 
 Looking at the mean performance for the 5.3-5.6 environments for the medium content, the `wp_kses` functions are still slower, but the difference is reduced. `wp_kses` (_M_ = 0.30ms) is 1.22 times slower than `wp_kses_p` (_M_ = 0.25ms), 5.70 times slower than `esc_html` (_M_ = 0.05ms), and 5.73 times slower than `esc_attr` (_M_ = 0.05ms). While the performance is still much slower for `wp_kses`, the performance for `wp_kses` itself, is sub-millisecond performance, which is pretty good given what the function is doing. It is important to note the differences between the functions; however, it's probably more important to note the raw performance of each function given that the performance is fairly reasonable against medium content.
 
-![](/media/images/wp-kses-medium-2.jpg "Medium content results")
+![Bar chart, Figure 2, comparing the same four functions against medium-length content across PHP 5.3 through 5.6 and HHVM](/media/images/wp-kses-medium-2.png)
 
 Finally, comparing the mean performance of `wp_kses` against the other functions for the 5.3-5.6 environments when processing short content continues the convergence trend. All functions are performing admirably. `wp_kses` (_M_ = 0.13ms) is 1.38 times slower than `wp_kses_p` (_M_ = 0.09ms), 2.81 times slower than `esc_html` (_M_ = 0.05ms), and 2.80 times slower than `esc_attr` (_M_ = 0.05ms). Again, we see performance differences, but looking at the raw values, all of them are performing acceptably quick.
 
-![](/media/images/wp-kses-short-2.jpg "Short content results")
+![Bar chart, Figure 3, comparing the same four functions against short content across PHP 5.3 through 5.6 and HHVM](/media/images/wp-kses-short-2.png)
 
 I have not mentioned the HHVM results yet. My focus is on the 5.x PHP versions given that that is how WordPress is currently deployed. You can see the data in the charts and tables in this post. I will mention that HHVM performed remarkably well. The differences between the functions were reduced greatly. In the long content condition with `wp_kses`, the mean execution time was merely 2.02ms; pretty great!
 

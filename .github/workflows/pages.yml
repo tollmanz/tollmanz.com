@@ -38,14 +38,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Reuse eleventy-img's encoded derivatives across runs. The plugin skips
+      # the sharp encode when a hashed output already exists in public/img, so a
+      # cache hit turns the build warm. The exact key (no restore-keys) makes it
+      # all-or-nothing: unchanged inputs hit fully, any change rebuilds clean, so
+      # no stale orphan derivatives are ever carried forward. Key on the sources
+      # plus anything that changes the output: image options and the plugin
+      # version.
+      - name: Cache optimized images
+        uses: actions/cache@v4
+        with:
+          path: public/img
+          key: eleventy-img-${{ hashFiles('src/media/images/**', 'eleventy.config.js', 'package-lock.json') }}
+
+      # Run eleventy directly rather than `npm run build`: the build script's
+      # prebuild clean wipes public/ and would delete the restored cache. A fresh
+      # runner has no stale output to clean, so skipping it is safe here.
       - name: Build site
         env:
           # Ship the RUM bundle, pointed at the same-origin /v1/traces path that
           # Fastly proxies to Honeycomb. No Honeycomb key is present here; it is
-          # injected at the edge (see infra/).
+          # injected at the edge (see infra/). RUM_MODE also makes head.njk emit
+          # the script tag (src/_data/rum.js reads it during the Eleventy build).
           RUM_MODE: production
           RUM_SERVICE_NAME: tollmanz-com-web
-        run: npm run build
+        run: |
+          node scripts/build-rum.mjs
+          npx @11ty/eleventy
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
@@ -62,3 +81,13 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+      - name: Purge Fastly cache
+        env:
+          FASTLY_PURGE_TOKEN: ${{ secrets.FASTLY_PURGE_TOKEN }}
+          FASTLY_SERVICE_ID: ${{ vars.FASTLY_SERVICE_ID }}
+        run: |
+          curl --fail --silent --show-error \
+            --request POST \
+            --header "Fastly-Key: ${FASTLY_PURGE_TOKEN}" \
+            --header "Accept: application/json" \
+            "https://api.fastly.com/service/${FASTLY_SERVICE_ID}/purge_all"

@@ -1,13 +1,41 @@
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <title>{% if title %}{{ title }}{% else %}{{ site.title }}{% endif %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <meta name="description" content="{{ description or site.description }}">
+  {# Preload the above-the-fold fonts (Coustard headings, Ubuntu 300 body) so
+     they are applied before first paint. A view transition snapshots the new
+     page at first paint; without this the snapshot captures the fallback font
+     and the swap-in becomes a visible FOUT frozen by the transition. The
+     crossorigin attr is required even same-origin or the font downloads twice. #}
+  <link rel="preload" href="/fonts/coustard-42be12704ef50999d53a7c55da2bb7522ef1efde.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/ubuntu-e4c86e820c9a5f86c6832a68e432c6bf6981084b.woff2" as="font" type="font/woff2" crossorigin>
 
-  <link href='/css/main.css' rel="stylesheet" type='text/css'>
+  <script>
+    // Set the saved theme before first paint so the page never flashes. This is
+    // the only render-blocking script; it just maps the stored preference to a
+    // color-scheme via data-theme. The switch behavior loads at end of <body>.
+    (function () {
+      var pref;
+      try {
+        pref = localStorage.getItem("theme");
+      } catch (e) {
+        /* storage blocked; fall through to system */
+      }
+      document.documentElement.dataset.theme =
+        pref === "light" || pref === "dark" ? pref : "system";
+    })();
+  </script>
+
+  {% set pageTitle = title or site.title %}
+  {% set fullTitle = pageTitle if page.url == "/" else pageTitle + " | " + site.title %}
+  {% set pageDescription = description or site.description %}
+
+  <title>{{ fullTitle }}</title>
+  <meta name="description" content="{{ pageDescription }}">
+
+  <link href="{{ assets.css.main.url }}" rel="stylesheet" type="text/css">
   {% if content | hasCodeBlocks %}
-  <link href='/css/syntax-highlighting.css' rel="stylesheet" type='text/css'>
+  <link href="{{ assets.css['syntax-highlighting'].url }}" rel="stylesheet" type="text/css">
   {% endif %}
 
   <link rel="canonical" href="{{ site.url }}{{ page.url }}">
@@ -15,6 +43,17 @@
   <link rel="sitemap" type="application/xml" href="/sitemap.xml">
 
   <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+
+  <meta property="og:type" content="{{ 'article' if layout == 'post.njk' else 'website' }}">
+  <meta property="og:title" content="{{ fullTitle }}">
+  <meta property="og:description" content="{{ pageDescription }}">
+  <meta property="og:url" content="{{ site.url }}{{ page.url }}">
+  <meta property="og:site_name" content="{{ site.title }}">
+  {% if image %}<meta property="og:image" content="{{ site.url }}{{ image }}">{% endif %}
+  <meta name="twitter:card" content="{{ 'summary_large_image' if image else 'summary' }}">
+  <meta name="twitter:title" content="{{ fullTitle }}">
+  <meta name="twitter:description" content="{{ pageDescription }}">
+  {% if image %}<meta name="twitter:image" content="{{ site.url }}{{ image }}">{% endif %}
 
   {% if rum.enabled %}<script src="/js/rum.js" defer></script>{% endif %}
 </head>

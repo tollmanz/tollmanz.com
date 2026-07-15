@@ -8,5 +8,4 @@ export default {
     github: "tollmanz",
     mastodon: "https://indieweb.social/@tollmanz",
   },
-  buildTime: new Date().toISOString(),
 };

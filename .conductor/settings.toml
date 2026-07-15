@@ -1,0 +1,12 @@
+"$schema" = "https://conductor.build/schemas/settings.repo.schema.json"
+
+[scripts]
+# New workspaces are fresh git worktrees with no node_modules; install on
+# creation so the Eleventy CLI is available without a manual npm ci.
+setup = "npm ci"
+# Serve the dev build on the workspace's assigned port so parallel workspaces
+# don't collide on Eleventy's default 8080.
+run = "npm run dev -- --port $CONDUCTOR_PORT"
+# Static site with no shared port/database, so multiple workspaces can serve
+# at once.
+run_mode = "concurrent"

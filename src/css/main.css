@@ -82,6 +82,70 @@
       format("woff");
 }
 
+/* Theme tokens
+
+   Each token carries its light and dark value in one light-dark() call. The
+   browser resolves which to use from the inherited color-scheme, so there is
+   no duplicated dark block and no prefers-color-scheme media query here. */
+:root {
+  /* "light dark" follows the OS. The switch narrows this to a single scheme
+     through the data-theme attribute set by the inline script in head.njk.
+     Dark palette: warm charcoal base with a tan callout.
+     #1a1613 bg, #f4f1ea warm-white text, #eed3b1 tan link/accent,
+     #241f1a raised surfaces, #a89f93 warm-gray muted text. */
+  color-scheme: light dark;
+
+  --color-bg: light-dark(#f8f8f8, #1a1613);
+  --color-text: light-dark(#414141, #f4f1ea);
+  --color-text-muted: light-dark(#828282, #a89f93);
+  --color-link: light-dark(#e4322e, #eed3b1);
+  --color-link-hover: light-dark(#af1a17, #f6e6cf);
+  --color-border: light-dark(#e8e8e8, #332e27);
+  --color-border-code: light-dark(#dddddd, #332e27);
+  --color-rule-top: light-dark(#424242, #4a443b);
+  --color-logo: light-dark(#313131, #f4f1ea);
+  --color-icon: light-dark(#828282, #a89f93);
+  --color-accent: light-dark(#dc322f, #eed3b1);
+  --color-code-bg: light-dark(#f8f8f8, #241f1a);
+
+  /* Surface for the floating theme panel and its button. */
+  --color-surface: light-dark(#ffffff, #2e2823);
+
+  /* Accent for the active picker option. Darker than --color-link in light so
+     it clears WCAG AA (4.5:1) on the white panel surface; dark keeps the tan. */
+  --color-accent-strong: light-dark(#cf2b27, #eed3b1);
+}
+
+/* The switch forces one scheme; "system" (or no attribute) keeps "light dark". */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Fallback for browsers without light-dark() (pre-2024): serve the light
+   palette so links keep their color and the brand holds. No dark mode there. */
+@supports not (color: light-dark(#000, #fff)) {
+  :root {
+    --color-bg: #f8f8f8;
+    --color-text: #414141;
+    --color-text-muted: #828282;
+    --color-link: #e4322e;
+    --color-link-hover: #af1a17;
+    --color-border: #e8e8e8;
+    --color-border-code: #dddddd;
+    --color-rule-top: #424242;
+    --color-logo: #313131;
+    --color-icon: #828282;
+    --color-accent: #dc322f;
+    --color-code-bg: #f8f8f8;
+    --color-surface: #ffffff;
+    --color-accent-strong: #cf2b27;
+  }
+}
+
 /* Reset */
 body,
 h1,
@@ -110,8 +174,11 @@ body {
   font-size: 18px;
   line-height: 2;
   font-weight: 300;
-  color: #414141;
-  background-color: #f8f8f8;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 h1,
@@ -148,6 +215,7 @@ strong {
 
 img {
   max-width: 100%;
+  height: auto;
   vertical-align: middle;
 }
 
@@ -174,17 +242,18 @@ li p {
 }
 
 a {
-  color: #e4322e;
+  color: var(--color-link);
   text-decoration: none;
+  transition: color 0.15s ease;
 }
 
 a:hover {
-  color: #af1a17;
+  color: var(--color-link-hover);
 }
 
 blockquote {
-  color: #828282;
-  border-left: 4px solid #e8e8e8;
+  color: var(--color-text-muted);
+  border-left: 4px solid var(--color-border);
   padding-left: 15px;
   font-size: 18px;
   letter-spacing: -1px;
@@ -209,8 +278,8 @@ code {
 pre {
   padding: 8px 0;
   overflow-x: scroll;
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
+  border-top: 1px solid var(--color-border-code);
+  border-bottom: 1px solid var(--color-border-code);
 }
 
 pre > code {
@@ -250,15 +319,28 @@ pre > code {
 }
 
 .icon > svg path {
-  fill: #828282;
+  fill: var(--color-icon);
 }
 
 /* Site header */
 .site-header {
-  border-top: 5px solid #424242;
-  border-bottom: 1px solid #e8e8e8;
+  border-top: 5px solid var(--color-rule-top);
+  border-bottom: 1px solid var(--color-border);
   min-height: 56px;
   padding: 30px 0;
+}
+
+.site-header .wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* The shared .wrapper clearfix adds a stray flex item; drop it in the header. */
+.site-header .wrapper::after {
+  display: none;
 }
 
 .site-title {
@@ -271,16 +353,29 @@ pre > code {
   height: 16px;
   width: 16px;
   border-radius: 50%;
-  border: 8px solid #313131;
+  border: 8px solid var(--color-logo);
   display: inline-block;
   vertical-align: middle;
   line-height: 56px;
   margin-right: 8px;
 }
 
+/* Visually hide an element while keeping it available to screen readers. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Site footer */
 .site-footer {
-  border-top: 1px solid #e8e8e8;
+  border-top: 1px solid var(--color-border);
   padding: 30px 0;
   font-size: 15px;
 }
@@ -306,14 +401,14 @@ pre > code {
 
 .post-meta {
   font-size: 15.75px;
-  color: #828282;
+  color: var(--color-text-muted);
 }
 
 .post-link {
   display: block;
   font-size: 24px;
   line-height: 1.4;
-  color: #414141;
+  color: var(--color-text);
 }
 
 .post-header {
@@ -372,7 +467,7 @@ pre > code {
 
 .footnote-article-number,
 .footnote-footer-number {
-  color: #dc322f;
+  color: var(--color-accent);
   vertical-align: super;
   font-weight: 600;
   font-size: 14px;
@@ -693,4 +788,233 @@ pre > code {
 
 .highlight .x {
   color: #258bd2;
+}
+
+/* Theme control
+
+   Wide screens: a floating panel pinned to the far right, in the gutter beside
+   the left-aligned content column, so it never overlaps the page. Narrow
+   screens: a small header button that opens the options as a dropdown menu.
+   Built on native radios; the active option is shown by the accent color and
+   bold weight (not color alone). Hidden until the inline script sets data-theme
+   on <html>, since it needs JS to function. */
+.theme-control {
+  position: relative;
+  display: none;
+  flex: none;
+}
+
+:root[data-theme] .theme-control {
+  display: block;
+}
+
+/* Button that opens the menu on narrow screens (hidden on wide screens). */
+.theme-control__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-icon);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    color 0.18s ease,
+    border-color 0.2s ease;
+}
+
+.theme-control__toggle:hover {
+  color: var(--color-link);
+}
+
+.theme-control__toggle:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+/* Show only the icon for the active theme. */
+.theme-control__icon {
+  display: none;
+}
+
+:root[data-theme="system"] .theme-control__icon[data-icon="system"],
+:root[data-theme="light"] .theme-control__icon[data-icon="light"],
+:root[data-theme="dark"] .theme-control__icon[data-icon="dark"] {
+  display: block;
+}
+
+/* The panel/menu, shared by both presentations. */
+.theme-picker {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.theme-picker__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.theme-picker__options {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.theme-picker label {
+  display: block;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-text);
+  white-space: nowrap;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: color 0.15s ease;
+}
+
+.theme-picker label:hover {
+  color: var(--color-accent-strong);
+}
+
+/* Active option: accent color plus bold weight, not color alone. Driven by the
+   real :checked state and, before the script syncs the radios, by data-theme. */
+.theme-picker input:checked + label,
+:root[data-theme="light"] .theme-picker label[for="theme-light"],
+:root[data-theme="dark"] .theme-picker label[for="theme-dark"],
+:root[data-theme="system"] .theme-picker label[for="theme-system"] {
+  color: var(--color-accent-strong);
+  font-weight: 700;
+}
+
+.theme-picker input:focus-visible + label {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+/* Narrow screens: the menu drops down under the header button. */
+@media (max-width: 1119px) {
+  .theme-picker {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 50;
+    min-width: 150px;
+  }
+
+  .theme-control.is-open .theme-picker {
+    display: block;
+  }
+}
+
+/* Wide screens: float the panel at the far right, outside the content column;
+   no button, panel always visible, label and options in one row. */
+@media (min-width: 1120px) {
+  .theme-control {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 50;
+  }
+
+  .theme-control__toggle {
+    display: none;
+  }
+
+  .theme-picker {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .theme-picker__label {
+    margin-bottom: 0;
+  }
+
+  .theme-picker__options {
+    flex-direction: row;
+    gap: 4px;
+  }
+
+  .theme-picker label {
+    padding: 6px 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* View transitions */
+/* Cross-document (MPA) slide-and-fade. One CSS opt-in animates between page
+   loads with zero JavaScript; engines without support navigate normally, so
+   this is pure progressive enhancement. The opt-in must be on every page,
+   which it is, since this stylesheet is loaded sitewide. */
+@view-transition {
+  navigation: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Hold the masthead and footer still across pages so they don't shimmer:
+     the same name in the same position is treated as one continuous element. */
+  .site-header {
+    view-transition-name: site-header;
+  }
+  .site-footer {
+    view-transition-name: site-footer;
+  }
+
+  /* Content lifts out on exit and settles in from a small offset on enter.
+     transform + opacity only, so the animation stays on the GPU compositor. */
+  ::view-transition-old(root) {
+    animation: 220ms ease both vt-slide-out;
+  }
+  ::view-transition-new(root) {
+    animation: 220ms ease both vt-slide-in;
+  }
+
+  @keyframes vt-slide-out {
+    to {
+      opacity: 0;
+      transform: translateY(-16px);
+    }
+  }
+  @keyframes vt-slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+  }
+}
+
+/* Respect reduced motion: keep the instant DOM swap, drop the animation. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

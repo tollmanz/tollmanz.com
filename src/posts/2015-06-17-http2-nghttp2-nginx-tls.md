@@ -82,11 +82,11 @@ The whole reason for this exercise was to begin playing with HTTP/2. I have been
 
 My site was [normally](http://www.webpagetest.org/result/150615_WG_3950356ef73d4ea40eeb7f667623878a/7/details/) producing a Start Render at ~1 second with a Speed Index of ~1100.
 
-![](/media/images/spdy-baseline.jpg "Baseline performance with SPDY")
+![WebPageTest waterfall of the site loading over SPDY, the baseline before switching to HTTP/2](/media/images/spdy-baseline.png)
 
 [Updating to HTTP/2](http://www.webpagetest.org/result/150615_JZ_b76055e3c3f559106719cbf9f9a5a5fd/5/details/) appeared to move things about 100ms, giving me a Start Render of ~900ms and Speed Index of ~1100.
 
-![](/media/images/http2-baseline.jpg "Baseline performance with HTTP/2")
+![WebPageTest waterfall of the same page over HTTP/2 without server push, for comparison with the SPDY baseline](/media/images/http2-baseline.png)
 
 After running these baseline synthetic tests, I turned to implementing server push for my main CSS. Server push is implemented via a header. I added the following header to each HTTP/2 response:
 
@@ -96,7 +96,7 @@ add_header    Link '</css/main.css>; rel=preload; as=stylesheet';
 
 When the client sees this header, it immediately starts downloading `main.css` (unless the client blocks it). This unfortunately [did not change](http://www.webpagetest.org/result/150615_MR_d338139a9daac7f953d940fa66475c7e/6/details/) the Start Render or Speed Index in any meaningful manner.
 
-![](/media/images/http2-with-server-push.jpg "HTTP/2 with server push")
+![WebPageTest waterfall over HTTP/2 with server push enabled for main.css, where the pushed stylesheet no longer appears as a separate request](/media/images/http2-with-server-push.png)
 
 Looking at that waterfall, the interesting thing is that the CSS doesn't even show up on the waterfall. This had me confused. I wanted to see if there was another way to visualize what was happening. Within the suite of Nghttp2 tools, the `nghttp` HTTP/2 client is included. This application allows you to make HTTP/2 requests and includes a number of helpful features. One such feature is a `--stat` flag. I requested my site using this command and flag when I utilized server push and when I didn't:
 
@@ -116,13 +116,13 @@ These requests are like making `curl` requests against a site, except it's using
 
 Using the `--har` flag, I could save the request to a HAR file and use a HAR viewer to visualize what was happening. Using the Chrome HTTP Archive Viewer extension, I could compare the two experiences:
 
-![](/media/images/push-vs-no-push.jpg "Push vs No Push HAR")
+![Two HAR waterfalls compared, server push on top and no server push below, showing main.css begin downloading earlier when pushed](/media/images/push-vs-no-push.png)
 
 The server push version is at the top of the image with the no server push version at the bottom. What do you notice? The main.css file begins downloading much quicker in the server push version. You'll see that the HTML needs to download before the main.css file is requested in the no server push version. Again, proof that server push is doing something!
 
 One thing that bugged me about my waterfall is that I was able to open a single TCP connection for most resources, except for the fonts that were hosted with Google Fonts. This bothered me. I wondered what would happen if I moved these fonts to my domain. I used [`webfont-dl`](https://github.com/mmastrac/webfont-dl) with the recommendations from [Mathias Bynens](https://github.com/18F/18f.gsa.gov/pull/672#issuecomment-97682705) to download the fonts to my site. The [results](http://www.webpagetest.org/result/150616_PK_23e6b4918df551f63de97e93e00226ef/7/details/) were very nice:
 
-![](/media/images/http2-with-server-push-and-local-fonts.jpg "HTTP/2 with server push and local fonts")
+![WebPageTest waterfall over HTTP/2 with server push and self-hosted fonts, eliminating the separate Google Fonts connection](/media/images/http2-with-server-push-and-local-fonts.png)
 
 Start Render fell another 200ms to ~700ms, with the Speed Index following suit at ~720. Eliminating that Google Fonts connection was huge. Being able to reuse the already established TCP connect pays off in a major way.
 

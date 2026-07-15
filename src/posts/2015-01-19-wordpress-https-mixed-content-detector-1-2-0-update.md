@@ -29,11 +29,11 @@ wp mcd locate --all
 
 Once the location data is set, you can view it in the admin screen:
 
-![](/media/images/csp-violations-1-2-0.jpg "CSP violations with locations")
+![Content Security Policy Reports admin screen in version 1.2.0, listing violations with added Location, Resolved, and Secure URI columns](/media/images/csp-violations-1-2-0.png)
 
 Alternatively, it can be viewed via the command line with WP CLI:
 
-![](/media/images/wp-mcd-list-1-2-0.jpg "List command with locations")
+![Terminal output of the wp mcd list command, printing a table of blocked URIs, violated directives, and their resolved locations](/media/images/wp-mcd-list-1-2-0.png)
 
 These violation locations are just a start. The plugin will not find all sources of violations yet, but with continued work, it will get better. Furthermore, the violation locations API is developed with extensibility in mind so you can add your own violation locations. I will work to fully document this in the future, but if you are curious, the [violation location interface](https://github.com/tollmanz/wordpress-https-mixed-content-detector/blob/master/src/violation-locations/violation-location-interface.php) will clue you into how it works.
 

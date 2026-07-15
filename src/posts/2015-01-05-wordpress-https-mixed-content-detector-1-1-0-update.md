@@ -26,7 +26,7 @@ This command lists all of the CSP violations that are currently logged on your s
 
 Check out an example of the table:
 
-![](/media/images/wp-mcd-list-example.jpg "Example of the list command")
+![Terminal output of the wp mcd list command showing example violation rows with their blocked URIs, directives, and resolved and secure flags](/media/images/wp-mcd-list-example.png)
 
 **`wp mcd un|resolve`**
 
