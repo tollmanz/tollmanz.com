@@ -22,10 +22,18 @@ the key never ships to the browser and there is no CORS (the request is
 same-origin). The proxy snippet runs ahead of the apex-to-www redirect, and the
 telemetry POST passes straight through without caching.
 
+The key is stored in the service's write-only `secrets` edge dictionary,
+Fastly's secret management for VCL services: values are write-only through the
+API and never appear in the generated VCL or version diffs. The snippet reads it
+with `table.lookup`. Because dictionary items live outside service versions, a
+key rotation updates the edge in place without a new VCL version.
+
 The ingest key is not configured here. It is created by the Honeycomb Pulumi
-project and read at apply time through a Pulumi `StackReference` to
-`tollmanz-gmail-com/tollmanz-com-honeycomb/prod`. Bring up the Honeycomb stack
-first; see `infra/README.md` for the apply order.
+project, read at apply time through a Pulumi `StackReference` to
+`tollmanz-gmail-com/tollmanz-com-honeycomb/prod`, and upserted into the
+dictionary by a small command resource (the provider cannot manage items in
+write-only dictionaries). Bring up the Honeycomb stack first; see
+`infra/README.md` for the apply order.
 
 ## Secrets
 
@@ -77,7 +85,9 @@ GitHub repository secrets:
 
 ## How secrets stay out of the repo
 
-The Fastly provider reads `FASTLY_API_KEY` from the environment. The Honeycomb
-ingest key is read as a secret output of the Honeycomb stack. Nothing is stored
-in `Pulumi.<stack>.yaml`. The values reach Pulumi Cloud state (encrypted) and the
-Fastly API (where the header injection runs), never the committed source.
+The Fastly provider reads `FASTLY_API_KEY` from the environment; the ingest-key
+sync command reads it from the same place, so the token never enters Pulumi
+state. The Honeycomb ingest key is read as a secret output of the Honeycomb
+stack and reaches Pulumi Cloud state encrypted and the write-only `secrets`
+dictionary at the edge, never the committed source or the generated VCL.
+Nothing is stored in `Pulumi.<stack>.yaml`.

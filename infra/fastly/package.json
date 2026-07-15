@@ -12,6 +12,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@pulumi/command": "1.2.1",
     "@pulumi/fastly": "12.2.1",
     "@pulumi/pulumi": "3.246.0"
   },

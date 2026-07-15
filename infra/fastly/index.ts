@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as pulumi from "@pulumi/pulumi";
 import * as fastly from "@pulumi/fastly";
+import * as command from "@pulumi/command";
 
 // The site is served by GitHub Pages and fronted by Fastly. GitHub Pages is
 // multi-tenant and routes purely by the HTTP Host header, so the backend's
@@ -38,37 +39,30 @@ const forceIdentityFetch = fs.readFileSync(
   "utf8"
 );
 
-// Browser RUM telemetry is proxied to Honeycomb at the edge. The Honeycomb
-// ingest key is created and owned by the Honeycomb Pulumi project; read it as a
-// secret output here so there is a single source of truth and no manual copy
-// step. The proxy snippet carries a placeholder that is replaced with the key
-// here, so the key reaches Fastly and Pulumi Cloud state (encrypted) but never
-// the browser.
-//
-// Until the Honeycomb stack has been applied its ingestKey output is undefined;
-// in that bootstrap window the snippet degrades to a no-op comment (POSTs to
-// /v1/traces fall through to the origin and 404) rather than injecting a bogus
-// key or failing the whole service update. Apply infra/honeycomb, then re-run
-// this stack to activate the proxy (see infra/README.md).
-const honeycombStack = new pulumi.StackReference(
-  "tollmanz-gmail-com/tollmanz-com-honeycomb/prod"
-);
-const honeycombIngestKey = honeycombStack.getOutput("ingestKey");
-const honeycombProxyTemplate = fs.readFileSync(
+const honeycombProxy = fs.readFileSync(
   path.join(snippetsDir, "honeycomb-proxy.vcl"),
   "utf8"
 );
-const honeycombProxyContent = honeycombIngestKey.apply(key => {
-  if (typeof key !== "string" || key.length === 0) {
-    pulumi.log.warn(
-      "Honeycomb stack has no ingestKey output yet; deploying the RUM proxy " +
-        "snippet as a no-op. Apply infra/honeycomb, then re-run this stack " +
-        "(see infra/README.md)."
-    );
-    return "# RUM proxy disabled: the Honeycomb stack has no ingestKey output yet.\n";
-  }
-  return honeycombProxyTemplate.replace("__HONEYCOMB_INGEST_KEY__", key);
-});
+
+// Browser RUM telemetry is proxied to Honeycomb at the edge. The Honeycomb
+// ingest key is created and owned by the Honeycomb Pulumi project; read it as a
+// secret output here so there is a single source of truth and no manual copy
+// step. The key is stored in the write-only "secrets" edge dictionary (declared
+// on the service below), which is Fastly's secret management for VCL services:
+// the proxy snippet reads it with table.lookup, so the key never appears in the
+// committed source, the generated VCL, or the browser.
+//
+// Until the Honeycomb stack has been applied its ingestKey output is undefined;
+// in that bootstrap window the dictionary is left empty, the snippet's lookup
+// returns "" and POSTs to /v1/traces fall through to the origin (404). Apply
+// infra/honeycomb, then re-run this stack to activate the proxy (see
+// infra/README.md).
+const honeycombStack = new pulumi.StackReference(
+  "tollmanz-gmail-com/tollmanz-com-honeycomb/prod"
+);
+const honeycombIngestKey = honeycombStack
+  .getOutput("ingestKey")
+  .apply(key => (typeof key === "string" ? key : ""));
 
 const site = new fastly.ServiceVcl(
   "site",
@@ -112,6 +106,19 @@ const site = new fastly.ServiceVcl(
         name: "never",
         statement: "false",
         type: "REQUEST",
+      },
+    ],
+    dictionaries: [
+      {
+        // Write-only (private) edge dictionary holding the Honeycomb ingest
+        // key, read by the "Honeycomb RUM proxy" snippet via table.lookup.
+        // Private dictionaries are Fastly's secret management for VCL
+        // services: values are write-only through the API and never appear in
+        // the generated VCL or version diffs. The provider cannot manage items
+        // in a write-only dictionary, so the item itself is upserted by the
+        // ingest-key sync command below.
+        name: "secrets",
+        writeOnly: true,
       },
     ],
     gzips: [
@@ -185,7 +192,7 @@ const site = new fastly.ServiceVcl(
         name: "Honeycomb RUM proxy",
         type: "recv",
         priority: 90,
-        content: honeycombProxyContent,
+        content: honeycombProxy,
       },
       {
         name: "Apex to www redirect",
@@ -222,6 +229,47 @@ const site = new fastly.ServiceVcl(
     protect: true,
   }
 );
+
+// Upsert the Honeycomb ingest key into the write-only "secrets" dictionary.
+// The provider cannot manage items in a private dictionary (see the dictionary
+// block above), so this shells out to the Fastly API. Dictionary items live
+// outside service versions, so a key rotation updates the edge in place with
+// no new VCL version. The command re-runs whenever its environment changes,
+// i.e. when the Honeycomb stack rotates the key.
+//
+// FASTLY_API_KEY is read from the ambient process environment (root .env
+// locally, GitHub Actions secret in CI), the same credential the provider
+// uses; it is deliberately not passed through `environment` so it never enters
+// Pulumi state. The ingest key does pass through `environment`, which reaches
+// Pulumi Cloud state encrypted, exactly as the StackReference output already
+// does. During bootstrap the key is "" and the command leaves the dictionary
+// untouched.
+const secretsDictionaryId = site.dictionaries.apply(
+  dictionaries =>
+    (dictionaries ?? []).find(d => d.name === "secrets")?.dictionaryId ?? ""
+);
+
+const syncIngestKey = [
+  `if [ -z "$ITEM_VALUE" ]; then`,
+  `  echo "Honeycomb stack has no ingestKey output yet; leaving the secrets dictionary untouched (see infra/README.md)."`,
+  `  exit 0`,
+  `fi`,
+  `curl -fsS -X PUT \\`,
+  `  "https://api.fastly.com/service/$SERVICE_ID/dictionary/$DICTIONARY_ID/item/honeycomb_ingest_key" \\`,
+  `  -H "Fastly-Key: $FASTLY_API_KEY" \\`,
+  `  --data-urlencode "item_value=$ITEM_VALUE" > /dev/null`,
+  `echo "Upserted honeycomb_ingest_key into the secrets dictionary."`,
+].join("\n");
+
+new command.local.Command("honeycomb-ingest-key-item", {
+  create: syncIngestKey,
+  update: syncIngestKey,
+  environment: {
+    SERVICE_ID: site.id,
+    DICTIONARY_ID: secretsDictionaryId,
+    ITEM_VALUE: honeycombIngestKey,
+  },
+});
 
 export const serviceId = site.id;
 export const activeVersion = site.activeVersion;
