@@ -11,7 +11,7 @@ const localEndpoint = process.env.RUM_LOCAL_ENDPOINT;
 const serviceName = process.env.RUM_SERVICE_NAME;
 
 if (mode !== "off") {
-  // local: post to a SigNoz collector on localhost.
+  // local: post to the local OTLP collector (see local/otel).
   // production: post to the same-origin /v1/traces path, which the Fastly edge
   // proxy authenticates to Honeycomb. No API key is ever present in the browser,
   // so skipOptionsValidation tells the SDK not to require one.

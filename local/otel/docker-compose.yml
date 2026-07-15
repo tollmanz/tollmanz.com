@@ -1,0 +1,32 @@
+# Local trace backend for browser RUM: an OpenTelemetry Collector that receives
+# OTLP/HTTP from the browser (with CORS) and forwards to Jaeger for a UI. Nothing
+# here is deployed; it is a pre-flight for the RUM spans before pointing the site
+# at Honeycomb. No API key is involved by default.
+#
+# Optional: set OTEL_COLLECTOR_CONFIG=collector-config-honeycomb.yaml and
+# HONEYCOMB_LOCAL_INGEST_KEY in local/otel/.env to also forward to a separate
+# Honeycomb "local" environment (see README).
+name: tollmanz-rum-local
+
+services:
+  collector:
+    image: otel/opentelemetry-collector:0.120.0
+    command:
+      ["--config=/etc/otelcol/${OTEL_COLLECTOR_CONFIG:-collector-config.yaml}"]
+    volumes:
+      - ./collector-config.yaml:/etc/otelcol/collector-config.yaml:ro
+      - ./collector-config-honeycomb.yaml:/etc/otelcol/collector-config-honeycomb.yaml:ro
+    environment:
+      # Empty unless set in .env; only the Honeycomb config reads it.
+      HONEYCOMB_LOCAL_INGEST_KEY: ${HONEYCOMB_LOCAL_INGEST_KEY:-}
+    ports:
+      - "4318:4318" # OTLP/HTTP; the browser posts spans here
+    depends_on:
+      - jaeger
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.76.0
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686" # Jaeger UI

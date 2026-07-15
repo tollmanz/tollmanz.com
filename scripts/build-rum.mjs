@@ -3,7 +3,7 @@
 //
 // Behaviour is chosen at build time from the environment:
 //   RUM_MODE           "off" (default) | "local" | "production"
-//   RUM_LOCAL_ENDPOINT  OTLP endpoint for local SigNoz (default localhost:4318)
+//   RUM_LOCAL_ENDPOINT  OTLP endpoint for the local collector (default localhost:4318)
 //   RUM_SERVICE_NAME    service.name / Honeycomb dataset (default tollmanz-com-web)
 //
 // When RUM_MODE is off (the default) nothing is built, so normal `npm run dev`
