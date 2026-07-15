@@ -4,10 +4,10 @@ Infrastructure for tollmanz.com, managed as code with Pulumi on Pulumi Cloud.
 One Pulumi project per service, each with its own state, stack, credentials, and
 CI workflow, so changes to one service neither diff nor block the other.
 
-| Project   | Directory    | Pulumi project name      | Manages                                                        |
-| --------- | ------------ | ------------------------ | -------------------------------------------------------------- |
-| Fastly    | `fastly/`    | `tollmanz-com-infra`     | CDN over GitHub Pages, the `/v1/traces` RUM proxy to Honeycomb |
-| Honeycomb | `honeycomb/` | `tollmanz-com-honeycomb` | Honeycomb environment, RUM dataset, ingest key                 |
+| Project   | Directory    | Pulumi project name      | Manages                                                                    |
+| --------- | ------------ | ------------------------ | -------------------------------------------------------------------------- |
+| Fastly    | `fastly/`    | `tollmanz-com-infra`     | CDN over GitHub Pages, the `/v1/traces` RUM proxy to Honeycomb             |
+| Honeycomb | `honeycomb/` | `tollmanz-com-honeycomb` | `tollmanz-com` and `tollmanz-com-local` environments and their ingest keys |
 
 The site is built by Eleventy and published to GitHub Pages; Fastly fronts it as
 the CDN and TLS terminator and also proxies browser RUM to Honeycomb.
