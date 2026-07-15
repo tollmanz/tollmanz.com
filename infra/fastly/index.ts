@@ -88,8 +88,12 @@ const site = new fastly.ServiceVcl(
         sslSniHostname: "tollmanz.github.io",
       },
       {
-        // Backend for the browser RUM proxy. The "Honeycomb RUM proxy" snippet
-        // selects this backend for POST /v1/traces. overrideHost forces the
+        // Backend for the browser RUM proxy. Only the "Honeycomb RUM proxy"
+        // snippet selects this backend (explicit req.backend for POST
+        // /v1/traces). The never-matching request condition keeps it out of
+        // Fastly's generated default-backend selection: with two unconditioned
+        // backends the generated VCL picks the default arbitrarily and could
+        // route the whole site to api.honeycomb.io. overrideHost forces the
         // Host header so TLS and routing reach Honeycomb's OTLP endpoint.
         name: "honeycomb",
         address: "api.honeycomb.io",
@@ -98,6 +102,16 @@ const site = new fastly.ServiceVcl(
         overrideHost: "api.honeycomb.io",
         sslCertHostname: "api.honeycomb.io",
         sslSniHostname: "api.honeycomb.io",
+        requestCondition: "never",
+      },
+    ],
+    conditions: [
+      {
+        // Never matches; exists solely to exclude the honeycomb backend from
+        // generated backend selection. See the honeycomb backend above.
+        name: "never",
+        statement: "false",
+        type: "REQUEST",
       },
     ],
     gzips: [
