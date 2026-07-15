@@ -1,5 +1,10 @@
 // Bundles the browser RUM init (assets/rum/index.js) and the OpenTelemetry web
-// SDK into build/js/rum.js, which Eleventy passthrough-copies to /js/rum.js.
+// SDK into build/js/rum.<hash>.js, which Eleventy passthrough-copies to
+// /js/rum.<hash>.js. The hash is the bundle's own content hash, so the URL
+// changes whenever the delivered bytes change and the edge serves it immutable
+// (cache-control-fetch.vcl matches the .<hex>.js suffix). This mirrors the CSS
+// fingerprinting in src/_data/assets.js; src/_data/rum.js finds the emitted
+// file so the <script> reference and the bundle can never drift apart.
 //
 // Behaviour is chosen at build time from the environment:
 //   RUM_MODE           "off" (default) | "local" | "production"
@@ -11,7 +16,8 @@
 // RUM is enabled (see src/_data/rum.js).
 
 import * as esbuild from "esbuild";
-import { rm, mkdir } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { rm, mkdir, writeFile } from "node:fs/promises";
 
 const mode = process.env.RUM_MODE ?? "off";
 const localEndpoint = process.env.RUM_LOCAL_ENDPOINT ?? "http://localhost:4318";
@@ -31,9 +37,12 @@ if (mode !== "local" && mode !== "production") {
   process.exit(1);
 }
 
+// Start clean so exactly one hashed bundle exists; stale hashes from previous
+// builds would otherwise accumulate and get copied into the site output.
+await rm("build/js", { recursive: true, force: true });
 await mkdir("build/js", { recursive: true });
 
-await esbuild.build({
+const result = await esbuild.build({
   entryPoints: ["assets/rum/index.js"],
   bundle: true,
   minify: true,
@@ -41,6 +50,7 @@ await esbuild.build({
   target: "es2020",
   outfile: "build/js/rum.js",
   legalComments: "none",
+  write: false,
   define: {
     "process.env.RUM_MODE": JSON.stringify(mode),
     "process.env.RUM_LOCAL_ENDPOINT": JSON.stringify(localEndpoint),
@@ -49,8 +59,18 @@ await esbuild.build({
   },
 });
 
+// Hash the output rather than the source: the delivered bytes also change with
+// dependency and esbuild upgrades, and the URL must change with them.
+const bundle = result.outputFiles[0];
+const hash = createHash("sha256")
+  .update(bundle.contents)
+  .digest("hex")
+  .slice(0, 12);
+const outfile = `build/js/rum.${hash}.js`;
+await writeFile(outfile, bundle.contents);
+
 console.log(
-  `Built build/js/rum.js (RUM_MODE=${mode}, service=${serviceName}` +
+  `Built ${outfile} (RUM_MODE=${mode}, service=${serviceName}` +
     (mode === "local" ? `, endpoint=${localEndpoint}` : "") +
     ")."
 );
