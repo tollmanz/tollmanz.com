@@ -1,0 +1,41 @@
+# Local RUM collector that ALSO forwards to a Honeycomb "local" environment, so
+# you can preview the data in the Honeycomb experience without touching prod. The
+# browser still posts to this collector (localhost:4318); the collector adds the
+# ingest key and forwards to Honeycomb, mirroring what Fastly does in prod so the
+# key never sits in the browser bundle.
+#
+# Requires HONEYCOMB_LOCAL_INGEST_KEY, an ingest key for a SEPARATE Honeycomb
+# environment used only for local testing (see README). Select this config by
+# setting OTEL_COLLECTOR_CONFIG in the repo-root .env and running compose with
+# --env-file ../../.env.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+        # Eleventy --serve default origin; must match scheme, host, and port.
+        cors:
+          allowed_origins:
+            - http://localhost:8080
+
+exporters:
+  # Local UI.
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+  # A separate Honeycomb environment. TLS on by default for the :443 endpoint.
+  # service.name (tollmanz-com-web) becomes the dataset in that environment.
+  otlp/honeycomb:
+    endpoint: api.honeycomb.io:443
+    headers:
+      x-honeycomb-team: ${env:HONEYCOMB_LOCAL_INGEST_KEY}
+  # Per-batch summary in `docker compose logs collector`.
+  debug:
+    verbosity: normal
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [otlp/jaeger, otlp/honeycomb, debug]

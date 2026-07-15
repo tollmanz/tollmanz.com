@@ -1,59 +1,52 @@
-# Fastly infrastructure (Pulumi)
+# Infrastructure (Pulumi)
 
-Fastly CDN configuration for tollmanz.com, managed as code with Pulumi on Pulumi
-Cloud. State lives in Pulumi Cloud. No secrets are committed: the only credential
-comes from the environment, from a gitignored `.env` locally and from a GitHub
-Actions secret in CI.
+Infrastructure for tollmanz.com, managed as code with Pulumi on Pulumi Cloud.
+One Pulumi project per service, each with its own state, stack, credentials, and
+CI workflow, so changes to one service neither diff nor block the other.
 
-The origin is GitHub Pages (`tollmanz.github.io`). Because GitHub Pages routes by
-the HTTP Host header, the backend sends `Host: www.tollmanz.com` (the custom
-domain configured on the repo) while doing TLS against the `tollmanz.github.io`
-certificate. GitHub Pages is public, so the origin needs no request signing.
+| Project   | Directory    | Pulumi project name      | Manages                                                                    |
+| --------- | ------------ | ------------------------ | -------------------------------------------------------------------------- |
+| Fastly    | `fastly/`    | `tollmanz-com-infra`     | CDN over GitHub Pages, the `/v1/traces` RUM proxy to Honeycomb             |
+| Honeycomb | `honeycomb/` | `tollmanz-com-honeycomb` | `tollmanz-com` and `tollmanz-com-local` environments and their ingest keys |
+
+The site is built by Eleventy and published to GitHub Pages; Fastly fronts it as
+the CDN and TLS terminator and also proxies browser RUM to Honeycomb.
+
+The Fastly project name stays `tollmanz-com-infra` (not `tollmanz-com-fastly`)
+on purpose: the live stack and its protected service already exist under that
+name, and a rename would rewrite resource URNs in state. The directory is
+`fastly/` for symmetry; the cloud project name is left alone.
+
+## Cross-service dependency
+
+The RUM ingest key is created by the Honeycomb project and consumed by the
+Fastly project through a Pulumi `StackReference`. The browser never carries the
+key; Fastly injects it into the `/v1/traces` proxy at the edge.
+
+The key lives in the Fastly service's write-only `secrets` edge dictionary; a
+command resource in the Fastly project upserts it there on apply. Apply order
+matters: bring up Honeycomb first, then Fastly. The order is not destructive,
+just lazy: if Fastly runs while the Honeycomb stack has no `ingestKey` output
+yet, the dictionary stays empty, the proxy snippet's lookup falls through to
+the origin, and the next Fastly run after Honeycomb is up fills the dictionary
+and activates the proxy. Until the `HONEYCOMB_KEY_ID` / `HONEYCOMB_KEY_SECRET`
+repository secrets are set, the Honeycomb CI workflow skips its Pulumi steps
+with a notice instead of failing.
+
+```bash
+cd honeycomb && pulumi install && npm run up
+cd ../fastly && npm run up
+```
+
+In CI the two projects have separate path-gated workflows
+(`.github/workflows/honeycomb.yml`, `.github/workflows/infra.yml`). After a
+change that rotates the ingest key, the Fastly workflow has to run to pick up
+the new value.
 
 ## Secrets
 
-One value is required at run time:
-
-| Variable         | Used by                        | Source                        |
-| ---------------- | ------------------------------ | ----------------------------- |
-| `FASTLY_API_KEY` | Fastly provider authentication | Fastly personal token (write) |
-
-The `pulumi` scripts below are wrapped with `dotenv`, so locally they read this
-from `infra/.env`. Copy the template and fill it in:
-
-```bash
-cd infra
-npm install
-cp .env.example .env   # then edit .env with real values (gitignored)
-```
-
-Create the Fastly token at
-https://manage.fastly.com/account/personal/tokens with write access to the
-service.
-
-## Local workflow
-
-```bash
-npm run preview   # dotenv -- pulumi preview (dry run)
-npm run up        # dotenv -- pulumi up (apply; new active version on real changes)
-npm run refresh   # dotenv -- pulumi refresh (pull live state)
-npm run format       # prettier --write .
-npm run format:check # prettier --check .
-```
-
-First-time Pulumi auth (once per machine): `pulumi login`.
-
-## CI (GitHub Actions)
-
-CI is defined in `.github/workflows/infra.yml` (previews on PRs, applies on push
-to `main`, gated to `infra/**`). It does not use `.env`; it reads these GitHub
-repository secrets:
-
-- `PULUMI_ACCESS_TOKEN` (from https://app.pulumi.com, for non-interactive login)
-- `FASTLY_API_KEY`
-
-## How secrets stay out of the repo
-
-The Fastly provider reads `FASTLY_API_KEY` from the environment. Nothing is
-stored in `Pulumi.<stack>.yaml`. The token reaches Pulumi Cloud state (encrypted)
-and the Fastly API, never the committed source.
+All local secrets live in a single `.env` at the repo root (gitignored); each
+project's `pulumi` npm scripts load it with `dotenv -e ../../.env`. Copy
+`.env.example` at the repo root to `.env` and fill it in. CI never reads `.env`;
+it uses GitHub Actions repository secrets. See each project's README for which
+variables it needs.

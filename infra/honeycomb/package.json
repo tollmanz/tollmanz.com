@@ -1,0 +1,25 @@
+{
+  "name": "tollmanz-com-honeycomb",
+  "version": "1.0.0",
+  "description": "Honeycomb observability configuration for tollmanz.com, managed with Pulumi",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "preview": "dotenv -e ../../.env -- pulumi preview",
+    "up": "dotenv -e ../../.env -- pulumi up",
+    "refresh": "dotenv -e ../../.env -- pulumi refresh",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@pulumi/honeycombio": "file:sdks/honeycombio",
+    "@pulumi/pulumi": "3.246.0"
+  },
+  "devDependencies": {
+    "@types/node": "25.9.3",
+    "dotenv-cli": "11.0.0",
+    "prettier": "3.6.2",
+    "ts-node": "10.9.2",
+    "typescript": "6.0.3"
+  }
+}

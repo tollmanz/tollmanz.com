@@ -1,0 +1,32 @@
+# OpenTelemetry Collector config for local RUM testing. Receives OTLP/HTTP from
+# the browser (CORS-enabled) and forwards to Jaeger for a UI. Local only.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+        # The browser posts cross-origin from the Eleventy dev server, so its
+        # origin must be allowed or the CORS preflight fails and no spans arrive.
+        # Eleventy --serve defaults to port 8080; change this if you serve on
+        # another port. It must match scheme, host, and port exactly.
+        cors:
+          allowed_origins:
+            - http://localhost:8080
+
+exporters:
+  # Forward to Jaeger over OTLP/gRPC on the compose network (server-to-server,
+  # no CORS involved).
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+  # Also log a per-batch summary so `docker compose logs collector` confirms
+  # spans are arriving even before opening the UI.
+  debug:
+    verbosity: normal
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [otlp/jaeger, debug]

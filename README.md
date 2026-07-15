@@ -26,7 +26,7 @@ workflow"). No deployment secrets are required; the workflow authenticates to
 Pages with an OIDC token.
 
 Fastly sits in front of GitHub Pages as the CDN and TLS terminator. Its
-configuration is managed with Pulumi in [`infra/`](infra/).
+configuration is managed with Pulumi in [`infra/fastly/`](infra/fastly/).
 
 ### One-time GitHub Pages setup
 
@@ -39,8 +39,9 @@ The rest are repo settings, configured once outside this codebase:
 
 1. Settings -> Pages -> Source: "GitHub Actions"
 2. Settings -> Pages -> Custom domain: `www.tollmanz.com` (must match the
-   `overrideHost` in `infra/index.ts`). A `CNAME` file in the build output is
-   ignored on the Actions deploy flow, so the domain is set here instead.
+   `overrideHost` in `infra/fastly/index.ts`). A `CNAME` file in the build
+   output is ignored on the Actions deploy flow, so the domain is set here
+   instead.
 3. "Enforce HTTPS" stays off and is unavailable: because the DNS above points at
    Fastly rather than GitHub's IPs, GitHub cannot issue a certificate for the
    domain. Visitor TLS is terminated at Fastly.

@@ -5,13 +5,14 @@
   "private": true,
   "main": "index.ts",
   "scripts": {
-    "preview": "dotenv -- pulumi preview",
-    "up": "dotenv -- pulumi up",
-    "refresh": "dotenv -- pulumi refresh",
+    "preview": "dotenv -e ../../.env -- pulumi preview",
+    "up": "dotenv -e ../../.env -- pulumi up",
+    "refresh": "dotenv -e ../../.env -- pulumi refresh",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@pulumi/command": "1.2.1",
     "@pulumi/fastly": "12.2.1",
     "@pulumi/pulumi": "3.246.0"
   },

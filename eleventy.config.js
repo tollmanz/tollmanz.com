@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { DateTime } from "luxon";
 import { minify } from "html-minifier-terser";
 import syntaxHighlight from "@11ty/eleventy-plugin-syntaxhighlight";
@@ -98,6 +99,12 @@ export default function (eleventyConfig) {
   // unreferenced originals next to public/img.
   eleventyConfig.addPassthroughCopy("src/media/pdf");
   eleventyConfig.addPassthroughCopy("src/favicon.ico");
+
+  // RUM bundle, built by `npm run build:js` into build/js when RUM is enabled.
+  // Only copy it when present, so the default (RUM_MODE=off) build stays clean.
+  if (fs.existsSync("build/js")) {
+    eleventyConfig.addPassthroughCopy({ "build/js": "js" });
+  }
 
   // Create collections
   eleventyConfig.addCollection("posts", function (collectionApi) {

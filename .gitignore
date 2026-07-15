@@ -3,5 +3,8 @@
 node_modules
 public
 
+# Generated RUM bundle (built by scripts/build-rum.mjs)
+build
+
 # Environment variables
 .env

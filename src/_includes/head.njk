@@ -54,4 +54,5 @@
   <meta name="twitter:title" content="{{ fullTitle }}">
   <meta name="twitter:description" content="{{ pageDescription }}">
   {% if image %}<meta name="twitter:image" content="{{ site.url }}{{ image }}">{% endif %}
+  {% if rum.enabled %}<script src="{{ rum.url }}" defer></script>{% endif %}
 </head>

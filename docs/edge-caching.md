@@ -31,7 +31,8 @@ client -> Fastly (this project's service) -> GitHub Pages (itself Fastly) -> ori
 ```
 
 This project controls only the first Fastly service, configured as code with
-Pulumi in `infra/`. It fronts GitHub Pages as the CDN and TLS terminator. The
+Pulumi in `infra/fastly/`. It fronts GitHub Pages as the CDN and TLS terminator.
+The
 backend connects to `tollmanz.github.io` (whose TLS cert covers `*.github.io`)
 but sends `Host: www.tollmanz.com` via `overrideHost`, which selects this repo's
 site and avoids a redirect. The `iad-va-us` shield POP concentrates origin
@@ -45,7 +46,8 @@ Two mechanisms produce the caching behavior:
 
 ## Cache-Control by asset class
 
-`infra/snippets/cache-control-fetch.vcl` runs in `vcl_fetch` and rewrites both
+`infra/fastly/snippets/cache-control-fetch.vcl` runs in `vcl_fetch` and rewrites
+both
 Fastly's own object lifetime (`beresp.ttl`) and the browser-facing
 `Cache-Control`. The edge holds every class for a year and is kept fresh by a
 purge on each deploy, so a long edge TTL never serves stale content. The browser
@@ -99,12 +101,13 @@ the VCL gives them the immutable policy by file extension.
 ## Compression
 
 GitHub Pages serves gzip or identity but never brotli, and Fastly only compresses
-content it receives uncompressed. The setup in `infra/index.ts`:
+content it receives uncompressed. The setup in `infra/fastly/index.ts`:
 
 - `productEnablement.brotliCompression = true` enables Fastly's Brotli product.
   This also makes Fastly's Accept-Encoding normalization keep the `br` token
   instead of collapsing it to gzip
-- `infra/snippets/force-identity-fetch.vcl` unsets `bereq.http.Accept-Encoding` on
+- `infra/fastly/snippets/force-identity-fetch.vcl` unsets
+  `bereq.http.Accept-Encoding` on
   both `miss` and `pass`, so the origin always returns identity and Fastly has
   uncompressed bytes to work with
 - the `gzips` block lists the content types and extensions to compress
@@ -136,10 +139,10 @@ Two pipelines fire on a push to `main`, each owning one half of the contract:
 
 - `.github/workflows/pages.yml` builds the site and deploys it to GitHub Pages on
   any push to `main`, then runs `purge_all` against Fastly as its last step
-- `.github/workflows/infra.yml` runs `pulumi up` when `infra/**` changes on a push
-  to `main`, and `pulumi preview` on pull requests. The `site` resource is
-  `protect: true`, which blocks replace and delete but allows the in-place updates
-  these snippets need
+- `.github/workflows/infra.yml` runs `pulumi up` when `infra/fastly/**` changes
+  on a push to `main`, and `pulumi preview` on pull requests. The `site`
+  resource is `protect: true`, which blocks replace and delete but allows the
+  in-place updates these snippets need
 
 The cache snippet runs on every origin fill, so a newly-filled object always gets
 the current policy. An object cached just before a config change keeps its prior
