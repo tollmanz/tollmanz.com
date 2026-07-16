@@ -7,10 +7,10 @@
 //
 // Auth uses X-Honeycomb-Team with a Configuration Key that has the Manage
 // Markers permission. Dataset comes from HONEYCOMB_DATASET, defaulting to
-// __all__ (an environment-wide marker visible on every dataset's charts).
+// tollmanz-com-web (the dataset receiving the site's RUM and Fastly telemetry).
 
 const API_BASE = "https://api.honeycomb.io/1/markers";
-const DEFAULT_DATASET = "__all__";
+const DEFAULT_DATASET = "tollmanz-com-web";
 
 export const name = "honeycomb";
 

@@ -55,9 +55,9 @@ test("start_time is the timestamp in Unix seconds", () => {
   );
 });
 
-test("defaults the dataset to __all__", () => {
+test("defaults the dataset to tollmanz-com-web", () => {
   const req = request(event, {});
-  assert.equal(req.url, "https://api.honeycomb.io/1/markers/__all__");
+  assert.equal(req.url, "https://api.honeycomb.io/1/markers/tollmanz-com-web");
 });
 
 test("uses HONEYCOMB_DATASET when set", () => {
