@@ -16,10 +16,67 @@ datasets are created on ingest, so the ingest key (with `createDatasets`) create
 it on the first telemetry it receives, named by the browser SDK's `serviceName`
 (`tollmanz-com-web`).
 
-Triggers and SLOs are intentionally omitted for now. They need a configuration
-key scoped to this environment rather than the team-level management key used
-here, so they are a clean drop-in later: add a second provider configured with
-that key and the trigger/SLO resources.
+Optionally, a curated Core Web Vitals board per environment (`tollmanz-com` and
+`tollmanz-com-local`). Boards are v1 API resources managed through a second
+provider authenticated with a v1 Configuration Key, each gated on its own stack
+config flag (`manageProdBoard`, `manageLocalBoard`; default off). See "RUM
+boards" below.
+
+Triggers and SLOs are intentionally omitted for now. Like boards they are v1
+resources, so they are a clean drop-in later using the same Configuration Key
+providers the board tier adds.
+
+## RUM boards
+
+The board tier (issue #59) manages a compact Core Web Vitals board as code, one
+per environment: five query panels, one per metric (LCP, INP, CLS, FCP, TTFB),
+each a p75 over the last 7 days against the `tollmanz-com-web` dataset. It is a
+hand-built board rather than an import of the sprawling UI template, whose panels
+reference many UI-managed queries that `pulumi import` would leave unmanaged.
+
+Boards, queries, and query annotations are Honeycomb v1 API resources. They need
+a v1 Configuration Key scoped to one environment, not the v2 Management Key the
+rest of this project uses. Two constraints shape how the keys are supplied:
+
+- minting a configuration key from the Management Key fails on this plan
+  (`access to this API is disabled: Error Creating Honeycomb API Key`), so each
+  key is created by hand in the Honeycomb UI, not by a `honeycombio.ApiKey`
+  resource
+- enablement is gated on committed flags, not on env-var presence, so board state
+  is deterministic across apply contexts: with one shared stack, keying on the
+  env var would let a local apply create a board and a CI apply without the key
+  delete it
+
+Each environment has its own flag, config key, and board:
+
+| Environment          | Flag               | Config key env var           | Board output      |
+| -------------------- | ------------------ | ---------------------------- | ----------------- |
+| `tollmanz-com`       | `manageProdBoard`  | `HONEYCOMB_CONFIG_KEY`       | `rumBoardIdProd`  |
+| `tollmanz-com-local` | `manageLocalBoard` | `HONEYCOMB_LOCAL_CONFIG_KEY` | `rumBoardIdLocal` |
+
+Prerequisite: the `tollmanz-com-web` dataset must already exist in the target
+environment (that environment has received at least one RUM event), or query
+creation fails with a dataset-not-found error. Prod has live RUM; for local, run
+the site with `RUM_MODE=local` at least once first.
+
+To enable a board (prod shown; substitute the local flag and key for local):
+
+1. In the Honeycomb UI, switch to the target environment, open its settings ->
+   API Keys, and create a Configuration Key. Grant it "Manage Queries and
+   Columns" and "Manage Boards" (or full permissions). Copy the key.
+2. Set the matching env var in the repo-root `.env` and add it as a GitHub
+   Actions repository secret of the same name.
+3. Turn the flag on for the stack, then apply:
+
+   ```bash
+   cd infra/honeycomb
+   pulumi config set manageProdBoard true
+   npm run up
+   ```
+
+The pre-existing manually-created `Real User Monitoring (RUM)` board
+(`nUnmjid2hYb`, in `tollmanz-com-local`) is left untouched; delete it in the UI
+once the managed board covers what you need.
 
 ## The prod ingest key never reaches the browser
 
@@ -48,10 +105,12 @@ the deployed site.
 
 The provider authenticates with a Honeycomb v2 Management Key pair:
 
-| Variable               | Used by                 | Source                |
-| ---------------------- | ----------------------- | --------------------- |
-| `HONEYCOMB_KEY_ID`     | Honeycomb provider auth | Management Key ID     |
-| `HONEYCOMB_KEY_SECRET` | Honeycomb provider auth | Management Key secret |
+| Variable                     | Used by                          | Source                                         |
+| ---------------------------- | -------------------------------- | ---------------------------------------------- |
+| `HONEYCOMB_KEY_ID`           | Honeycomb provider auth          | Management Key ID                              |
+| `HONEYCOMB_KEY_SECRET`       | Honeycomb provider auth          | Management Key secret                          |
+| `HONEYCOMB_CONFIG_KEY`       | Prod board (`manageProdBoard`)   | v1 Configuration Key, `tollmanz-com` env       |
+| `HONEYCOMB_LOCAL_CONFIG_KEY` | Local board (`manageLocalBoard`) | v1 Configuration Key, `tollmanz-com-local` env |
 
 Create the Management Key under Team settings -> API Keys -> Management Keys,
 with these scopes:
@@ -113,6 +172,8 @@ repository secrets:
 - `PULUMI_ACCESS_TOKEN`
 - `HONEYCOMB_KEY_ID`
 - `HONEYCOMB_KEY_SECRET`
+- `HONEYCOMB_CONFIG_KEY` (only once `manageProdBoard` is on)
+- `HONEYCOMB_LOCAL_CONFIG_KEY` (only once `manageLocalBoard` is on)
 
 ## First apply
 

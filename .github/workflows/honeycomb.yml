@@ -97,3 +97,8 @@ jobs:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           HONEYCOMB_KEY_ID: ${{ secrets.HONEYCOMB_KEY_ID }}
           HONEYCOMB_KEY_SECRET: ${{ secrets.HONEYCOMB_KEY_SECRET }}
+          # v1 Configuration Keys for the board tier, one per environment. Each
+          # is only required once its manage*Board stack config is flipped to
+          # true; harmless when unset otherwise. See infra/honeycomb/README.md.
+          HONEYCOMB_CONFIG_KEY: ${{ secrets.HONEYCOMB_CONFIG_KEY }}
+          HONEYCOMB_LOCAL_CONFIG_KEY: ${{ secrets.HONEYCOMB_LOCAL_CONFIG_KEY }}
