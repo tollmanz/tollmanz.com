@@ -72,7 +72,10 @@ test("send posts the marker with the auth header on success", async () => {
     return { ok: true, status: 201, statusText: "Created" };
   };
 
-  await send(event, { HONEYCOMB_API_KEY: "secret", HONEYCOMB_DATASET: "ds" });
+  await send(event, {
+    HONEYCOMB_CONFIG_KEY: "secret",
+    HONEYCOMB_DATASET: "ds",
+  });
 
   assert.equal(calls.length, 1);
   const { url, options } = calls[0];
@@ -92,18 +95,18 @@ test("send throws with detail on a non-2xx response", async () => {
   });
 
   await assert.rejects(
-    send(event, { HONEYCOMB_API_KEY: "secret" }),
+    send(event, { HONEYCOMB_CONFIG_KEY: "secret" }),
     /honeycomb marker failed: 401 Unauthorized - bad key/
   );
 });
 
-test("send throws when the API key is missing", async () => {
+test("send throws when the config key is missing", async () => {
   let called = false;
   globalThis.fetch = async () => {
     called = true;
     return { ok: true };
   };
 
-  await assert.rejects(send(event, {}), /HONEYCOMB_API_KEY/);
+  await assert.rejects(send(event, {}), /HONEYCOMB_CONFIG_KEY/);
   assert.equal(called, false, "must not call fetch without a key");
 });

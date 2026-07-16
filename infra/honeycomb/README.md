@@ -8,9 +8,6 @@ This project manages:
 
 - the `tollmanz-com` environment that holds production browser RUM, and the
   ingest API key the Fastly edge proxy uses to authenticate that telemetry
-- a configuration API key scoped to `tollmanz-com`, with the Manage Markers
-  permission only, that the deploy workflows use to write deploy markers into
-  this environment (see below and `scripts/deploy-events/`)
 - a `tollmanz-com-local` environment for local RUM testing, isolated from prod,
   and its own ingest key (exported for local use; see below)
 
@@ -284,25 +281,6 @@ reproduced in the overview section, so each environment has exactly one RUM
 board and it is fully managed here. Recreating either by hand would produce two
 boards with the same name, since Honeycomb keys boards by ID.
 
-## The deploy-marker key
-
-Deploy markers are environment-scoped by the API key that creates them, and
-creating a marker needs a configuration key with the Manage Markers permission
-(an ingest key cannot). The `deploy-markers` key is that key, scoped to
-`tollmanz-com` so its markers land alongside the `tollmanz-com-web` dataset the
-deploy workflows target. It is exported as the secret stack output `markerKey`.
-
-Unlike the ingest key, nothing in this repo consumes it automatically: read it
-after `pulumi up` and set it as the `HONEYCOMB_API_KEY` GitHub Actions secret
-the deploy workflows (`pages.yml`, `infra.yml`) pass to the emitter:
-
-```bash
-pulumi stack output markerKey --show-secrets
-```
-
-Rotating the key means re-running this and updating the secret. See
-`docs/deploy-events.md` for how the emitter uses it.
-
 ## The prod ingest key never reaches the browser
 
 The prod ingest key is exported as the secret stack output `ingestKey` and read
@@ -403,6 +381,5 @@ repository secrets:
 ## First apply
 
 `pulumi up` cannot run here without your Pulumi Cloud and Honeycomb credentials,
-so the first apply is yours to run. Verify the preview creates the two
-environments (`tollmanz-com`, `tollmanz-com-local`), their two ingest keys, and
-the `tollmanz-com` deploy-marker configuration key, then apply.
+so the first apply is yours to run. Verify the preview creates exactly one
+environment and one ingest key, then apply.

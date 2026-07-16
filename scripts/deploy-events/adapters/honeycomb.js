@@ -39,9 +39,11 @@ export function request(event, env = process.env) {
 }
 
 export async function send(event, env = process.env) {
-  const apiKey = env.HONEYCOMB_API_KEY;
+  const apiKey = env.HONEYCOMB_CONFIG_KEY;
   if (!apiKey) {
-    throw new Error("missing required environment variable HONEYCOMB_API_KEY");
+    throw new Error(
+      "missing required environment variable HONEYCOMB_CONFIG_KEY"
+    );
   }
 
   const { url, method, body } = request(event, env);

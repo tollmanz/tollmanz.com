@@ -83,23 +83,20 @@ Maps the canonical event to a marker:
 | `deployment.run_url`          | `url`                                         |
 
 Auth is `X-Honeycomb-Team` with a Configuration Key that has the Manage Markers
-permission. Markers are environment-scoped by the key, so the key must belong to
-the prod `tollmanz-com` environment that holds the target dataset; an ingest key
-cannot create markers. That key is provisioned by Pulumi as the `markerKey`
-output of `infra/honeycomb`; see its README for reading the value into the
-`HONEYCOMB_API_KEY` secret. The dataset comes from `HONEYCOMB_DATASET`,
-defaulting to `tollmanz-com-web` (the dataset receiving the site's RUM and Fastly
-telemetry).
+permission, read from `HONEYCOMB_CONFIG_KEY`. Markers are environment-scoped by
+the key, so it must belong to the prod environment that holds the target
+dataset. The dataset comes from `HONEYCOMB_DATASET`, defaulting to
+`tollmanz-com-web` (the dataset receiving the site's RUM and Fastly telemetry).
 
 ## Configuration
 
 Referenced via environment only; nothing is stored in the repo.
 
-| Name                 | Kind           | Purpose                                                                                    |
-| -------------------- | -------------- | ------------------------------------------------------------------------------------------ |
-| `DEPLOY_EVENT_SINKS` | repo variable  | Comma-separated adapter names, e.g. `honeycomb`                                            |
-| `HONEYCOMB_DATASET`  | repo variable  | Marker dataset; defaults to `tollmanz-com-web`                                             |
-| `HONEYCOMB_API_KEY`  | Actions secret | `markerKey` from `infra/honeycomb`: a `tollmanz-com` Configuration Key with Manage Markers |
+| Name                   | Kind           | Purpose                                                                 |
+| ---------------------- | -------------- | ----------------------------------------------------------------------- |
+| `DEPLOY_EVENT_SINKS`   | repo variable  | Comma-separated adapter names, e.g. `honeycomb`                         |
+| `HONEYCOMB_DATASET`    | repo variable  | Marker dataset; defaults to `tollmanz-com-web`                          |
+| `HONEYCOMB_CONFIG_KEY` | Actions secret | Honeycomb Configuration Key with Manage Markers, scoped to the prod env |
 
 ## Local use
 

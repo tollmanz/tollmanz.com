@@ -74,5 +74,5 @@ jobs:
         env:
           DEPLOY_EVENT_SINKS: ${{ vars.DEPLOY_EVENT_SINKS }}
           HONEYCOMB_DATASET: ${{ vars.HONEYCOMB_DATASET }}
-          HONEYCOMB_API_KEY: ${{ secrets.HONEYCOMB_API_KEY }}
+          HONEYCOMB_CONFIG_KEY: ${{ secrets.HONEYCOMB_CONFIG_KEY }}
         run: node scripts/deploy-events/emit.js --type=infra
