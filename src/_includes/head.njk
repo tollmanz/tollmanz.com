@@ -33,6 +33,12 @@
   <title>{{ fullTitle }}</title>
   <meta name="description" content="{{ pageDescription }}">
 
+  {# Build provenance: which source and when this page was generated. Non-visual
+     and survives HTML minification (comments do not), so it doubles as a
+     lightweight deploy check. See src/_data/build.js and docs/data.md. #}
+  <meta name="build" content="{{ build.label }}">
+  <meta name="build-time" content="{{ build.time }}">
+
   <link href="{{ assets.css.main.url }}" rel="stylesheet" type="text/css">
   {% if content | hasCodeBlocks %}
   <link href="{{ assets.css['syntax-highlighting'].url }}" rel="stylesheet" type="text/css">
