@@ -53,7 +53,10 @@ jobs:
 
       # Run eleventy directly rather than `npm run build`: the build script's
       # prebuild clean wipes public/ and would delete the restored cache. A fresh
-      # runner has no stale output to clean, so skipping it is safe here.
+      # runner has no stale output to clean, so skipping it is safe here. The
+      # Eleventy invocation is wrapped with a millisecond timer so build-perf.mjs
+      # can report the duration without a second build; the directory-output
+      # plugin prints per-template metrics inline (see docs/build-performance.md).
       - name: Build site
         env:
           # Ship the RUM bundle, pointed at the same-origin /v1/traces path that
@@ -64,7 +67,23 @@ jobs:
           RUM_SERVICE_NAME: tollmanz-com-web
         run: |
           node scripts/build-rum.mjs
+          start=$(date +%s%3N)
           npx @11ty/eleventy
+          end=$(date +%s%3N)
+          echo "BUILD_PERF_DURATION_MS=$((end - start))" >> "$GITHUB_ENV"
+
+      # Compare the measured build time against perf/build-baseline.json and
+      # append a summary table to the job summary. Warns (non-blocking) on a
+      # regression beyond the threshold; see docs/build-performance.md.
+      - name: Report build performance
+        run: node scripts/build-perf.mjs
+
+      - name: Upload build metrics artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-metrics
+          path: perf/build-metrics.json
+          if-no-files-found: warn
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5

@@ -57,3 +57,6 @@ pnpm-lock.yaml
 # Temporary files
 *.tmp
 *.temp
+
+# Generated per-run build metrics (see scripts/build-perf.mjs)
+perf/build-metrics.json

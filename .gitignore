@@ -6,5 +6,8 @@ public
 # Generated RUM bundle (built by scripts/build-rum.mjs)
 build
 
+# Per-run build metrics artifact (baseline is committed, this is ephemeral)
+perf/build-metrics.json
+
 # Environment variables
 .env

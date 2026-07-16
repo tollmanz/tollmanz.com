@@ -1,0 +1,6 @@
+{
+  "buildMs": 3000,
+  "recordedAt": "2026-07-16T00:00:00.000Z",
+  "node": "v24.16.0",
+  "note": "Initial seed. Refresh from a CI-reported build time once the workflow has run; see docs/build-performance.md."
+}

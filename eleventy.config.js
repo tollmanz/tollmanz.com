@@ -3,6 +3,7 @@ import { DateTime } from "luxon";
 import { minify } from "html-minifier-terser";
 import syntaxHighlight from "@11ty/eleventy-plugin-syntaxhighlight";
 import pluginRss from "@11ty/eleventy-plugin-rss";
+import directoryOutput from "@11ty/eleventy-plugin-directory-output";
 import { eleventyImageTransformPlugin } from "@11ty/eleventy-img";
 import CleanCSS from "clean-css";
 import markdownIt from "markdown-it";
@@ -11,6 +12,20 @@ export default function (eleventyConfig) {
   // Add plugins
   eleventyConfig.addPlugin(syntaxHighlight);
   eleventyConfig.addPlugin(pluginRss);
+
+  // Per-template build metrics: group Eleventy's per-file output by directory
+  // and show each template's output size and render time. Quiet mode suppresses
+  // Eleventy's own per-file logging so this table is the single build report.
+  // See docs/build-performance.md.
+  eleventyConfig.setQuietMode(true);
+  eleventyConfig.addPlugin(directoryOutput, {
+    columns: {
+      filesize: true,
+      benchmark: true,
+    },
+    // Flag any single output larger than 200 kB.
+    warningFileSize: 200 * 1000,
+  });
 
   // Build-time responsive images: rewrite the bare <img> that markdown-it emits
   // into <picture>/srcset with width/height. Sources are PNGs under src/media;
