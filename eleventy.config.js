@@ -6,6 +6,7 @@ import { eleventyImageTransformPlugin } from "@11ty/eleventy-img";
 import CleanCSS from "clean-css";
 import markdownIt from "markdown-it";
 import registerFilters from "./filters/index.js";
+import registerCollections from "./collections/index.js";
 
 export default function (eleventyConfig) {
   // Add plugins
@@ -106,18 +107,10 @@ export default function (eleventyConfig) {
     eleventyConfig.addPassthroughCopy({ "build/js": "js" });
   }
 
-  // Create collections
-  eleventyConfig.addCollection("posts", function (collectionApi) {
-    return collectionApi
-      .getFilteredByGlob("src/posts/*.md")
-      .sort(function (a, b) {
-        return b.date - a.date;
-      });
-  });
-
-  eleventyConfig.addCollection("pages", function (collectionApi) {
-    return collectionApi.getFilteredByGlob("src/pages/*.md");
-  });
+  // Content collections (posts, pages, collectionMeta), extracted into the
+  // collections/ directory with their front-matter validation. See
+  // docs/collections.md.
+  registerCollections(eleventyConfig);
 
   // Custom filters (dateDisplay, head, hasCodeBlocks), extracted into the
   // filters/ directory and grouped by concern. See docs/filters.md.
