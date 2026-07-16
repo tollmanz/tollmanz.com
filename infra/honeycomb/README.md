@@ -92,14 +92,14 @@ the Honeycomb provider, edit the `0.51.0` parameter and re-run `pulumi install`.
 ## Local workflow
 
 ```bash
-npm run preview   # dotenv -e ../../.env -- pulumi preview (dry run)
-npm run up        # dotenv -e ../../.env -- pulumi up (apply)
-npm run refresh   # dotenv -e ../../.env -- pulumi refresh (pull live state)
-npm run format       # prettier --write .
-npm run format:check # prettier --check .
+pnpm run preview   # dotenv -e ../../.env -- pulumi preview (dry run)
+pnpm run up        # dotenv -e ../../.env -- pulumi up (apply)
+pnpm run refresh   # dotenv -e ../../.env -- pulumi refresh (pull live state)
+pnpm run format       # prettier --write .
+pnpm run format:check # prettier --check .
 ```
 
-After `npm run up`, the ingest key is available to the Fastly stack via the
+After `pnpm run up`, the ingest key is available to the Fastly stack via the
 StackReference; run the Fastly project next so the edge proxy picks it up. See
 `infra/README.md` for the apply order.
 

@@ -34,8 +34,8 @@ repository secrets are set, the Honeycomb CI workflow skips its Pulumi steps
 with a notice instead of failing.
 
 ```bash
-cd honeycomb && pulumi install && npm run up
-cd ../fastly && npm run up
+cd honeycomb && pulumi install && pnpm run up
+cd ../fastly && pnpm run up
 ```
 
 In CI the two projects have separate path-gated workflows
@@ -46,7 +46,7 @@ the new value.
 ## Secrets
 
 All local secrets live in a single `.env` at the repo root (gitignored); each
-project's `pulumi` npm scripts load it with `dotenv -e ../../.env`. Copy
+project's `pulumi` pnpm scripts load it with `dotenv -e ../../.env`. Copy
 `.env.example` at the repo root to `.env` and fill it in. CI never reads `.env`;
 it uses GitHub Actions repository secrets. See each project's README for which
 variables it needs.

@@ -3,7 +3,7 @@ name: Edge verification
 # Smoke-tests the live production edge (Fastly in front of GitHub Pages) against
 # the contract in docs/edge-caching.md: Cache-Control by asset class, 304
 # revalidation, brotli/gzip negotiation, redirects, HSTS, HTTP/2 and HTTP/3, and
-# TLS resumption / 0-RTT. The tests need no npm dependencies, just curl and
+# TLS resumption / 0-RTT. The tests need no package dependencies, just curl and
 # openssl, which the runner already has.
 #
 # It runs after either deploy pipeline finishes on main (the site via
@@ -35,6 +35,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      # Version comes from the root package.json "packageManager" field. No
+      # install runs: the suite has no dependencies and pnpm just runs the script.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
@@ -48,4 +53,4 @@ jobs:
         run: sleep 15
 
       - name: Run edge verification
-        run: npm run test:edge
+        run: pnpm run test:edge

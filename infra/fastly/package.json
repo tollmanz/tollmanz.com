@@ -4,6 +4,7 @@
   "description": "Fastly CDN configuration for tollmanz.com, managed with Pulumi",
   "private": true,
   "main": "index.ts",
+  "packageManager": "pnpm@11.13.0",
   "scripts": {
     "preview": "dotenv -e ../../.env -- pulumi preview",
     "up": "dotenv -e ../../.env -- pulumi up",
@@ -22,8 +23,5 @@
     "prettier": "3.6.2",
     "ts-node": "10.9.2",
     "typescript": "6.0.3"
-  },
-  "overrides": {
-    "js-yaml": "4.2.0"
   }
 }

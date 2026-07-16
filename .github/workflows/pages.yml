@@ -29,14 +29,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      # Install pnpm before setup-node so its pnpm cache can locate the store.
+      # Version comes from the root package.json "packageManager" field.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version-file: ".nvmrc"
-          cache: "npm"
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       # Reuse eleventy-img's encoded derivatives across runs. The plugin skips
       # the sharp encode when a hashed output already exists in public/img, so a
@@ -49,9 +54,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: public/img
-          key: eleventy-img-${{ hashFiles('src/media/images/**', 'eleventy.config.js', 'package-lock.json') }}
+          key: eleventy-img-${{ hashFiles('src/media/images/**', 'eleventy.config.js', 'pnpm-lock.yaml') }}
 
-      # Run eleventy directly rather than `npm run build`: the build script's
+      # Run eleventy directly rather than `pnpm run build`: the build script's
       # prebuild clean wipes public/ and would delete the restored cache. A fresh
       # runner has no stale output to clean, so skipping it is safe here.
       - name: Build site
@@ -64,7 +69,7 @@ jobs:
           RUM_SERVICE_NAME: tollmanz-com-web
         run: |
           node scripts/build-rum.mjs
-          npx @11ty/eleventy
+          pnpm exec eleventy
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5

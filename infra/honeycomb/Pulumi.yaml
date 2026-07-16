@@ -1,5 +1,8 @@
 name: tollmanz-com-honeycomb
-runtime: nodejs
+runtime:
+  name: nodejs
+  options:
+    packagemanager: pnpm
 description: Honeycomb observability configuration for tollmanz.com, managed with Pulumi
 packages:
   honeycombio:

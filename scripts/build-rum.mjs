@@ -11,8 +11,8 @@
 //   RUM_LOCAL_ENDPOINT  OTLP endpoint for the local collector (default localhost:4318)
 //   RUM_SERVICE_NAME    service.name / Honeycomb dataset (default tollmanz-com-web)
 //
-// When RUM_MODE is off (the default) nothing is built, so normal `npm run dev`
-// and `npm run build` ship no RUM code. head.njk only emits the script tag when
+// When RUM_MODE is off (the default) nothing is built, so normal `pnpm run dev`
+// and `pnpm run build` ship no RUM code. head.njk only emits the script tag when
 // RUM is enabled (see src/_data/rum.js).
 
 import * as esbuild from "esbuild";

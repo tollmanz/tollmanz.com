@@ -16,7 +16,7 @@ if (enabled) {
   );
   if (!bundle) {
     throw new Error(
-      "RUM is enabled but build/js contains no rum.<hash>.js bundle. Run `npm run build:js` with the same RUM_MODE first."
+      "RUM is enabled but build/js contains no rum.<hash>.js bundle. Run `pnpm run build:js` with the same RUM_MODE first."
     );
   }
   url = `/js/${bundle}`;

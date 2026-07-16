@@ -5,15 +5,18 @@ GitHub Pages and served through Fastly.
 
 ## Development
 
+This project uses [pnpm](https://pnpm.io/). Enable it with `corepack enable`, or
+install it globally.
+
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Start development server
-npm run dev
+pnpm run dev
 
 # Build for production (output in public/)
-npm run build
+pnpm run build
 ```
 
 ## Deployment

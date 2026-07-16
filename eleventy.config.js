@@ -100,7 +100,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/media/pdf");
   eleventyConfig.addPassthroughCopy("src/favicon.ico");
 
-  // RUM bundle, built by `npm run build:js` into build/js when RUM is enabled.
+  // RUM bundle, built by `pnpm run build:js` into build/js when RUM is enabled.
   // Only copy it when present, so the default (RUM_MODE=off) build stays clean.
   if (fs.existsSync("build/js")) {
     eleventyConfig.addPassthroughCopy({ "build/js": "js" });

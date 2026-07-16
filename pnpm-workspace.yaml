@@ -1,0 +1,19 @@
+# pnpm settings for the site. Not a monorepo: no `packages:` list, so this file
+# only carries project-wide settings that pnpm 11 no longer reads from the
+# package.json `pnpm` field. Its presence also anchors the pnpm workspace root
+# here, keeping the infra/ Pulumi projects (which have their own files) isolated.
+
+# Force a single js-yaml across the tree. Eleventy supplies its own YAML engine,
+# so nothing here depends on js-yaml's behavior; the pin just dedupes it.
+overrides:
+  js-yaml: 4.2.0
+
+# pnpm 10+ blocks dependency build scripts by default. Decide each explicitly so
+# no install prints an "ignored build scripts" warning. sharp compiles/links its
+# native binary (used by @11ty/eleventy-img) and esbuild links its platform
+# binary (used by scripts/build-rum.mjs); protobufjs only ships a Node-side
+# require shim that the browser RUM bundle never uses.
+allowBuilds:
+  esbuild: true
+  sharp: true
+  protobufjs: false

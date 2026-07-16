@@ -51,6 +51,12 @@ jobs:
         with:
           node-version-file: ".nvmrc"
 
+      # `pulumi install` below uses pnpm (set in Pulumi.yaml), so pnpm must be on
+      # PATH. Version comes from the root package.json "packageManager" field.
+      - name: Setup pnpm
+        if: steps.creds.outputs.present == 'true'
+        uses: pnpm/action-setup@v4
+
       - name: Install Pulumi CLI
         if: steps.creds.outputs.present == 'true'
         run: |

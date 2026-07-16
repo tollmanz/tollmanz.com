@@ -53,7 +53,7 @@ fill it in:
 ```bash
 cp .env.example .env   # at the repo root; edit with real values (gitignored)
 cd infra/fastly
-npm install
+pnpm install
 ```
 
 Create the Fastly token at
@@ -63,11 +63,11 @@ service.
 ## Local workflow
 
 ```bash
-npm run preview   # dotenv -e ../../.env -- pulumi preview (dry run)
-npm run up        # dotenv -e ../../.env -- pulumi up (apply; new active version on real changes)
-npm run refresh   # dotenv -e ../../.env -- pulumi refresh (pull live state)
-npm run format       # prettier --write .
-npm run format:check # prettier --check .
+pnpm run preview   # dotenv -e ../../.env -- pulumi preview (dry run)
+pnpm run up        # dotenv -e ../../.env -- pulumi up (apply; new active version on real changes)
+pnpm run refresh   # dotenv -e ../../.env -- pulumi refresh (pull live state)
+pnpm run format       # prettier --write .
+pnpm run format:check # prettier --check .
 ```
 
 First-time Pulumi auth (once per machine): `pulumi login`.

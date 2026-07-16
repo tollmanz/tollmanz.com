@@ -19,11 +19,11 @@ unit tests cannot see. It runs after every deploy and on a weekly schedule.
 ## Running it
 
 ```sh
-npm run test:edge                                   # against production
-EDGE_BASE_URL=https://staging.example.com npm run test:edge
+pnpm run test:edge                                   # against production
+EDGE_BASE_URL=https://staging.example.com pnpm run test:edge
 ```
 
-The suite needs no npm dependencies. It uses the Node test runner with `curl` and
+The suite needs no package dependencies. It uses the Node test runner with `curl` and
 `openssl`, all present on GitHub-hosted runners and macOS. `EDGE_BASE_URL`
 defaults to `https://www.tollmanz.com`; override it to point at another host. The
 apex-redirect tests run only when the base host is a `www` subdomain.

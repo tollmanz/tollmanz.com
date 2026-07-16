@@ -28,7 +28,7 @@ This exposes:
 From the repo root, run the dev server in local RUM mode:
 
 ```bash
-RUM_MODE=local npm run dev
+RUM_MODE=local pnpm run dev
 ```
 
 `RUM_MODE=local` bundles the RUM init pointed at `http://localhost:4318` (the
@@ -54,7 +54,7 @@ from the stack rather than the Honeycomb UI:
 
 ```bash
 cd infra/honeycomb
-pulumi stack output localIngestKey --show-secrets   # after `npm run up`
+pulumi stack output localIngestKey --show-secrets   # after `pnpm run up`
 ```
 
 Then set two values in the repo-root `.env` (copy `.env.example` at the repo

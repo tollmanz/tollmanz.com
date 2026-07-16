@@ -1,0 +1,15 @@
+# pnpm settings for the Fastly Pulumi project. Its presence anchors a pnpm
+# workspace root here so this project resolves independently of the site root.
+# pnpm 11 no longer reads the package.json `pnpm` field, so the override lives
+# here.
+
+# Dedupe js-yaml to a single version across the Pulumi dependency tree.
+overrides:
+  js-yaml: 4.2.0
+
+# pnpm 10+ blocks dependency build scripts by default. These run under the Node
+# Pulumi runtime: @pulumi/command's script installs its provider plugin, and
+# protobufjs sets up its Node-side require shim used during pulumi operations.
+allowBuilds:
+  "@pulumi/command": true
+  protobufjs: true

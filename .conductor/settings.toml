@@ -2,11 +2,12 @@
 
 [scripts]
 # New workspaces are fresh git worktrees with no node_modules; install on
-# creation so the Eleventy CLI is available without a manual npm ci.
-setup = "npm ci"
+# creation so the Eleventy CLI is available without a manual pnpm install.
+# pnpm hard-links from its global store, so per-worktree installs are cheap.
+setup = "pnpm install --frozen-lockfile"
 # Serve the dev build on the workspace's assigned port so parallel workspaces
 # don't collide on Eleventy's default 8080.
-run = "npm run dev -- --port $CONDUCTOR_PORT"
+run = "pnpm run dev -- --port $CONDUCTOR_PORT"
 # Static site with no shared port/database, so multiple workspaces can serve
 # at once.
 run_mode = "concurrent"

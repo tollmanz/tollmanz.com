@@ -4,13 +4,14 @@
   "description": "Personal website (www.tollmanz.com) built with Eleventy and deployed to GitHub Pages.",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@11.13.0",
   "scripts": {
     "clean": "node -e \"require('fs').rmSync('public', { recursive: true, force: true })\"",
-    "prebuild": "npm run clean",
+    "prebuild": "pnpm run clean",
     "build:js": "node scripts/build-rum.mjs",
-    "build": "npm run build:js && eleventy",
-    "dev": "npm run build:js && eleventy --serve",
-    "test": "npm run test:edge",
+    "build": "pnpm run build:js && eleventy",
+    "dev": "pnpm run build:js && eleventy --serve",
+    "test": "pnpm run test:edge",
     "test:edge": "node --test \"tests/edge/**/*.test.js\"",
     "lint": "eslint .",
     "lint:check": "eslint .",
@@ -18,13 +19,14 @@
     "prettier": "prettier --write .",
     "prettier:check": "prettier --check .",
     "prettier:fix": "prettier --write .",
-    "format": "npm run lint:fix && npm run prettier:fix",
-    "format:check": "npm run lint:check && npm run prettier:check"
+    "format": "pnpm run lint:fix && pnpm run prettier:fix",
+    "format:check": "pnpm run lint:check && pnpm run prettier:check"
   },
   "author": "Zack Tollman <tollmanz@gmail.com>",
   "license": "MIT",
   "engines": {
-    "node": ">=24"
+    "node": ">=24",
+    "pnpm": ">=11"
   },
   "devDependencies": {
     "@11ty/eleventy": "3.1.6",
@@ -42,8 +44,5 @@
     "luxon": "3.7.2",
     "markdown-it": "14.2.0",
     "prettier": "3.8.4"
-  },
-  "overrides": {
-    "js-yaml": "4.2.0"
   }
 }
