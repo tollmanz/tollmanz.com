@@ -1,0 +1,49 @@
+name: RUM smoke test
+
+# Executes the built RUM bundle in headless Chromium to catch a
+# `process is not defined`-style runtime failure (an unlisted process.env
+# reference that esbuild `define` never substitutes). Runs only when something
+# that can change the bundle changes: the RUM source, its build script, the
+# OTel/Honeycomb dependency set (path filters key on files, so the whole
+# manifest and lockfile stand in for those deps), or the test itself.
+
+on:
+  push:
+    branches: [main]
+    paths: &rum-paths
+      - "assets/rum/**"
+      - "scripts/build-rum.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - "tests/rum/**"
+      - ".github/workflows/rum-smoke.yml"
+  pull_request:
+    paths: *rum-paths
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Playwright pins the browser build to the installed package version, so
+      # only Chromium is fetched. --with-deps adds the OS libraries it needs.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run RUM smoke test
+        run: npm run test:rum
