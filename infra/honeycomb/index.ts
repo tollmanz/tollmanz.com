@@ -49,6 +49,19 @@ const ingest = new honeycombio.ApiKey("rum-ingest", {
   permissions: [{ createDatasets: true }],
 });
 
+// Configuration key the deploy workflows use to write deploy markers into this
+// prod environment (see scripts/deploy-events/). Markers are environment-scoped
+// by the key, so this must live in the same environment as the tollmanz-com-web
+// dataset the markers annotate; an ingest key cannot create markers. Least
+// privilege: manageMarkers only, nothing else. Its value is the deploy
+// workflows' HONEYCOMB_API_KEY secret (see README.md).
+const markers = new honeycombio.ApiKey("deploy-markers", {
+  name: "tollmanz-com deploy markers",
+  type: "configuration",
+  environmentId: environment.id,
+  permissions: [{ manageMarkers: true }],
+});
+
 // A separate environment for local RUM testing, isolated from prod so local
 // runs never taint production data. Its ingest key is exported below; read it
 // with `pulumi stack output localIngestKey --show-secrets` and paste it into
@@ -1117,11 +1130,14 @@ export const environmentSlug = environment.slug;
 export const localEnvironmentId = localEnvironment.id;
 export const localEnvironmentSlug = localEnvironment.slug;
 
-// Ingest keys, marked secret so they stay encrypted in state and masked in CLI
-// and CI output. `ingestKey` is consumed by the Fastly stack through a
-// StackReference; `localIngestKey` is read by hand for the repo-root .env.
+// API keys, marked secret so they stay encrypted in state and masked in CLI and
+// CI output. `ingestKey` is consumed by the Fastly stack through a
+// StackReference; `localIngestKey` is read by hand for the repo-root .env;
+// `markerKey` is read by hand and set as the deploy workflows' HONEYCOMB_API_KEY
+// GitHub Actions secret (see README.md).
 export const ingestKey = pulumi.secret(ingest.key);
 export const localIngestKey = pulumi.secret(localIngest.key);
+export const markerKey = pulumi.secret(markers.key);
 
 // IDs of the curated boards, when managed. Each is undefined until its
 // environment's flag is enabled with the matching v1 Configuration Key present.
