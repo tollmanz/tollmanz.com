@@ -1,9 +1,0 @@
-# pnpm settings for the Honeycomb Pulumi project. Its presence anchors a pnpm
-# workspace root here so this project resolves independently of the site root.
-# `pulumi install` regenerates the @pulumi/honeycombio file: SDK under sdks/ and
-# writes pnpm-lock.yaml (gitignored), so no lockfile is committed here.
-
-# pnpm 10+ blocks dependency build scripts by default. protobufjs runs under the
-# Node Pulumi runtime and sets up its Node-side require shim.
-allowBuilds:
-  protobufjs: true

@@ -34,7 +34,7 @@ repository secrets are set, the Honeycomb CI workflow skips its Pulumi steps
 with a notice instead of failing.
 
 ```bash
-cd honeycomb && pulumi install && pnpm run up
+cd honeycomb && pulumi install && npm run up   # honeycomb uses npm (see below)
 cd ../fastly && pnpm run up
 ```
 
@@ -43,10 +43,17 @@ In CI the two projects have separate path-gated workflows
 change that rotates the ingest key, the Fastly workflow has to run to pick up
 the new value.
 
+The repo uses pnpm, but the Honeycomb project stays on npm. `pulumi install`
+links its bridged `@pulumi/honeycombio` file: SDK by running
+`pkg set dependencies.@pulumi/honeycombio=...`, and pnpm's `pkg set` rejects the
+`@` in the property path (`ERR_PNPM_UNEXPECTED_TOKEN_IN_PROPERTY_PATH`). npm sets
+the scoped key without complaint. The Fastly project pulls its providers from the
+npm registry with no local SDK, so it runs on pnpm like the rest of the repo.
+
 ## Secrets
 
 All local secrets live in a single `.env` at the repo root (gitignored); each
-project's `pulumi` pnpm scripts load it with `dotenv -e ../../.env`. Copy
+project's `pulumi` npm/pnpm scripts load it with `dotenv -e ../../.env`. Copy
 `.env.example` at the repo root to `.env` and fill it in. CI never reads `.env`;
 it uses GitHub Actions repository secrets. See each project's README for which
 variables it needs.

@@ -1,8 +1,12 @@
 name: tollmanz-com-honeycomb
+# Stays on npm, unlike the rest of the repo: `pulumi install` links the bridged
+# @pulumi/honeycombio file: SDK with `pkg set dependencies.@pulumi/honeycombio`,
+# and pnpm's `pkg set` rejects the "@" in the property path
+# (ERR_PNPM_UNEXPECTED_TOKEN_IN_PROPERTY_PATH). npm handles the scoped key.
 runtime:
   name: nodejs
   options:
-    packagemanager: pnpm
+    packagemanager: npm
 description: Honeycomb observability configuration for tollmanz.com, managed with Pulumi
 packages:
   honeycombio:
