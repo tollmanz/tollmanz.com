@@ -104,3 +104,21 @@ jobs:
             --header "Fastly-Key: ${FASTLY_PURGE_TOKEN}" \
             --header "Accept: application/json" \
             "https://api.fastly.com/service/${FASTLY_SERVICE_ID}/purge_all"
+
+      # Mark the deploy in observability tooling at the moment the edge starts
+      # serving new content. Needs the repo checked out for the emitter script;
+      # the deploy job otherwise runs actions-only. continue-on-error so a sink
+      # outage annotates the run but never fails a deploy that already succeeded.
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+      - name: Emit deploy marker
+        continue-on-error: true
+        env:
+          DEPLOY_EVENT_SINKS: ${{ vars.DEPLOY_EVENT_SINKS }}
+          HONEYCOMB_DATASET: ${{ vars.HONEYCOMB_DATASET }}
+          HONEYCOMB_API_KEY: ${{ secrets.HONEYCOMB_API_KEY }}
+        run: node scripts/deploy-events/emit.js --type=site
