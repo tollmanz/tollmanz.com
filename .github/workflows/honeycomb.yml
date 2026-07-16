@@ -45,17 +45,21 @@ jobs:
         if: steps.creds.outputs.present == 'true'
         uses: actions/checkout@v5
 
+      # `pulumi install` below uses pnpm (set in Pulumi.yaml), so pnpm must be on
+      # PATH before setup-node runs (setup-node's package-manager cache probes it).
+      # Version comes from the root package.json "packageManager" field.
+      - name: Setup pnpm
+        if: steps.creds.outputs.present == 'true'
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         if: steps.creds.outputs.present == 'true'
         uses: actions/setup-node@v5
         with:
           node-version-file: ".nvmrc"
-
-      # `pulumi install` below uses pnpm (set in Pulumi.yaml), so pnpm must be on
-      # PATH. Version comes from the root package.json "packageManager" field.
-      - name: Setup pnpm
-        if: steps.creds.outputs.present == 'true'
-        uses: pnpm/action-setup@v4
+          # No pnpm-lock.yaml is committed here (pulumi install regenerates it
+          # alongside the file: SDK), so there is nothing to cache against.
+          package-manager-cache: false
 
       - name: Install Pulumi CLI
         if: steps.creds.outputs.present == 'true'
