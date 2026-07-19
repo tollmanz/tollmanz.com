@@ -133,6 +133,33 @@ The same Fastly service sets the rest of the edge behavior:
   a 301 that preserves the path and query, synthesized at the edge from the
   `apex-to-www-recv.vcl` and `apex-to-www-error.vcl` snippets
 
+## Server-Timing for RUM
+
+`infra/fastly/snippets/server-timing-deliver.vcl` runs in `vcl_deliver` and emits
+a `Server-Timing` header so the browser can attribute how long the backend took
+versus the edge. The browser RUM bundle reads the parsed metrics from the
+navigation `PerformanceEntry` (`entry.serverTiming`) and attaches them to the
+OpenTelemetry document-fetch span, one attribute per metric
+(`server_timing.<name>.duration_ms` and `.description`), so backend latency is
+queryable in Honeycomb alongside the RUM traces.
+
+`vcl_deliver` runs at both the customer-facing edge POP and the `iad-va-us`
+shield POP, so the two nodes split the work:
+
+| Metric   | Set by     | Meaning                                                                                                       |
+| -------- | ---------- | ------------------------------------------------------------------------------------------------------------- |
+| `origin` | shield POP | the shield's total time (`time.elapsed`), dominated by the GitHub Pages fetch; near `0` on a shield cache hit |
+| `edge`   | edge POP   | `time.elapsed`, the total time the request spent in the customer edge POP, including the backend wait         |
+
+`desc` on each metric carries `fastly_info.state` (`HIT`, `MISS`, `PASS`, ...),
+so a reader can tell whether a duration reflects real backend work or a cache
+serve. The shield sets the `origin` metric and the edge appends `edge`; the edge
+uses `req.http.Fastly-FF` to tell the two nodes apart. On an edge cache hit the
+request never reaches the shield, so the header carries only the `edge` metric,
+and the snippet discards any `origin` value cached with the object rather than
+reporting a stale fill time. The header is same-origin, so the browser exposes
+the full durations to script with no `Timing-Allow-Origin` needed.
+
 ## How a deploy reaches the edge
 
 Two pipelines fire on a push to `main`, each owning one half of the contract:
@@ -186,6 +213,10 @@ curl -sI -H "If-None-Match: $ETAG" https://www.tollmanz.com/ | head -1 # 304
 # Compression
 curl -sI -H 'Accept-Encoding: br' https://www.tollmanz.com/ | grep -i content-encoding   # br
 curl -sI -H 'Accept-Encoding: gzip' https://www.tollmanz.com/ | grep -i content-encoding # gzip
+
+# Server-Timing (edge metric always present; origin metric on a cache miss)
+curl -sI https://www.tollmanz.com/ | grep -i server-timing                    # edge;desc=...;dur=...
+curl -sI "https://www.tollmanz.com/?bust=$(date +%s)" | grep -i server-timing  # origin;...;dur=..., edge;...
 
 # HTTP/3 advertisement and TLS 0-RTT
 curl -sI https://www.tollmanz.com/ | grep -i alt-svc                  # h3=":443"
