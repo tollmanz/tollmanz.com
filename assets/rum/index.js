@@ -11,29 +11,32 @@ const localEndpoint = process.env.RUM_LOCAL_ENDPOINT;
 const serviceName = process.env.RUM_SERVICE_NAME;
 
 // Copy the navigation's Server-Timing metrics onto a span as attributes. The
-// Fastly edge emits `origin` and `edge` metrics (backend vs edge processing
-// time), which the browser parses onto the navigation PerformanceEntry as
-// entry.serverTiming: an array of { name, duration, description }. This maps
-// each metric generically to server_timing.<name>.{duration_ms,description}, so
-// adding a metric in the VCL needs no change here. duration is exposed in full
-// because the header is same-origin; on a cache hit the origin metric is absent
-// or 0, which is the honest signal that the backend did no work.
+// browser parses the header onto the navigation PerformanceEntry as
+// entry.serverTiming: an array of { name, duration, description }. The Fastly
+// edge emits one metric per field, naming each for what it describes rather than
+// for the node that measured it (see
+// infra/fastly/snippets/server-timing-deliver.vcl), so the mapping here stays
+// generic and a new field in the VCL needs no change to this file:
+//
+//   pop;desc=LHR      -> fastly.pop = "LHR"
+//   total;dur=42.1    -> fastly.total_ms = 42.1
+//
+// Durations are exposed in full because the header is same-origin. `backend` is
+// absent whenever the edge answered from its own cache, which is the honest
+// signal that no backend work happened on this request.
 function addServerTimingAttributes(span) {
   const [navigation] = performance.getEntriesByType("navigation");
   const metrics = navigation?.serverTiming;
   if (!metrics) return;
   for (const metric of metrics) {
-    if (typeof metric.duration === "number") {
-      span.setAttribute(
-        `server_timing.${metric.name}.duration_ms`,
-        metric.duration
-      );
+    // `duration` is specified as 0 when the metric carries no dur param, which
+    // is every description-only field, so only a positive value is a real
+    // measurement. A typeof check would pass for all of them.
+    if (metric.duration > 0) {
+      span.setAttribute(`fastly.${metric.name}_ms`, metric.duration);
     }
     if (metric.description) {
-      span.setAttribute(
-        `server_timing.${metric.name}.description`,
-        metric.description
-      );
+      span.setAttribute(`fastly.${metric.name}`, metric.description);
     }
   }
 }
@@ -57,10 +60,11 @@ if (mode !== "off") {
       getWebAutoInstrumentations({
         "@opentelemetry/instrumentation-fetch": { ignoreUrls },
         "@opentelemetry/instrumentation-xml-http-request": { ignoreUrls },
-        // Attach the Server-Timing metrics the Fastly edge emits (backend vs
-        // edge processing time; see infra/fastly/snippets/server-timing-deliver.vcl)
-        // to the document-fetch span, which is the span for the navigation
-        // request the header describes.
+        // Attach the Server-Timing fields the Fastly edge emits (POP, cache
+        // status and timings; see
+        // infra/fastly/snippets/server-timing-deliver.vcl) to the document-fetch
+        // span, which is the span for the navigation request the header
+        // describes.
         "@opentelemetry/instrumentation-document-load": {
           applyCustomAttributesOnSpan: {
             documentFetch: addServerTimingAttributes,

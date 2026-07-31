@@ -7,15 +7,15 @@ unit tests cannot see. It runs after every deploy and on a weekly schedule.
 
 ## What it checks
 
-| File                         | Checks                                                                                                                                 |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `cache-control.test.js`      | Cache-Control per asset class (HTML, feed, sitemap, fingerprinted CSS, fonts, favicon); a 404 is never immutable                       |
-| `revalidation.test.js`       | HTML carries an ETag; a conditional request returns 304                                                                                |
-| `compression.test.js`        | brotli, gzip, and identity negotiation; brotli preferred; Vary on Accept-Encoding; fonts not re-compressed; brotli shrinks the payload |
-| `protocols.test.js`          | HTTP/2 negotiated; HTTP/3 advertised via alt-svc; a real HTTP/3 round trip when the runner's curl supports it                          |
-| `tls.test.js`                | TLS 1.3 and TLS 1.2 accepted; session resumption; 0-RTT early data accepted                                                            |
-| `redirects-security.test.js` | HTTP upgrades to HTTPS; apex redirects to www preserving the path; HSTS set with a long max-age                                        |
-| `server-timing.test.js`      | HTML carries a Server-Timing header with an `edge` metric; a cache-busting request adds the `origin` backend metric                    |
+| File                         | Checks                                                                                                                                                                             |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cache-control.test.js`      | Cache-Control per asset class (HTML, feed, sitemap, fingerprinted CSS, fonts, favicon); a 404 is never immutable                                                                   |
+| `revalidation.test.js`       | HTML carries an ETag; a conditional request returns 304                                                                                                                            |
+| `compression.test.js`        | brotli, gzip, and identity negotiation; brotli preferred; Vary on Accept-Encoding; fonts not re-compressed; brotli shrinks the payload                                             |
+| `protocols.test.js`          | HTTP/2 negotiated; HTTP/3 advertised via alt-svc; a real HTTP/3 round trip when the runner's curl supports it                                                                      |
+| `tls.test.js`                | TLS 1.3 and TLS 1.2 accepted; session resumption; 0-RTT early data accepted                                                                                                        |
+| `redirects-security.test.js` | HTTP upgrades to HTTPS; apex redirects to www preserving the path; HSTS set with a long max-age                                                                                    |
+| `server-timing.test.js`      | HTML carries the `pop`, `region`, `cache_status` and `total` fields; a cache-busting request reports a non-HIT status and `backend` timing; the internal shield header never leaks |
 
 ## Running it
 

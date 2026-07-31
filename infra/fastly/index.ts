@@ -228,9 +228,10 @@ const site = new fastly.ServiceVcl(
         content: forceIdentityFetch,
       },
       {
-        // Server-Timing (backend vs edge) for browser RUM. Runs at both the edge
-        // and shield POP; the snippet uses req.http.Fastly-FF to tell them apart
-        // and assembles the header at the edge. See the snippet for the split.
+        // Server-Timing (POP, cache status, timings) for browser RUM. Runs at
+        // both the edge and shield POP; the snippet uses req.http.Fastly-FF to
+        // tell them apart and assembles the header at the edge. See the snippet
+        // for the split and the field names.
         name: "Server-Timing for RUM",
         type: "deliver",
         priority: 100,
