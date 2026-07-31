@@ -133,6 +133,55 @@ The same Fastly service sets the rest of the edge behavior:
   a 301 that preserves the path and query, synthesized at the edge from the
   `apex-to-www-recv.vcl` and `apex-to-www-error.vcl` snippets
 
+## Server-Timing for RUM
+
+`infra/fastly/snippets/server-timing-deliver.vcl` runs in `vcl_deliver` and emits
+a `Server-Timing` header so the browser can attribute server-side latency. The
+RUM bundle reads the parsed metrics from the navigation `PerformanceEntry`
+(`entry.serverTiming`) and attaches them to the OpenTelemetry document-fetch
+span, so POP, cache status and backend latency are queryable in Honeycomb
+alongside the RUM traces.
+
+Each metric name is a field name rather than the node that measured it, which
+keeps the browser-side mapping generic: a `desc` becomes `fastly.<name>` and a
+`dur` becomes `fastly.<name>_ms`. Adding a field in the VCL therefore needs no
+JavaScript change. The browser surfaces only `name`, `desc` and `dur` from a
+metric, so a field carries at most one string and one number.
+
+| Field          | Attribute             | Meaning                                                                 |
+| -------------- | --------------------- | ----------------------------------------------------------------------- |
+| `pop`          | `fastly.pop`          | `server.datacenter`, the customer-facing POP serving the visitor        |
+| `region`       | `fastly.region`       | `server.region`, one of a fixed 16-value list such as `EU-West`         |
+| `cache_status` | `fastly.cache_status` | how deep the request went: `HIT`, `SHIELD_HIT`, `MISS`, `PASS`          |
+| `total`        | `fastly.total_ms`     | total time inside Fastly, from edge receipt to response                 |
+| `backend`      | `fastly.backend_ms`   | time the shield spent fetching from GitHub Pages; absent on an edge hit |
+
+Fastly's own overhead is `total` minus `backend`.
+
+`vcl_deliver` runs at both the customer-facing edge POP and the `iad-va-us`
+shield POP, which the snippet tells apart with `req.http.Fastly-FF`. The shield
+reports what only it can measure (`backend`, plus its own `fastly_info.state` on
+an internal `Fastly-Shield-State` header) and the edge assembles the final
+header, stripping the internal header before delivery. On an edge cache hit the
+request never reaches the shield, so the snippet discards any `backend` value
+cached with the object rather than reporting a stale fill time.
+
+`cache_status` is derived to a single value so one group-by answers how deep a
+request went. `SHIELD_HIT` means the edge missed but the shield answered from its
+own cache, which a bare edge `MISS` would hide. The cost of collapsing to one
+field is that an edge state and a shield state cannot both be reported: an edge
+`HIT-STALE` served over a shield `MISS` reports only the edge's state.
+
+Two known gaps. Fastly skips the redundant hop for a visitor whose nearest POP is
+already the shield, so one node plays both roles, `Fastly-FF` is unset, and no
+`backend` metric exists even though the origin was contacted; those requests
+report a `MISS` with no backend timing. Separately, `fastly.pop` is a coarse
+visitor geolocation signal, roughly 100-cardinality, which on a low-traffic site
+is fairly identifying when joined with a timestamp.
+
+The header is same-origin, so the browser exposes the full durations to script
+with no `Timing-Allow-Origin` needed.
+
 ## How a deploy reaches the edge
 
 Two pipelines fire on a push to `main`, each owning one half of the contract:
@@ -186,6 +235,10 @@ curl -sI -H "If-None-Match: $ETAG" https://www.tollmanz.com/ | head -1 # 304
 # Compression
 curl -sI -H 'Accept-Encoding: br' https://www.tollmanz.com/ | grep -i content-encoding   # br
 curl -sI -H 'Accept-Encoding: gzip' https://www.tollmanz.com/ | grep -i content-encoding # gzip
+
+# Server-Timing (pop/region/cache_status/total always present; backend on a miss)
+curl -sI https://www.tollmanz.com/ | grep -i server-timing                    # pop;desc=..., cache_status;desc=HIT, total;dur=...
+curl -sI "https://www.tollmanz.com/?bust=$(date +%s)" | grep -i server-timing  # backend;dur=..., cache_status;desc=MISS, ...
 
 # HTTP/3 advertisement and TLS 0-RTT
 curl -sI https://www.tollmanz.com/ | grep -i alt-svc                  # h3=":443"

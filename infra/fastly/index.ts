@@ -38,6 +38,10 @@ const forceIdentityFetch = fs.readFileSync(
   path.join(snippetsDir, "force-identity-fetch.vcl"),
   "utf8"
 );
+const serverTimingDeliver = fs.readFileSync(
+  path.join(snippetsDir, "server-timing-deliver.vcl"),
+  "utf8"
+);
 
 const honeycombProxy = fs.readFileSync(
   path.join(snippetsDir, "honeycomb-proxy.vcl"),
@@ -222,6 +226,16 @@ const site = new fastly.ServiceVcl(
         type: "pass",
         priority: 100,
         content: forceIdentityFetch,
+      },
+      {
+        // Server-Timing (POP, cache status, timings) for browser RUM. Runs at
+        // both the edge and shield POP; the snippet uses req.http.Fastly-FF to
+        // tell them apart and assembles the header at the edge. See the snippet
+        // for the split and the field names.
+        name: "Server-Timing for RUM",
+        type: "deliver",
+        priority: 100,
+        content: serverTimingDeliver,
       },
     ],
   },
