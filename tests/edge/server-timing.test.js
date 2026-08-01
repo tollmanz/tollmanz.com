@@ -34,11 +34,27 @@ function parseServerTiming(header) {
   return metrics;
 }
 
+// An unset header read inside a VCL concatenation stringifies to the literal
+// "(null)", which fuses onto the first metric name and makes the RUM bundle
+// record the field under a `fastly.(null)pop` attribute instead of `fastly.pop`.
+// Every emitting path must start at a real metric name.
+function assertNoNullMetric(header) {
+  assert.ok(
+    !header.includes("(null)"),
+    `Server-Timing contains a stringified unset header: ${header}`
+  );
+  assert.ok(
+    /^[A-Za-z_][A-Za-z0-9_]*[;,]/.test(header),
+    `Server-Timing does not begin with a metric name: ${header}`
+  );
+}
+
 test("HTML carries the edge Server-Timing fields", async () => {
   const res = await request(`${config.baseUrl}/`);
   assert.equal(res.status, 200);
   const header = res.headers["server-timing"];
   assert.ok(header, "no Server-Timing header on the HTML response");
+  assertNoNullMetric(header);
 
   const metrics = parseServerTiming(header);
 
@@ -63,6 +79,46 @@ test("HTML carries the edge Server-Timing fields", async () => {
     `no cache_status in Server-Timing: ${header}`
   );
 });
+
+test("an edge cache hit emits a clean Server-Timing", async () => {
+  // The edge-HIT branch unsets the shield's backend metric because it describes
+  // whichever request filled the cache, leaving nothing for the edge metrics to
+  // append to. Warm the object, then assert the header the hit produces.
+  const header = await retry(async () => {
+    await request(`${config.baseUrl}/`);
+    const res = await request(`${config.baseUrl}/`);
+    assert.equal(res.status, 200);
+    const value = res.headers["server-timing"] || "";
+    const parsed = parseServerTiming(value);
+    assert.equal(
+      parsed.cache_status?.desc,
+      "HIT",
+      `expected an edge HIT to assert against, got: ${value}`
+    );
+    return value;
+  });
+
+  assertNoNullMetric(header);
+  const metrics = parseServerTiming(header);
+  assert.ok(metrics.pop?.desc, `no pop metric on an edge hit: ${header}`);
+  assert.equal(
+    metrics.backend,
+    undefined,
+    `edge hit carried a stale backend metric: ${header}`
+  );
+});
+
+test(
+  "the apex redirect emits a clean Server-Timing",
+  { skip: config.isWww ? false : "base host is not a www subdomain" },
+  async () => {
+    // The redirect is synthesised at the edge, so no shield leg ever runs and
+    // the header has no backend metric to build on.
+    const res = await request(`https://${config.apexHost}/`);
+    assert.equal(res.status, 301);
+    assertNoNullMetric(res.headers["server-timing"] || "");
+  }
+);
 
 test("the shield's internal state header never reaches the client", async () => {
   // The shield sends Fastly-Shield-State back to the edge so the edge can derive

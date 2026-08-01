@@ -29,6 +29,7 @@
 
 declare local var.st_shield_state STRING;
 declare local var.st_cache_status STRING;
+declare local var.st_header STRING;
 
 # req.http.Fastly-FF is present only on a node that received the request from
 # another Fastly node, which is the shield when the edge forwards to it. It is
@@ -77,14 +78,21 @@ if (req.http.Fastly-FF) {
     set var.st_cache_status = fastly_info.state;
   }
 
-  # Preserve the shield's backend metric when it describes this request; the
-  # branches above have already dropped it when it does not.
-  if (resp.http.Server-Timing) {
-    set resp.http.Server-Timing = resp.http.Server-Timing ", ";
-  }
-  set resp.http.Server-Timing = resp.http.Server-Timing
-    "pop;desc=" server.datacenter
+  # Assemble the edge's own metrics in a local. Reading a NOT SET header inside
+  # a concatenation yields the literal string "(null)", and Server-Timing is
+  # unset on every path where no shield metric survives (an edge HIT above, and
+  # any synthetic response such as the apex redirect), so the header is never an
+  # operand here.
+  set var.st_header = "pop;desc=" server.datacenter
     ", region;desc=" server.region
     ", cache_status;desc=" var.st_cache_status
     ", total;dur=" time.elapsed.msec;
+
+  # Preserve the shield's backend metric when it describes this request; the
+  # branches above have already dropped it when it does not.
+  if (resp.http.Server-Timing) {
+    set var.st_header = resp.http.Server-Timing ", " var.st_header;
+  }
+
+  set resp.http.Server-Timing = var.st_header;
 }
