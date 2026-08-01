@@ -6,6 +6,14 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    # Skip the deploy (and the Fastly full purge) for pushes that cannot
+    # affect the built site: infra deploys through its own workflows, and
+    # tests, docs, and local tooling never reach public/.
+    paths-ignore:
+      - "infra/**"
+      - "tests/**"
+      - "docs/**"
+      - "local/**"
   workflow_dispatch: # Allow manual triggering
 
 # Minimum permissions the official Pages deployment flow requires:

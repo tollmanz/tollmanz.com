@@ -1,20 +1,28 @@
 name: Fastly infra (Pulumi)
 
+# Previews (on pull requests) and applies (on push to main / manual dispatch)
+# the Pulumi stack that manages the Fastly service. See infra/fastly/.
+
 on:
   push:
     branches: [main]
-    paths:
+    paths: &fastly-paths
       - "infra/fastly/**"
       - ".github/workflows/infra.yml"
   pull_request:
-    paths:
-      - "infra/fastly/**"
-      - ".github/workflows/infra.yml"
+    paths: *fastly-paths
   workflow_dispatch:
 
 permissions:
   contents: read
   pull-requests: write
+
+# Serialize Pulumi runs so a preview never interleaves with an in-flight up.
+# cancel-in-progress is false so an apply is allowed to finish rather than be
+# left half-applied by a newer run.
+concurrency:
+  group: pulumi-fastly
+  cancel-in-progress: false
 
 jobs:
   pulumi:
