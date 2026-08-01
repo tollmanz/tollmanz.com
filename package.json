@@ -38,13 +38,13 @@
     "@opentelemetry/auto-instrumentations-web": "0.49.1",
     "clean-css": "5.3.3",
     "esbuild": "0.28.1",
-    "eslint": "10.5.0",
-    "globals": "17.6.0",
+    "eslint": "10.8.0",
+    "globals": "17.8.0",
     "html-minifier-terser": "7.2.0",
     "luxon": "3.7.2",
-    "markdown-it": "14.2.0",
-    "playwright": "1.61.1",
-    "prettier": "3.8.4"
+    "markdown-it": "14.3.0",
+    "playwright": "1.62.0",
+    "prettier": "3.9.6"
   },
   "overrides": {
     "js-yaml": "4.3.0"
