@@ -1,12 +1,11 @@
 import fs from "node:fs";
-import { minify } from "html-minifier-terser";
 import syntaxHighlight from "@11ty/eleventy-plugin-syntaxhighlight";
 import pluginRss from "@11ty/eleventy-plugin-rss";
 import { eleventyImageTransformPlugin } from "@11ty/eleventy-img";
-import CleanCSS from "clean-css";
 import markdownIt from "markdown-it";
 import registerFilters from "./filters/index.js";
 import registerCollections from "./collections/index.js";
+import registerTransforms from "./transforms/index.js";
 
 export default function (eleventyConfig) {
   // Add plugins
@@ -38,60 +37,10 @@ export default function (eleventyConfig) {
     },
   });
 
-  // HTML minification transform
-  eleventyConfig.addTransform("htmlmin", async function (content) {
-    if ((this.page.outputPath || "").endsWith(".html")) {
-      let minified = await minify(content, {
-        collapseWhitespace: true,
-        minifyJS: true,
-        minifyCSS: true,
-        removeAttributeQuotes: true,
-        removeComments: true,
-      });
-      return minified;
-    }
-    // If not an HTML output, return content as-is
-    return content;
-  });
-
-  // CSS minification transform
-  eleventyConfig.addTransform("cssmin", function (content) {
-    if ((this.page.outputPath || "").endsWith(".css")) {
-      const cleanCSS = new CleanCSS({
-        level: 2,
-        returnPromise: false,
-      });
-
-      try {
-        const result = cleanCSS.minify(content);
-
-        if (result.errors.length > 0) {
-          console.error(
-            `CSS minification errors for ${this.page.outputPath}:`,
-            result.errors
-          );
-          return content;
-        } else {
-          if (result.warnings.length > 0) {
-            console.warn(
-              `CSS minification warnings for ${this.page.outputPath}:`,
-              result.warnings
-            );
-          }
-
-          return result.styles;
-        }
-      } catch (error) {
-        console.error(
-          `Error minifying CSS file ${this.page.outputPath}:`,
-          error.message
-        );
-        return content;
-      }
-    }
-    // If not a CSS output, return content as-is
-    return content;
-  });
+  // Minification transforms (see transforms/ and docs/transforms.md). Only run
+  // for production builds (`npm run build`), not the dev server: skipping
+  // minification in serve/watch keeps rebuilds fast and output readable.
+  registerTransforms(eleventyConfig);
 
   // Copy static assets
   eleventyConfig.addPassthroughCopy("src/fonts");

@@ -8,6 +8,8 @@ Reference documentation for tollmanz.com.
   does, and how to add one
 - [collections.md](collections.md): the `collections/` Eleventy collections,
   what each exposes to templates, and their front-matter validation rules
+- [transforms.md](transforms.md): how the `transforms/` Eleventy output
+  transforms are organized, gated to production, and handle errors
 - [edge-caching.md](edge-caching.md): how the site caches, compresses, and serves
   content at the Fastly edge in front of GitHub Pages, and why
 - [edge-verification.md](edge-verification.md): the `tests/edge/` suite that
