@@ -90,10 +90,14 @@ test("an edge cache hit emits a clean Server-Timing", async () => {
     assert.equal(res.status, 200);
     const value = res.headers["server-timing"] || "";
     const parsed = parseServerTiming(value);
-    assert.equal(
-      parsed.cache_status?.desc,
-      "HIT",
-      `expected an edge HIT to assert against, got: ${value}`
+    // fastly_info.state qualifies a hit with how it was served, so the edge
+    // reports HIT-CLUSTER when the POP's storage node held the object. Match the
+    // family, not one spelling. SHIELD_HIT is a literal this snippet derives for
+    // a hit at the shield, so it does not collide with this prefix.
+    assert.match(
+      parsed.cache_status?.desc || "",
+      /^HIT/,
+      `expected an edge hit to assert against, got: ${value}`
     );
     return value;
   });
