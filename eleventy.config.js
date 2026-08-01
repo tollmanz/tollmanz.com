@@ -1,11 +1,11 @@
 import fs from "node:fs";
-import { DateTime } from "luxon";
 import { minify } from "html-minifier-terser";
 import syntaxHighlight from "@11ty/eleventy-plugin-syntaxhighlight";
 import pluginRss from "@11ty/eleventy-plugin-rss";
 import { eleventyImageTransformPlugin } from "@11ty/eleventy-img";
 import CleanCSS from "clean-css";
 import markdownIt from "markdown-it";
+import registerFilters from "./filters/index.js";
 
 export default function (eleventyConfig) {
   // Add plugins
@@ -119,30 +119,9 @@ export default function (eleventyConfig) {
     return collectionApi.getFilteredByGlob("src/pages/*.md");
   });
 
-  // Date display filter
-  eleventyConfig.addFilter("dateDisplay", function (dateObj) {
-    return DateTime.fromJSDate(dateObj, { zone: "utc" }).toFormat(
-      "LLL dd, yyyy"
-    );
-  });
-
-  // Head filter for RSS feed
-  eleventyConfig.addFilter("head", function (array, n) {
-    if (!Array.isArray(array) || array.length === 0) {
-      return [];
-    }
-    if (n < 0) {
-      return array.slice(n);
-    }
-    return array.slice(0, n);
-  });
-
-  // Detect Prism-highlighted code blocks so syntax CSS can be loaded only on
-  // pages that need it. The syntaxhighlight plugin emits language- classes.
-  eleventyConfig.addFilter("hasCodeBlocks", function (content) {
-    if (!content) return false;
-    return /<pre[^>]*><code[^>]*class="[^"]*language-/.test(content);
-  });
+  // Custom filters (dateDisplay, head, hasCodeBlocks), extracted into the
+  // filters/ directory and grouped by concern. See docs/filters.md.
+  registerFilters(eleventyConfig);
 
   // Configure markdown
   let markdownItOptions = {
