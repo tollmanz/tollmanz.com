@@ -22,13 +22,15 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import * as esbuild from "esbuild";
-import { runRumBundle, spanAttributes } from "./lib/browser.js";
+import { exportedSpans, runRumBundle, spanAttributes } from "./lib/browser.js";
 
 // Build the real bundle exactly as production does, differing only in RUM_MODE,
 // then read back the content-hashed artifact the same way src/_data/rum.js does.
-function buildLocalBundle() {
+// RUM_SAMPLE_RATE is pinned empty so an ambient value in a developer's shell
+// cannot change what is under test; the sample-rate case overrides it.
+function buildLocalBundle(env = {}) {
   execFileSync("node", ["scripts/build-rum.mjs"], {
-    env: { ...process.env, RUM_MODE: "local" },
+    env: { ...process.env, RUM_MODE: "local", RUM_SAMPLE_RATE: "", ...env },
     stdio: "pipe",
   });
   const file = readdirSync("build/js").find(name =>
@@ -36,6 +38,20 @@ function buildLocalBundle() {
   );
   assert.ok(file, "build/js should contain a rum.<hash>.js bundle");
   return readFileSync(`build/js/${file}`, "utf8");
+}
+
+// The distinct SampleRate values stamped across every exported span. The
+// Honeycomb SDK's deterministic sampler puts the configured rate on what it
+// samples, and Honeycomb reads that attribute to reweight counts, so it is where
+// the build-time knob becomes observable.
+function sampledRates(traceRequests) {
+  const rates = new Set();
+  for (const span of exportedSpans(traceRequests)) {
+    for (const { key, value } of span.attributes ?? []) {
+      if (key === "SampleRate") rates.add(Number(Object.values(value)[0]));
+    }
+  }
+  return rates;
 }
 
 // A minimal bundle that reads an undefined process.env key at load time. esbuild
@@ -106,6 +122,35 @@ test("the built RUM bundle maps Fastly Server-Timing onto the document-fetch spa
     "fastly.cache_status": "MISS",
     "fastly.total_ms": 42.1,
   });
+});
+
+// RUM_SAMPLE_RATE is silent by construction in the other direction: a build that
+// stops injecting it, or an SDK bump that renames the option, drops the SDK back
+// to its default rate of 1. Nothing throws, every assertion above stays green,
+// and production quietly ingests 100% of traffic again. Only the exported
+// SampleRate attribute distinguishes a configured rate from the default.
+//
+// Head sampling above 1 is random by design, so which traces survive a given
+// page load is not fixed. Repeat the load until one exports rather than betting
+// the suite on a single roll; at 1-in-2 a load that exports nothing at all is
+// already rare, and the bundle is built once for all attempts.
+test("the built RUM bundle samples at RUM_SAMPLE_RATE", async () => {
+  const source = buildLocalBundle({ RUM_SAMPLE_RATE: "2" });
+  let rates = new Set();
+  for (let attempt = 0; attempt < 5 && rates.size === 0; attempt++) {
+    const sampled = await runRumBundle(source, { timeoutMs: 8000 });
+    assert.deepEqual(
+      sampled.pageErrors,
+      [],
+      `sampled bundle threw: ${sampled.pageErrors.join("; ")}`
+    );
+    rates = sampledRates(sampled.traceRequests);
+  }
+  assert.deepEqual(
+    [...rates],
+    [2],
+    "exported spans should carry the configured SampleRate"
+  );
 });
 
 test("the harness catches a process reference leaking into a bundle", async () => {
