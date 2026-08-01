@@ -14,7 +14,7 @@
   "dependencies": {
     "@pulumi/command": "1.2.1",
     "@pulumi/fastly": "12.2.1",
-    "@pulumi/pulumi": "3.246.0"
+    "@pulumi/pulumi": "3.255.0"
   },
   "devDependencies": {
     "@types/node": "25.9.3",
