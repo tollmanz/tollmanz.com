@@ -1,0 +1,46 @@
+import { validateCollection } from "./validate.js";
+
+const POSTS_GLOB = "src/posts/*.md";
+const PAGES_GLOB = "src/pages/*.md";
+
+// Run a collection builder, degrading to `fallback` with a clear error rather
+// than crashing the whole build when something unexpected throws.
+function buildCollection(label, fallback, build) {
+  try {
+    return build();
+  } catch (error) {
+    console.error(`[collections] Failed to build "${label}": ${error.message}`);
+    return fallback;
+  }
+}
+
+// Register all content collections onto the Eleventy config. Scope is metadata
+// and validation only: nothing here creates new URLs or surfaces internal
+// front-matter fields. See docs/collections.md.
+export default function registerCollections(eleventyConfig) {
+  eleventyConfig.addCollection("posts", collectionApi =>
+    buildCollection("posts", [], () =>
+      validateCollection(
+        collectionApi
+          .getFilteredByGlob(POSTS_GLOB)
+          .sort((a, b) => b.date - a.date),
+        "posts"
+      )
+    )
+  );
+
+  eleventyConfig.addCollection("pages", collectionApi =>
+    buildCollection("pages", [], () =>
+      validateCollection(collectionApi.getFilteredByGlob(PAGES_GLOB), "pages")
+    )
+  );
+
+  // Lightweight metadata templates can consume without re-counting collections,
+  // e.g. {{ collections.collectionMeta.posts }}. Counts only.
+  eleventyConfig.addCollection("collectionMeta", collectionApi =>
+    buildCollection("collectionMeta", { posts: 0, pages: 0 }, () => ({
+      posts: collectionApi.getFilteredByGlob(POSTS_GLOB).length,
+      pages: collectionApi.getFilteredByGlob(PAGES_GLOB).length,
+    }))
+  );
+}
