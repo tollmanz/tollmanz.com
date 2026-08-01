@@ -1,0 +1,43 @@
+name: CI
+
+# Lints, format-checks, unit-tests, and builds the site on pull requests and
+# pushes to main. The deploy workflow only builds on push to main, so without
+# this a broken build or failing unit test would first surface during deploy.
+# The checks run as ordered steps in one job, cheapest first, so a lint
+# failure exits early without paying for the build.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint and format check
+        run: npm run format:check
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      # Structural build check. RUM_MODE is unset so the RUM bundle step is a
+      # no-op; the production build with RUM enabled happens in pages.yml.
+      - name: Build site
+        run: npm run build
