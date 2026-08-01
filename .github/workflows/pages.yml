@@ -46,7 +46,7 @@ jobs:
       # plus anything that changes the output: image options and the plugin
       # version.
       - name: Cache optimized images
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: public/img
           key: eleventy-img-${{ hashFiles('src/media/images/**', 'eleventy.config.js', 'package-lock.json') }}
