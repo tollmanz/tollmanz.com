@@ -10,6 +10,10 @@
 //   RUM_MODE           "off" (default) | "local" | "production"
 //   RUM_LOCAL_ENDPOINT  OTLP endpoint for the local collector (default localhost:4318)
 //   RUM_SERVICE_NAME    service.name / Honeycomb dataset (default tollmanz-com-web)
+//   RUM_SAMPLE_RATE     head-sampling divisor: N exports 1-in-N traces, 1 = 100%
+//                       (default 1). The SDK stamps SampleRate so Honeycomb
+//                       reweights counts. Must be a positive integer; anything
+//                       else falls back to 1.
 //
 // When RUM_MODE is off (the default) nothing is built, so normal `npm run dev`
 // and `npm run build` ship no RUM code. head.njk only emits the script tag when
@@ -22,6 +26,16 @@ import { rm, mkdir, writeFile } from "node:fs/promises";
 const mode = process.env.RUM_MODE ?? "off";
 const localEndpoint = process.env.RUM_LOCAL_ENDPOINT ?? "http://localhost:4318";
 const serviceName = process.env.RUM_SERVICE_NAME ?? "tollmanz-com-web";
+const sampleRate = parseSampleRate(process.env.RUM_SAMPLE_RATE);
+
+// Head sampling is deterministic and divisor-based: N exports 1-in-N traces and
+// 1 keeps 100%. Only a positive integer is meaningful; unset, non-numeric, zero,
+// negative, or fractional input falls back to 1 (no sampling) rather than
+// silently dropping data.
+function parseSampleRate(raw) {
+  const n = Number(raw);
+  return Number.isInteger(n) && n >= 1 ? n : 1;
+}
 
 if (mode === "off") {
   // Clear any stale bundle from a previous enabled build.
@@ -55,6 +69,7 @@ const result = await esbuild.build({
     "process.env.RUM_MODE": JSON.stringify(mode),
     "process.env.RUM_LOCAL_ENDPOINT": JSON.stringify(localEndpoint),
     "process.env.RUM_SERVICE_NAME": JSON.stringify(serviceName),
+    "process.env.RUM_SAMPLE_RATE": JSON.stringify(sampleRate),
     "process.env.NODE_ENV": JSON.stringify("production"),
   },
 });
@@ -70,7 +85,8 @@ const outfile = `build/js/rum.${hash}.js`;
 await writeFile(outfile, bundle.contents);
 
 console.log(
-  `Built ${outfile} (RUM_MODE=${mode}, service=${serviceName}` +
+  `Built ${outfile} (RUM_MODE=${mode}, service=${serviceName}, ` +
+    `sampleRate=${sampleRate}` +
     (mode === "local" ? `, endpoint=${localEndpoint}` : "") +
     ")."
 );

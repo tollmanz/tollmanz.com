@@ -62,6 +62,11 @@ jobs:
           # the script tag (src/_data/rum.js reads it during the Eleventy build).
           RUM_MODE: production
           RUM_SERVICE_NAME: tollmanz-com-web
+          # Optional head-sampling divisor: N exports 1-in-N RUM traces, 1 =
+          # 100%. Set the RUM_SAMPLE_RATE repository variable to throttle ingest
+          # if traffic or Honeycomb quota demands it. Unset means 100% (the
+          # build step falls back to 1).
+          RUM_SAMPLE_RATE: ${{ vars.RUM_SAMPLE_RATE }}
         run: |
           node scripts/build-rum.mjs
           npx @11ty/eleventy

@@ -9,6 +9,9 @@ import { getWebAutoInstrumentations } from "@opentelemetry/auto-instrumentations
 const mode = process.env.RUM_MODE;
 const localEndpoint = process.env.RUM_LOCAL_ENDPOINT;
 const serviceName = process.env.RUM_SERVICE_NAME;
+// Head-sampling divisor: N exports 1-in-N traces, 1 = 100%. Validated to a
+// positive integer at build time (see scripts/build-rum.mjs).
+const sampleRate = process.env.RUM_SAMPLE_RATE;
 
 // Copy the navigation's Server-Timing metrics onto a span as attributes. The
 // browser parses the header onto the navigation PerformanceEntry as
@@ -55,6 +58,7 @@ if (mode !== "off") {
   const sdk = new HoneycombWebSDK({
     endpoint,
     serviceName,
+    sampleRate,
     skipOptionsValidation: true,
     instrumentations: [
       getWebAutoInstrumentations({

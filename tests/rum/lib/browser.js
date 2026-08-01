@@ -92,23 +92,31 @@ export async function runRumBundle(source, { timeoutMs = 20000 } = {}) {
   }
 }
 
+// Every span in the recorded OTLP/HTTP JSON exports, flattened out of the
+// resource/scope nesting in send order.
+export function exportedSpans(traceRequests) {
+  const spans = [];
+  for (const { body } of traceRequests) {
+    if (!body) continue;
+    for (const resource of JSON.parse(body).resourceSpans ?? []) {
+      for (const scope of resource.scopeSpans ?? []) {
+        spans.push(...(scope.spans ?? []));
+      }
+    }
+  }
+  return spans;
+}
+
 // Decode the attributes of every span named `spanName` out of the recorded
 // OTLP/HTTP JSON exports, as a flat key -> value map. An OTLP AnyValue wraps its
 // payload in exactly one typed field (stringValue, doubleValue, ...), so the
 // sole value is the attribute value whatever its type.
 export function spanAttributes(traceRequests, spanName) {
   const attributes = {};
-  for (const { body } of traceRequests) {
-    if (!body) continue;
-    for (const resource of JSON.parse(body).resourceSpans ?? []) {
-      for (const scope of resource.scopeSpans ?? []) {
-        for (const span of scope.spans ?? []) {
-          if (span.name !== spanName) continue;
-          for (const { key, value } of span.attributes ?? []) {
-            attributes[key] = Object.values(value)[0];
-          }
-        }
-      }
+  for (const span of exportedSpans(traceRequests)) {
+    if (span.name !== spanName) continue;
+    for (const { key, value } of span.attributes ?? []) {
+      attributes[key] = Object.values(value)[0];
     }
   }
   return attributes;
