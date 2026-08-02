@@ -14,6 +14,3 @@ Reference documentation for tollmanz.com.
   content at the Fastly edge in front of GitHub Pages, and why
 - [edge-verification.md](edge-verification.md): the `tests/edge/` suite that
   verifies that contract against the live edge after every deploy
-- [dependency-updates.md](dependency-updates.md): how Dependabot is configured
-  for both npm projects, why the defaults were wrong, and the repository
-  settings that live outside the config file
