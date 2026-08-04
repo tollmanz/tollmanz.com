@@ -26,6 +26,14 @@ eleventyExcludeFromCollections: true
     <priority>0.6</priority>
   </url>
 {%- endfor %}
+{#- /speaking/ is a standalone template, so it belongs to neither collection
+    and has to be listed on its own. Its lastmod follows the same rule as the
+    talk pages below: only an explicit `updated` date counts. -#}
+  <url>
+    <loc>{{ "/speaking/" | absoluteUrl(site.url) }}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
 {#- Talk pages describe past engagements but were authored much later, so the
     engagement date says nothing about when the page last changed. Emit lastmod
     only when a talk records an explicit `updated` date. -#}
