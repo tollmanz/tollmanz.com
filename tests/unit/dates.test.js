@@ -1,6 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dateDisplay } from "../../filters/dates.js";
+import {
+  dateDisplay,
+  htmlDateString,
+  monthDay,
+  year,
+} from "../../filters/dates.js";
 
 test("dateDisplay formats a JS Date as LLL dd, yyyy in UTC", () => {
   assert.equal(dateDisplay(new Date("2026-07-16T00:00:00Z")), "Jul 16, 2026");
@@ -22,4 +27,22 @@ test("dateDisplay returns an empty string for an invalid Date", () => {
 test("dateDisplay returns an empty string for non-Date input", () => {
   assert.equal(dateDisplay("2026-07-16"), "");
   assert.equal(dateDisplay(1752624000000), "");
+});
+
+test("htmlDateString formats a JS Date as yyyy-LL-dd in UTC", () => {
+  assert.equal(htmlDateString(new Date("2026-07-16T23:30:00Z")), "2026-07-16");
+});
+
+test("year and monthDay split the date for speaking index rows", () => {
+  const date = new Date("2015-12-04T00:00:00Z");
+  assert.equal(year(date), "2015");
+  assert.equal(monthDay(date), "Dec 04");
+});
+
+test("every date filter returns an empty string for invalid input", () => {
+  for (const filter of [dateDisplay, htmlDateString, year, monthDay]) {
+    assert.equal(filter(null), "");
+    assert.equal(filter(new Date("not a date")), "");
+    assert.equal(filter("2026-07-16"), "");
+  }
 });

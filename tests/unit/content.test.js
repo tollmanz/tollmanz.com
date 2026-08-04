@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { hasCodeBlocks } from "../../filters/content.js";
+import { hasCodeBlocks, paragraphs } from "../../filters/content.js";
 
 test("hasCodeBlocks is true for Prism-highlighted markup", () => {
   const html =
@@ -25,4 +25,22 @@ test("hasCodeBlocks returns false for non-string input", () => {
   assert.equal(hasCodeBlocks(undefined), false);
   assert.equal(hasCodeBlocks(42), false);
   assert.equal(hasCodeBlocks(['<code class="language-js">']), false);
+});
+
+test("paragraphs splits on blank lines and trims each part", () => {
+  assert.deepEqual(paragraphs("One.\n\n  Two.  \n\n\nThree."), [
+    "One.",
+    "Two.",
+    "Three.",
+  ]);
+});
+
+test("paragraphs keeps a single-line abstract as one paragraph", () => {
+  assert.deepEqual(paragraphs("Just one."), ["Just one."]);
+});
+
+test("paragraphs returns an empty array for empty or missing input", () => {
+  assert.deepEqual(paragraphs(""), []);
+  assert.deepEqual(paragraphs(null), []);
+  assert.deepEqual(paragraphs(undefined), []);
 });

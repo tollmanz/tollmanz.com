@@ -5,15 +5,31 @@ category exports plain, testable functions; `filters/index.js` exports
 `registerFilters(eleventyConfig)`, which `eleventy.config.js` calls to register
 them all.
 
-| Filter          | Module               | Purpose                                                |
-| --------------- | -------------------- | ------------------------------------------------------ |
-| `dateDisplay`   | `filters/dates.js`   | Format a JS Date as `LLL dd, yyyy` in UTC              |
-| `head`          | `filters/arrays.js`  | First `n` items of an array (last `\|n\|` if negative) |
-| `hasCodeBlocks` | `filters/content.js` | True when content contains Prism-highlighted code      |
+| Filter              | Module               | Purpose                                                |
+| ------------------- | -------------------- | ------------------------------------------------------ |
+| `dateDisplay`       | `filters/dates.js`   | Format a JS Date as `LLL dd, yyyy` in UTC              |
+| `htmlDateString`    | `filters/dates.js`   | Format a JS Date as `yyyy-LL-dd` for `<time datetime>` |
+| `year`              | `filters/dates.js`   | Year only, for speaking index rows                     |
+| `monthDay`          | `filters/dates.js`   | Month and day, for speaking index rows                 |
+| `head`              | `filters/arrays.js`  | First `n` items of an array (last `\|n\|` if negative) |
+| `hasCodeBlocks`     | `filters/content.js` | True when content contains Prism-highlighted code      |
+| `paragraphs`        | `filters/content.js` | Split a front-matter string into paragraphs            |
+| `displayTitle`      | `filters/talks.js`   | Talk title without its format marker                   |
+| `talkType`          | `filters/talks.js`   | `{ slug, label }` for talk, keynote, panel, workshop   |
+| `talkTopics`        | `filters/talks.js`   | `{ slug, label }` topics for one talk                  |
+| `videoProvider`     | `filters/talks.js`   | Host name for a recording URL                          |
+| `slidesProvider`    | `filters/talks.js`   | Host name for a slide deck URL                         |
+| `isLocalPdf`        | `filters/talks.js`   | True for site-relative PDF decks                       |
+| `categorizeSources` | `filters/talks.js`   | Split sources into code, on-site reading, coverage     |
+| `topicFacets`       | `filters/talks.js`   | `{ slug, label, count }` topic filter chips            |
+| `eventFacets`       | `filters/talks.js`   | `{ slug, label, count }` event filter chips            |
+| `speakingStats`     | `filters/talks.js`   | Headline counts for the speaking hero                  |
+| `relatedTalks`      | `filters/talks.js`   | Up to `limit` talks ranked by series and shared topics |
 
-Each filter guards bad input: `dateDisplay` returns `""` for null/invalid
-dates, `head` returns `[]` for non-array or non-numeric `n`, and
-`hasCodeBlocks` returns `false` for non-string input.
+Each filter guards bad input: the date filters return `""` for null or invalid
+dates, `head` returns `[]` for non-array or non-numeric `n`, `hasCodeBlocks`
+returns `false` for non-string input, and the talk filters tolerate missing
+front matter rather than throwing mid-build.
 
 ## Adding a filter
 

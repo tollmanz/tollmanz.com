@@ -33,6 +33,7 @@ function fakeApi(byGlob) {
 
 const POSTS = "src/posts/*.md";
 const PAGES = "src/pages/*.md";
+const TALKS = "src/talks/*.md";
 
 test("collectionProblems reports nothing for well-formed items", () => {
   const items = [
@@ -106,13 +107,14 @@ test("collectionProblems returns an empty list for non-array input", () => {
   assert.deepEqual(collectionProblems(undefined, "posts"), []);
 });
 
-test("registerCollections registers posts, pages, and collectionMeta", () => {
+test("registerCollections registers posts, pages, talks, and collectionMeta", () => {
   const config = fakeConfig();
   registerCollections(config);
   assert.deepEqual(Object.keys(config.collections).sort(), [
     "collectionMeta",
     "pages",
     "posts",
+    "talks",
   ]);
 });
 
@@ -144,16 +146,33 @@ test("pages keeps the glob order", () => {
   );
 });
 
+test("talks is sorted newest first", () => {
+  const config = fakeConfig();
+  registerCollections(config);
+  const api = fakeApi({
+    [TALKS]: [
+      { inputPath: "src/talks/old.md", date: new Date("2012-03-24"), data: {} },
+      { inputPath: "src/talks/new.md", date: new Date("2019-11-02"), data: {} },
+    ],
+  });
+  assert.deepEqual(
+    config.collections.talks(api).map(t => t.inputPath),
+    ["src/talks/new.md", "src/talks/old.md"]
+  );
+});
+
 test("collectionMeta exposes item counts", () => {
   const config = fakeConfig();
   registerCollections(config);
   const api = fakeApi({
     [POSTS]: [item("src/posts/a.md", {}), item("src/posts/b.md", {})],
     [PAGES]: [item("src/pages/a.md", {})],
+    [TALKS]: [],
   });
   assert.deepEqual(config.collections.collectionMeta(api), {
     posts: 2,
     pages: 1,
+    talks: 0,
   });
 });
 
@@ -177,9 +196,11 @@ test("a throwing collection degrades to empty instead of crashing", t => {
   };
   assert.deepEqual(config.collections.posts(api), []);
   assert.deepEqual(config.collections.pages(api), []);
+  assert.deepEqual(config.collections.talks(api), []);
   assert.deepEqual(config.collections.collectionMeta(api), {
     posts: 0,
     pages: 0,
+    talks: 0,
   });
-  assert.equal(console.error.mock.callCount(), 3);
+  assert.equal(console.error.mock.callCount(), 4);
 });

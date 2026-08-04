@@ -2,6 +2,7 @@ import { validateCollection } from "./validate.js";
 
 const POSTS_GLOB = "src/posts/*.md";
 const PAGES_GLOB = "src/pages/*.md";
+const TALKS_GLOB = "src/talks/*.md";
 
 // Run a collection builder, degrading to `fallback` with a clear error rather
 // than crashing the whole build when something unexpected throws.
@@ -35,12 +36,27 @@ export default function registerCollections(eleventyConfig) {
     )
   );
 
+  // Speaking engagements. Each item also renders its own page through
+  // src/talks/talks.11tydata.js; the collection drives the speaking index,
+  // the facet counts, and related-talk ranking.
+  eleventyConfig.addCollection("talks", collectionApi =>
+    buildCollection("talks", [], () =>
+      validateCollection(
+        collectionApi
+          .getFilteredByGlob(TALKS_GLOB)
+          .sort((a, b) => b.date - a.date),
+        "talks"
+      )
+    )
+  );
+
   // Lightweight metadata templates can consume without re-counting collections,
   // e.g. {{ collections.collectionMeta.posts }}. Counts only.
   eleventyConfig.addCollection("collectionMeta", collectionApi =>
-    buildCollection("collectionMeta", { posts: 0, pages: 0 }, () => ({
+    buildCollection("collectionMeta", { posts: 0, pages: 0, talks: 0 }, () => ({
       posts: collectionApi.getFilteredByGlob(POSTS_GLOB).length,
       pages: collectionApi.getFilteredByGlob(PAGES_GLOB).length,
+      talks: collectionApi.getFilteredByGlob(TALKS_GLOB).length,
     }))
   );
 }
