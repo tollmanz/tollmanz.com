@@ -10,4 +10,8 @@ video: "https://wordpress.tv/2015/12/09/zack-tollman-and-aaron-jorbin-the-future
 sources:
   - label: "Session"
     url: "https://us.wordcamp.org/2015/session/the-future-stack-running-wordpress-with-tomorrows-technologies/"
+watchTime: "29:02"
+press:
+  - label: "Notes from WordCamp US 2015 (Fight With Tools by Aram Zucker-Scharff) - contemporaneous session recap with a dedicated section on this talk"
+    url: "https://aramzs.github.io/notes/wordpress/wordpressus2015/2015/12/04/wordcamp-us.html"
 ---

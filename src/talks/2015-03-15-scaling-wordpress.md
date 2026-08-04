@@ -9,4 +9,17 @@ slides: "https://speakerdeck.com/tollmanz/scaling-wordpress"
 sources:
   - label: "Wrap-up"
     url: "/mwphp15/"
+quotes:
+  - text: "Appropriately paced and engaging. Zack's presentation style is comfortable and informative."
+    author: "Jeremy Lindblom"
+    url: "https://joind.in/event/midwest-php-2015/scaling-wordpress"
+  - text: "This was an excellent, high-energy, and well-paced presentation that - in my mind - was largely a trojan horse to talk about caching, and I mean that in only the best way possible. Zack discussed a variety of methods/plugins/code libraries that a WordPress developer can use to prepare their site for an unexpected spike in traffic, and offered some additional tips that some may not have previous considered, such as making sure there's a separation in the web layer between the front-end and admin portions of the site."
+    author: "Jeremy Ward"
+    url: "https://joind.in/event/midwest-php-2015/scaling-wordpress"
+  - text: "Great advice, much of which is applicable beyond the context of WordPress."
+    author: "Mike Owens"
+    url: "https://joind.in/event/midwest-php-2015/scaling-wordpress"
+press:
+  - label: "Midwest PHP 2015 Conference (Earthling Interactive recap)"
+    url: "https://earthlinginteractive.com/blog/midwest-php-2015-conference/"
 ---

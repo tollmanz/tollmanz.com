@@ -10,4 +10,9 @@ slides: "https://speakerdeck.com/tollmanz/defining-fast-the-hardest-problem-in-p
 sources:
   - label: "Session"
     url: "https://publishers.wordcamp.org/2019-columbus/session/defining-fast-the-hardest-problem-in-performance-engineering/"
+watchTime: "44:41"
+slideCount: 54
+press:
+  - label: "WordCamp for Publishers 2019: Warm Ohio nights and a lot of community socializing"
+    url: "https://www.mcdwayne.com/2019/08/10/wcpub-2019/"
 ---

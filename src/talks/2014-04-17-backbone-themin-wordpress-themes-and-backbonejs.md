@@ -12,4 +12,9 @@ sources:
     url: "https://wpsessions.com/sessions/wordpress-themes-and-backbone-js/"
   - label: "Code"
     url: "https://github.com/tollmanz/backbone-wordpress-theme"
+video: "https://www.youtube.com/watch?v=snw2C1R5mp4"
+photos:
+  - src: "/media/images/talk-2014-backbone-wpyvr.jpg"
+    alt: "Zack Tollman presenting at the WPYVR Backbone.js developer meetup"
+    credit: "WPYVR"
 ---

@@ -9,4 +9,8 @@ slides: "https://speakerdeck.com/tollmanz/getting-tls-right"
 sources:
   - label: "Wrap-up"
     url: "/mwphp15/"
+slideCount: 94
+press:
+  - label: "Midwest PHP 2015 Conference (Earthling Interactive recap)"
+    url: "https://earthlinginteractive.com/blog/midwest-php-2015-conference/"
 ---

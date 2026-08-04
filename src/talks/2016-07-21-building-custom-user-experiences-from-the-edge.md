@@ -9,4 +9,6 @@ slides: "https://speakerdeck.com/tollmanz/building-custom-user-experiences-from-
 sources:
   - label: "Fastly blog"
     url: "https://www.fastly.com/blog/altitude-2016-future-edge"
+watchTime: "5:14"
+slideCount: 14
 ---

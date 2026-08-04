@@ -10,4 +10,6 @@ slides: "https://speakerdeck.com/tollmanz/defining-fast-the-hardest-problem-in-p
 sources:
   - label: "Session"
     url: "https://us.wordcamp.org/2019/session/defining-fast-the-hardest-problem-in-performance-engineering/"
+watchTime: "46:02"
+slideCount: 49
 ---

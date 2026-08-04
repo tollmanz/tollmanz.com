@@ -11,4 +11,6 @@ sources:
     url: "https://chicago.wordcamp.org/2013/session/enhancing-developer-creativity-with-git/"
   - label: "Blog post"
     url: "/enhancing-developer-creativity-with-git/"
+watchTime: "42:47"
+slideCount: 76
 ---

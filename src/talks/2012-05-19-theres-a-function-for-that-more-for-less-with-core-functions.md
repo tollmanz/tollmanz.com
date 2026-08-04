@@ -11,4 +11,9 @@ sources:
     url: "https://seattle.wordcamp.org/2012/session/theres-a-function-for-that-doing-more-for-less-with-core-functions/"
   - label: "Errata"
     url: "/errata-and-clarifications-for-my-wordcamp-seattle-2012-talk/"
+watchTime: "39:37"
+quotes:
+  - text: "Great video, the slide deck or a transcript would be really useful reference"
+    author: "Workshopshed"
+    url: "https://wordpress.tv/2012/09/02/zack-tollman-theres-a-function-for-that-more-for-less-with-core-functions/"
 ---

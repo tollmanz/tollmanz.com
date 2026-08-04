@@ -10,4 +10,6 @@ slides: "https://speakerdeck.com/tollmanz/speed-as-a-feature-getting-a-handle-on
 sources:
   - label: "Session"
     url: "https://seattle.wordcamp.org/2014/about/sessions/"
+watchTime: "33:13"
+slideCount: 29
 ---

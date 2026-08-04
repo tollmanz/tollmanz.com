@@ -6,4 +6,5 @@ eventType: "wordcamp"
 location: "San Diego, CA"
 description: "A developer-focused talk on caching in WordPress."
 video: "https://wordpress.tv/2012/10/13/zack-tollman-caching-for-coders/"
+watchTime: "41:34"
 ---

@@ -42,12 +42,6 @@ layout: base.njk
           <dd>{{ audienceSize }}</dd>
         </div>
       {% endif %}
-      {% if watchTime or duration %}
-        <div class="talk-page__meta-item">
-          <dt>Watch time</dt>
-          <dd>{{ watchTime or duration }}</dd>
-        </div>
-      {% endif %}
     </dl>
 
     {% if topics.length %}
@@ -106,7 +100,7 @@ layout: base.njk
       <div class="talk-gallery">
         {% for photo in photos %}
           <figure>
-            <img src="{{ photo.src }}" alt="{{ photo.alt or title }}" loading="lazy" decoding="async" />
+            <img src="{{ photo.src }}" alt="{{ photo.alt or title }}" />
             {% if photo.credit %}<figcaption>{{ photo.credit }}</figcaption>{% endif %}
           </figure>
         {% endfor %}
@@ -118,12 +112,12 @@ layout: base.njk
     <section class="talk-section">
       <h2 class="talk-section__title">Links &amp; resources</h2>
       <ul class="talk-resources">
-        {% if video %}<li><a href="{{ video }}">Video</a> <span class="talk-resource__tag">{{ video | videoProvider }}</span></li>{% endif %}
+        {% if video %}<li><a href="{{ video }}">Video</a> <span class="talk-resource__tag">{{ video | videoProvider }}{% if watchTime or duration %} &middot; {{ watchTime or duration }}{% endif %}</span></li>{% endif %}
         {% if slides %}
           {% if slidesIsPdf %}
-            <li><a href="{{ slides }}" download>Slides (PDF)</a></li>
+            <li><a href="{{ slides }}" download>Slides (PDF)</a>{% if slideCount %} <span class="talk-resource__tag">{{ slideCount }} slides</span>{% endif %}</li>
           {% else %}
-            <li><a href="{{ slides }}">Slides</a> <span class="talk-resource__tag">{{ slides | slidesProvider }}</span></li>
+            <li><a href="{{ slides }}">Slides</a> <span class="talk-resource__tag">{{ slides | slidesProvider }}{% if slideCount %} &middot; {{ slideCount }} slides{% endif %}</span></li>
           {% endif %}
         {% endif %}
         {% for r in resources %}<li><a href="{{ r.url }}"{% if r.download %} download{% endif %}>{{ r.label }}</a></li>{% endfor %}

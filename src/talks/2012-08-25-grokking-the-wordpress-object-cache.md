@@ -11,4 +11,5 @@ sources:
     url: "https://chicago.wordcamp.org/2012/session/grokking-the-wordpress-object-cache-getting-a-handle-on-the-wp_object_cache-class/"
   - label: "Blog post"
     url: "/grokking-the-wp-object-cache/"
+watchTime: "39:58"
 ---

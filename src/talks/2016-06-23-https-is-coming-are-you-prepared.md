@@ -9,4 +9,8 @@ slides: "https://speakerdeck.com/tollmanz/https-is-coming-are-you-prepared-veloc
 sources:
   - label: "O'Reilly"
     url: "https://www.oreilly.com/videos/velocity-2016/9781491944646/"
+  - label: "Code"
+    url: "https://github.com/tollmanz/diffie-hellman-key-exchange-demo"
+watchTime: "42:31"
+slideCount: 56
 ---
