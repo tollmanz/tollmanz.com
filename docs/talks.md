@@ -59,8 +59,9 @@ so a label change happens in one place instead of in every Markdown file.
 The topic order above is the order facet chips render in. A source `kind` says
 what the link is: `session` for the event's own session or speaker page, `code`
 for a repository, `writing` for something on this site, and `coverage` for
-anything written or hosted elsewhere. Code sources render as action buttons; the
-rest render in "Links & resources".
+anything written or hosted elsewhere. Code sources render in the action row
+under the header, alongside the video and the slides; the rest render in
+"Links & resources".
 
 ## Validation
 

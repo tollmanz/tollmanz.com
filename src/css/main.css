@@ -879,6 +879,20 @@ pre > code {
   color: var(--color-link);
 }
 
+/* The recording is the primary artifact, so it carries the accent border while
+   the other actions stay quiet until hover. */
+.talk-action--primary {
+  border-color: var(--topic-color);
+  background-color: var(--color-surface);
+  font-weight: 700;
+}
+
+.talk-action__meta {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
 .talk-section {
   margin-bottom: 32px;
 }
