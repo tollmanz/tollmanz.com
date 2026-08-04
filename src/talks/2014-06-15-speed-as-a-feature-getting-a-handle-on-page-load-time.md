@@ -17,5 +17,4 @@ video:
 slides:
   url: "https://github.com/tollmanz/wcchi-2014"
   provider: "GitHub"
-audienceSize: "WordCamp Chicago 2014 was sold out"
 ---

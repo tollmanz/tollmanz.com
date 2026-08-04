@@ -12,29 +12,29 @@ color, or which talks it links to.
 
 ## Front matter
 
-| Field          | Required | Shape                                                |
-| -------------- | -------- | ---------------------------------------------------- |
-| `title`        | yes      | Clean title, with no `(Keynote)` or `Panel:` marker  |
-| `date`         | yes      | Engagement date                                      |
-| `type`         | yes      | `talk`, `keynote`, `panel`, or `workshop`            |
-| `topics`       | yes      | Topic slugs, primary first                           |
-| `event`        | yes      | `{ name, type, location }`                           |
-| `series`       | no       | Slug shared by repeat deliveries of one presentation |
-| `coSpeakers`   | no       | Free text                                            |
-| `description`  | no       | Abstract; blank lines split it into paragraphs       |
-| `video`        | no       | `{ url, provider, duration }`                        |
-| `slides`       | no       | `{ url, provider, count, download }`                 |
-| `sources`      | no       | `[{ kind, label, url, duration }]`                   |
-| `audienceSize` | no       | Free text                                            |
-| `quotes`       | no       | `[{ text, author, url }]`                            |
-| `photos`       | no       | `[{ src, alt, credit }]`                             |
+| Field         | Required | Shape                                                |
+| ------------- | -------- | ---------------------------------------------------- |
+| `title`       | yes      | Clean title, with no `(Keynote)` or `Panel:` marker  |
+| `date`        | yes      | Engagement date                                      |
+| `type`        | yes      | `talk`, `keynote`, `panel`, or `workshop`            |
+| `topics`      | yes      | Topic slugs, primary first                           |
+| `event`       | yes      | `{ name, type, location }`                           |
+| `series`      | no       | Slug shared by repeat deliveries of one presentation |
+| `coSpeakers`  | no       | Free text                                            |
+| `description` | no       | Abstract; blank lines split it into paragraphs       |
+| `video`       | no       | `{ url, provider, duration }`                        |
+| `slides`      | no       | `{ url, provider, count, download }`                 |
+| `sources`     | no       | `[{ kind, label, url, duration }]`                   |
+| `quotes`      | no       | `[{ text, author, url }]`                            |
+| `photos`      | no       | `[{ src, alt, credit }]`                             |
 
 `topics[0]` is the primary topic and drives the accent color on the card and the
 page, so order matters. `series` is what makes two files the same presentation:
 related-talk ranking scores a series match far above shared topics. A `video` or
 `slides` block needs a `url`; `download: true` marks a deck hosted on this site
 so it renders as a download link. A source `duration` is only for a URL that is
-the recording itself.
+the recording itself. Attendance figures are not modeled: an event's headcount
+says nothing about who was in the room for one session.
 
 ## Taxonomy
 

@@ -14,5 +14,4 @@ video:
   url: "https://wordpress.tv/2014/08/09/panel-discussion-how-to-become-a-better-wordpress-developer/"
   provider: "WordPress.tv"
   duration: "55:43"
-audienceSize: "750 (highest WordCamp Seattle attendance, attributed to WCSEA 2014)"
 ---
