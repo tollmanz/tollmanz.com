@@ -105,6 +105,12 @@ export function talkProblems(items, label) {
       }
     }
 
+    // The index reads `featured` as a flag, so a string or a number would opt a
+    // talk in on truthiness alone and silently widen the shortlist.
+    if (data.featured !== undefined && typeof data.featured !== "boolean") {
+      problem(`has a non-boolean "featured" value "${data.featured}"`);
+    }
+
     for (const field of ["video", "slides"]) {
       if (data[field] && !data[field].url) {
         problem(`has a "${field}" block without a url`);

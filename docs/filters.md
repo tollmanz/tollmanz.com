@@ -23,6 +23,8 @@ them all.
 | `eventFacetSlug` | `filters/talks.js`   | Event type slug to the facet slug its chip filters on  |
 | `talksByYear`    | `filters/talks.js`   | Talks grouped into `[{ year, talks }]`, newest first   |
 | `speakingStats`  | `filters/talks.js`   | Headline counts for the speaking hero                  |
+| `featuredTalks`  | `filters/talks.js`   | Talks flagged `featured`, capped at five               |
+| `talkHook`       | `filters/talks.js`   | One-line hook for a featured card                      |
 | `relatedTalks`   | `filters/talks.js`   | Up to `limit` talks ranked by series and shared topics |
 
 Each filter guards bad input: the date filters return `""` for null or invalid

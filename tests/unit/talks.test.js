@@ -1,13 +1,16 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  FEATURED_LIMIT,
   eventFacetSlug,
   eventFacets,
+  featuredTalks,
   relatedTalks,
   sourceGroups,
   sourceLabel,
   speakingStats,
   talkEventType,
+  talkHook,
   talkTopics,
   talkType,
   talksByYear,
@@ -421,4 +424,82 @@ test("relatedTalks honors the limit and prefers newer talks within a score", () 
 
 test("relatedTalks returns nothing when the talk is not in the collection", () => {
   assert.deepEqual(relatedTalks([], "missing.md"), []);
+});
+
+test("featuredTalks keeps only the talks that opt in with a boolean true", () => {
+  const talks = [
+    talk("a.md", { featured: true }),
+    talk("b.md", {}),
+    talk("c.md", { featured: false }),
+    talk("d.md", { featured: "yes" }),
+  ];
+  assert.deepEqual(
+    featuredTalks(talks).map(item => item.inputPath),
+    ["a.md"]
+  );
+});
+
+test("featuredTalks caps the tier no matter how many talks are flagged", () => {
+  const talks = Array.from({ length: FEATURED_LIMIT + 3 }, (_, index) =>
+    talk(`${index}.md`, { featured: true })
+  );
+  assert.equal(featuredTalks(talks).length, FEATURED_LIMIT);
+  assert.deepEqual(
+    featuredTalks(talks).map(item => item.inputPath),
+    ["0.md", "1.md", "2.md", "3.md", "4.md"]
+  );
+});
+
+test("featuredTalks returns an empty list for missing input", () => {
+  assert.deepEqual(featuredTalks(undefined), []);
+  assert.deepEqual(featuredTalks([]), []);
+});
+
+test("talkHook prefers the shortest quote that fits a card", () => {
+  const hook = talkHook({
+    description: "An abstract.",
+    quotes: [
+      { text: `${"long ".repeat(20)}quote.`, author: "Someone" },
+      { text: "Short and quotable.", author: "Brian Krogsgard" },
+    ],
+  });
+  assert.deepEqual(hook, {
+    text: "Short and quotable.",
+    cite: "Brian Krogsgard",
+    quote: true,
+  });
+});
+
+test("talkHook cites an unattributed quote by its source", () => {
+  const hook = talkHook({
+    quotes: [{ text: "Very informative.", source: "Event recap" }],
+  });
+  assert.equal(hook.cite, "Event recap");
+});
+
+test("talkHook falls back to the opening sentence when no quote fits", () => {
+  const hook = talkHook({
+    description:
+      "Deploying HTTPS is a project, not a switch. The rest of the abstract " +
+      "explains why.\n\nA second paragraph nobody reads.",
+    quotes: [{ text: "x".repeat(400), author: "Someone" }],
+  });
+  assert.deepEqual(hook, {
+    text: "Deploying HTTPS is a project, not a switch.",
+    cite: "",
+    quote: false,
+  });
+});
+
+test("talkHook keeps an abbreviation inside the sentence it belongs to", () => {
+  const hook = talkHook({
+    description: "Put Backbone.js to work today. Then read on.",
+  });
+  assert.equal(hook.text, "Put Backbone.js to work today.");
+});
+
+test("talkHook returns nothing when the talk offers no short line", () => {
+  assert.equal(talkHook({}), null);
+  assert.equal(talkHook(undefined), null);
+  assert.equal(talkHook({ description: `${"word ".repeat(60)}end.` }), null);
 });

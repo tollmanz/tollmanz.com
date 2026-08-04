@@ -4,11 +4,13 @@ import { hasCodeBlocks, paragraphs } from "./content.js";
 import {
   eventFacetSlug,
   eventFacets,
+  featuredTalks,
   relatedTalks,
   sourceGroups,
   sourceLabel,
   speakingStats,
   talkEventType,
+  talkHook,
   talkTopics,
   talkType,
   talksByYear,
@@ -37,6 +39,8 @@ export default function registerFilters(eleventyConfig) {
   eleventyConfig.addFilter("eventFacets", eventFacets);
   eleventyConfig.addFilter("eventFacetSlug", eventFacetSlug);
   eleventyConfig.addFilter("talksByYear", talksByYear);
+  eleventyConfig.addFilter("featuredTalks", featuredTalks);
+  eleventyConfig.addFilter("talkHook", talkHook);
   eleventyConfig.addFilter("speakingStats", speakingStats);
   eleventyConfig.addFilter("relatedTalks", relatedTalks);
 }

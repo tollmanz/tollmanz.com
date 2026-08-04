@@ -19,6 +19,7 @@ color, or which talks it links to.
 | `datePrecision` | no       | `day` (default), `month`, or `year`                  |
 | `updated`       | no       | Date the page itself last changed                    |
 | `type`          | yes      | `talk`, `keynote`, `panel`, or `workshop`            |
+| `featured`      | no       | `true` to offer the talk to the index featured tier  |
 | `topics`        | yes      | Topic slugs, primary first                           |
 | `event`         | yes      | `{ name, type, location }`                           |
 | `series`        | no       | Slug shared by repeat deliveries of one presentation |
@@ -49,6 +50,14 @@ says how exactly the date is known: talks still sort by the full `date`, but a
 `month` or `year` talk renders and marks up only what it can support, so a
 stand-in day never reads as fact.
 
+`featured: true` offers a talk to the "Start here" tier above the index filters,
+which holds at most five cards; `filters/talks.js` enforces that cap, so a sixth
+flagged talk drops off the end rather than widening the section. A featured card
+carries a photo, so `photos` is what makes the flag worth setting, and its hook
+is the shortest `quotes` entry that fits on one line, falling back to the
+opening sentence of `description`. Featured talks still appear in the
+chronological list, and the tier hides itself while any filter is active.
+
 ## Taxonomy
 
 `taxonomy/talks.js` owns the controlled vocabularies and their display labels,
@@ -73,7 +82,8 @@ under the header, alongside the video and the slides; the rest render in
 `collections/validate.js` checks every talk on each build and warns, naming the
 file: an unknown `type`, missing or unknown `topics`, a missing `event.name` or
 unknown `event.type`, a source with no `kind`, `url`, or `title` (or `label`),
-and a `video` or `slides` block with no `url`. An unknown slug still renders as
+a `video` or `slides` block with no `url`, and a `featured` value that is not a
+boolean. An unknown slug still renders as
 its raw text rather than disappearing, so a typo is visible on the page as well
 as in the build log.
 
