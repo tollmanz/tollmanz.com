@@ -1,9 +1,12 @@
 <footer class="site-footer">
   <div class="wrapper">
     <p>
+      {#- Every nav link is followed by its own separator, so the list reads
+          the same whatever it contains. -#}
       {% for page in collections.pages %}
         {% if page.data.title %}
         <a class="page-link" href="{{ page.url }}">{{ page.data.title }}</a>
+        &nbsp;|&nbsp;
         {% endif %}
       {% endfor %}
       <a class="page-link" href="/speaking/">Speaking</a>
