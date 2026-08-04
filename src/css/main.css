@@ -739,8 +739,31 @@ pre > code {
   color: var(--topic-color);
 }
 
+/* Format links sit above the full-row overlay cast by .talk-row__link::after,
+   so a click on Video or Slides reaches the artifact instead of the talk page.
+   The underline is the affordance that separates them from the topic labels. */
 .talk-row__fmt {
+  position: relative;
+  z-index: 1;
   color: var(--color-text-muted);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition:
+    text-decoration-color 0.2s ease,
+    color 0.15s ease;
+}
+
+.talk-row__fmt:hover,
+.talk-row__fmt:focus-visible {
+  color: var(--color-link);
+  text-decoration-color: currentColor;
+}
+
+.talk-row__fmt:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: 3px;
 }
 
 @media screen and (max-width: 600px) {
@@ -995,6 +1018,7 @@ pre > code {
 @media (prefers-reduced-motion: reduce) {
   .talk-row,
   .talk-row__link,
+  .talk-row__fmt,
   .talk-related__item {
     transition: none;
   }

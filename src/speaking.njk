@@ -109,8 +109,8 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
           {% if topics.length or talk.data.video.url or talk.data.slides.url %}
             <p class="talk-row__tags">
               {% for top in topics %}<span class="talk-row__topic t-{{ top.slug }}">{{ top.label }}</span>{% endfor %}
-              {% if talk.data.video.url %}<span class="talk-row__fmt">Video</span>{% endif %}
-              {% if talk.data.slides.url %}<span class="talk-row__fmt">Slides</span>{% endif %}
+              {% if talk.data.video.url %}<a class="talk-row__fmt" href="{{ talk.data.video.url }}" aria-label="Video: {{ talk.data.title }}">Video</a>{% endif %}
+              {% if talk.data.slides.url %}<a class="talk-row__fmt" href="{{ talk.data.slides.url }}" aria-label="Slides: {{ talk.data.title }}">Slides</a>{% endif %}
             </p>
           {% endif %}
         </div>
