@@ -2,17 +2,14 @@ import { dateDisplay, htmlDateString, monthDay, year } from "./dates.js";
 import { head } from "./arrays.js";
 import { hasCodeBlocks, paragraphs } from "./content.js";
 import {
-  categorizeSources,
-  displayTitle,
   eventFacets,
-  isLocalPdf,
   relatedTalks,
-  slidesProvider,
+  sourceGroups,
   speakingStats,
+  talkEventType,
   talkTopics,
   talkType,
   topicFacets,
-  videoProvider,
 } from "./talks.js";
 
 // Register all custom filters onto the Eleventy config. Filters are grouped by
@@ -28,13 +25,10 @@ export default function registerFilters(eleventyConfig) {
   eleventyConfig.addFilter("hasCodeBlocks", hasCodeBlocks);
   eleventyConfig.addFilter("paragraphs", paragraphs);
 
-  eleventyConfig.addFilter("displayTitle", displayTitle);
   eleventyConfig.addFilter("talkType", talkType);
   eleventyConfig.addFilter("talkTopics", talkTopics);
-  eleventyConfig.addFilter("videoProvider", videoProvider);
-  eleventyConfig.addFilter("slidesProvider", slidesProvider);
-  eleventyConfig.addFilter("isLocalPdf", isLocalPdf);
-  eleventyConfig.addFilter("categorizeSources", categorizeSources);
+  eleventyConfig.addFilter("talkEventType", talkEventType);
+  eleventyConfig.addFilter("sourceGroups", sourceGroups);
   eleventyConfig.addFilter("topicFacets", topicFacets);
   eleventyConfig.addFilter("eventFacets", eventFacets);
   eleventyConfig.addFilter("speakingStats", speakingStats);

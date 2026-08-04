@@ -1,4 +1,4 @@
-import { validateCollection } from "./validate.js";
+import { talkProblems, validateCollection } from "./validate.js";
 
 const POSTS_GLOB = "src/posts/*.md";
 const PAGES_GLOB = "src/pages/*.md";
@@ -45,7 +45,8 @@ export default function registerCollections(eleventyConfig) {
         collectionApi
           .getFilteredByGlob(TALKS_GLOB)
           .sort((a, b) => b.date - a.date),
-        "talks"
+        "talks",
+        talkProblems
       )
     )
   );

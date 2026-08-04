@@ -86,12 +86,11 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
 
   <ul class="talk-index">
     {% for talk in collections.talks %}
-      {%- set ttype = talk.data.title | talkType -%}
-      {%- set tself = { title: talk.data.title, description: talk.data.description } -%}
-      {%- set topics = tself | talkTopics -%}
+      {%- set ttype = talk.data.type | talkType -%}
+      {%- set topics = talk.data.topics | talkTopics -%}
       {%- set primary = topics[0].slug if topics.length else "talk" -%}
       {%- set topicClasses %}{% for top in topics %} topic-{{ top.slug }}{% endfor %}{% endset -%}
-      <li class="talk-row t-{{ primary }} evt-{{ talk.data.eventType or 'other' }} type-{{ ttype.slug }}{{ topicClasses }}{% if talk.data.video %} has-video{% endif %}{% if talk.data.slides %} has-slides{% endif %}">
+      <li class="talk-row t-{{ primary }} evt-{{ talk.data.event.type or 'other' }} type-{{ ttype.slug }}{{ topicClasses }}{% if talk.data.video.url %} has-video{% endif %}{% if talk.data.slides.url %} has-slides{% endif %}">
         <div class="talk-row__when">
           <span class="talk-row__year">{{ talk.date | year }}</span>
           <time class="talk-row__date" datetime="{{ talk.date | htmlDateString }}">{{ talk.date | monthDay }}</time>
@@ -99,18 +98,18 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
         <div class="talk-row__body">
           {% if ttype.slug != "talk" %}<p class="talk-row__kind">{{ ttype.label }}</p>{% endif %}
           <h2 class="talk-row__title">
-            <a class="talk-row__link" href="{{ talk.url }}">{{ talk.data.title | displayTitle }}</a>
+            <a class="talk-row__link" href="{{ talk.url }}">{{ talk.data.title }}</a>
           </h2>
           <p class="talk-row__meta">
-            {% if talk.data.conference %}{{ talk.data.conference }}{% endif %}
-            {%- if talk.data.location %} &middot; {{ talk.data.location }}{% endif %}
+            {% if talk.data.event.name %}{{ talk.data.event.name }}{% endif %}
+            {%- if talk.data.event.location %} &middot; {{ talk.data.event.location }}{% endif %}
             {%- if talk.data.coSpeakers %} &middot; with {{ talk.data.coSpeakers }}{% endif %}
           </p>
-          {% if topics.length or talk.data.video or talk.data.slides %}
+          {% if topics.length or talk.data.video.url or talk.data.slides.url %}
             <p class="talk-row__tags">
               {% for top in topics %}<span class="talk-row__topic t-{{ top.slug }}">{{ top.label }}</span>{% endfor %}
-              {% if talk.data.video %}<span class="talk-row__fmt">Video</span>{% endif %}
-              {% if talk.data.slides %}<span class="talk-row__fmt">Slides</span>{% endif %}
+              {% if talk.data.video.url %}<span class="talk-row__fmt">Video</span>{% endif %}
+              {% if talk.data.slides.url %}<span class="talk-row__fmt">Slides</span>{% endif %}
             </p>
           {% endif %}
         </div>

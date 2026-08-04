@@ -23,9 +23,10 @@ drives the speaking index, its facet counts, and related-talk ranking.
 
 Each item in `posts`, `pages`, and `talks` is checked for the required
 front-matter fields `title` and `date`. A missing or empty value emits a
-`console.warn` naming the file; an unparseable `date` warns as well. Validation
-warns rather than throws so a single malformed draft cannot block the build.
-Eleventy still fails hard on genuinely fatal input.
+`console.warn` naming the file; an unparseable `date` warns as well. Talks get
+the extra taxonomy checks described in [talks.md](talks.md). Validation warns
+rather than throws so a single malformed draft cannot block the build. Eleventy
+still fails hard on genuinely fatal input.
 
 Collection construction is wrapped in `try`/`catch`: on an unexpected error the
 collection degrades to an empty value with a `console.error` instead of crashing

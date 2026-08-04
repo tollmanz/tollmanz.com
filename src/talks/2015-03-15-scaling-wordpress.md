@@ -1,14 +1,27 @@
 ---
 title: "Scaling WordPress"
 date: 2015-03-15
-conference: "MidwestPHP 2015"
-eventType: "midwestphp"
-location: "Saint Paul, MN"
+type: "talk"
+topics:
+  - "infrastructure"
+  - "wordpress"
+  - "caching"
+  - "performance"
+event:
+  name: "MidwestPHP 2015"
+  type: "midwestphp"
+  location: "Saint Paul, MN"
 description: "WordPress is powering some of the biggest publishing sites on the web (CNN.com, techcrunch.com, wired.com). It's no accident that one of best CMSes on the web is chosen to be the publishing platform of choice by these content providers. That said, each of these companies have had to work hard to push the limits of the software to scale to meet the needs of their enormous audiences. In my talk, I will discuss the essential ingredients needed for scaling WordPress to millions of users. This talk will include discussion of integrating external services and technologies along with performant PHP practices to provide a stable publishing experience for the masses."
-slides: "https://speakerdeck.com/tollmanz/scaling-wordpress"
+slides:
+  url: "https://speakerdeck.com/tollmanz/scaling-wordpress"
+  provider: "Speaker Deck"
 sources:
-  - label: "Wrap-up"
+  - kind: "writing"
+    label: "Wrap-up"
     url: "/mwphp15/"
+  - kind: "coverage"
+    label: "Midwest PHP 2015 Conference (Earthling Interactive recap)"
+    url: "https://earthlinginteractive.com/blog/midwest-php-2015-conference/"
 quotes:
   - text: "Appropriately paced and engaging. Zack's presentation style is comfortable and informative."
     author: "Jeremy Lindblom"
@@ -19,7 +32,4 @@ quotes:
   - text: "Great advice, much of which is applicable beyond the context of WordPress."
     author: "Mike Owens"
     url: "https://joind.in/event/midwest-php-2015/scaling-wordpress"
-press:
-  - label: "Midwest PHP 2015 Conference (Earthling Interactive recap)"
-    url: "https://earthlinginteractive.com/blog/midwest-php-2015-conference/"
 ---

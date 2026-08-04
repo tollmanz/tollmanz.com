@@ -8,6 +8,8 @@ Reference documentation for tollmanz.com.
   does, and how to add one
 - [collections.md](collections.md): the `collections/` Eleventy collections,
   what each exposes to templates, and their front-matter validation rules
+- [talks.md](talks.md): the `src/talks/` front-matter contract, the talk
+  taxonomy in `taxonomy/talks.js`, and how speaking pages are validated
 - [transforms.md](transforms.md): how the `transforms/` Eleventy output
   transforms are organized, gated to production, and handle errors
 - [edge-caching.md](edge-caching.md): how the site caches, compresses, and serves

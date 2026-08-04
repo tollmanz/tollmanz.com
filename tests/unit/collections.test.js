@@ -1,7 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import registerCollections from "../../collections/index.js";
-import { collectionProblems } from "../../collections/validate.js";
+import {
+  collectionProblems,
+  talkProblems,
+} from "../../collections/validate.js";
 
 function item(inputPath, data) {
   return { inputPath, data };
@@ -203,4 +206,96 @@ test("a throwing collection degrades to empty instead of crashing", t => {
     talks: 0,
   });
   assert.equal(console.error.mock.callCount(), 4);
+});
+
+function validTalk(overrides = {}) {
+  return item("src/talks/a.md", {
+    title: "A Talk",
+    date: new Date("2015-01-01"),
+    type: "talk",
+    topics: ["caching"],
+    event: { name: "WordCamp Somewhere", type: "wordcamp" },
+    ...overrides,
+  });
+}
+
+test("talkProblems reports nothing for a well-formed talk", () => {
+  assert.deepEqual(talkProblems([validTalk()], "talks"), []);
+});
+
+test("talkProblems flags a type outside the taxonomy", () => {
+  const problems = talkProblems([validTalk({ type: "fireside" })], "talks");
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /unknown type "fireside"/);
+});
+
+test("talkProblems flags missing and unknown topics", () => {
+  assert.match(
+    talkProblems([validTalk({ topics: [] })], "talks")[0],
+    /field "topics"/
+  );
+  assert.match(
+    talkProblems([validTalk({ topics: ["caching", "nope"] })], "talks")[0],
+    /unknown topic "nope"/
+  );
+});
+
+test("talkProblems flags a missing event name and an unknown event type", () => {
+  const problems = talkProblems(
+    [validTalk({ event: { type: "unconference" } })],
+    "talks"
+  );
+  assert.equal(problems.length, 2);
+  assert.match(problems[0], /field "event.name"/);
+  assert.match(problems[1], /unknown event type "unconference"/);
+});
+
+test("talkProblems flags sources missing a kind, label, or url", () => {
+  const problems = talkProblems(
+    [
+      validTalk({
+        sources: [
+          { kind: "elsewhere", label: "Recap", url: "https://example.com/" },
+          { kind: "session", url: "https://example.com/session" },
+        ],
+      }),
+    ],
+    "talks"
+  );
+  assert.equal(problems.length, 2);
+  assert.match(problems[0], /unknown kind "elsewhere"/);
+  assert.match(problems[1], /without a label or url/);
+});
+
+test("talkProblems flags a video or slides block with no url", () => {
+  const problems = talkProblems(
+    [validTalk({ video: { provider: "YouTube" }, slides: { count: 76 } })],
+    "talks"
+  );
+  assert.deepEqual(
+    problems.map(problem => problem.match(/"(video|slides)" block/)[1]),
+    ["video", "slides"]
+  );
+});
+
+test("talkProblems names the offending file", () => {
+  const problems = talkProblems([item("src/talks/bad.md", {})], "talks");
+  for (const problem of problems) {
+    assert.match(problem, /talks: "src\/talks\/bad\.md"/);
+  }
+});
+
+test("talkProblems returns an empty list for non-array input", () => {
+  assert.deepEqual(talkProblems(null, "talks"), []);
+});
+
+test("the talks collection warns about both shared and talk-specific problems", t => {
+  t.mock.method(console, "warn", () => {});
+  const config = fakeConfig();
+  registerCollections(config);
+  const api = fakeApi({ [TALKS]: [item("src/talks/a.md", { title: "A" })] });
+  assert.equal(config.collections.talks(api).length, 1);
+  const warnings = console.warn.mock.calls.map(call => call.arguments[0]);
+  assert.ok(warnings.some(warning => /field "date"/.test(warning)));
+  assert.ok(warnings.some(warning => /field "topics"/.test(warning)));
 });

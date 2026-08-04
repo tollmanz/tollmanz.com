@@ -1,16 +1,26 @@
 ---
 title: "HTTPS is Coming: Are You Prepared?"
 date: 2016-06-23
-conference: "O'Reilly Velocity 2016"
-eventType: "velocity"
-location: "Santa Clara, CA"
+type: "talk"
+topics:
+  - "https-tls"
+  - "http2"
+series: "https-is-coming"
+event:
+  name: "O'Reilly Velocity 2016"
+  type: "velocity"
+  location: "Santa Clara, CA"
 description: "As web developers, we live in interesting times. A major movement toward an HTTPS-only Internet is afoot. Google, Mozilla, and even the Internet Engineering Task Force (IETF) have publicly declared their intent to move toward an HTTPS-only Web. New technologies, such as service workers and HTTP/2, are only supported with an HTTP connection secured via transport layer security (TLS). This transition is a significant win for privacy, security, and encryption, especially given the recent Edward Snowden revelations.\n\nWhile a HTTPS-only Web is a great goal, there is a major problem that does not get a lot of attention: we are terrible at configuring TLS. Recent academic research suggests that while developers are able to achieve a working TLS connection, they struggle to implement it securely due to misconfiguration errors. Moreover, the two most recent attacks against TLS (FREAK and Logjam) only affected servers that were misconfigured. Unfortunately, one of these attacks was estimated to affect approximately 8% of all websites due to mass misunderstanding and misconfiguration of TLS. SSL Pulse suggests that ~43% of the Alexa-ranked sites they sampled that offer an HTTPS connection are not secure, meaning that they have failed in at least one major area of TLS configuration. An HTTPS-only Web is a powerful thing, but an insecure Web that parades as a secure Web is dangerous.\n\nIn the years to come, tweaking and understanding your TLS configuration will be as basic a skill as knowing how to adjust to an .htaccess file. While some web developers may work in areas that have dedicated security teams to handle TLS, many do not have such resources. Just as a developer might be responsible for setting up an Nginx server to deploy her code, she might also have to handle the TLS configuration. Without the proper knowledge in this area, the site is at risk for being insecure.\n\nOne can find information about a \"proper\" TLS configuration online, but making sense of that information is maddening. If you've not been exposed to this information, I dare you to make sense of such a configuration. Zack Tollman explores the key aspects of HTTPS, unraveling the meaning of the obfuscated notation behind TLS configuration in an effort to empower developers to take control of their HTTPS-only sites. Zack concludes with an interactive demonstration of a Diffie-Hellman key exchange."
-slides: "https://speakerdeck.com/tollmanz/https-is-coming-are-you-prepared-velocity-2016"
+slides:
+  url: "https://speakerdeck.com/tollmanz/https-is-coming-are-you-prepared-velocity-2016"
+  provider: "Speaker Deck"
+  count: 56
 sources:
-  - label: "O'Reilly"
-    url: "https://www.oreilly.com/videos/velocity-2016/9781491944646/"
-  - label: "Code"
+  - kind: "code"
+    label: "Code"
     url: "https://github.com/tollmanz/diffie-hellman-key-exchange-demo"
-watchTime: "42:31"
-slideCount: 56
+  - kind: "coverage"
+    label: "O'Reilly"
+    url: "https://www.oreilly.com/videos/velocity-2016/9781491944646/"
+    duration: "42:31"
 ---

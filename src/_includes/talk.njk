@@ -1,14 +1,13 @@
 ---
 layout: base.njk
 ---
-{#- All fields are optional: each section renders only when its data exists,
-    so a sparse talk omits empties while a fully described one shows everything. -#}
-{%- set self = { title: title, description: description } -%}
-{%- set ttype = title | talkType -%}
-{%- set topics = self | talkTopics -%}
-{%- set primary = topics[0].slug if topics.length else "talk" -%}
-{%- set links = sources | categorizeSources -%}
-{%- set slidesIsPdf = slides | isLocalPdf -%}
+{#- Talks state their own type, topics, series, and link kinds in front matter
+    (see docs/talks.md). Everything optional renders only when present, so a
+    sparse talk omits empties while a fully described one shows everything. -#}
+{%- set ttype = type | talkType -%}
+{%- set topicList = topics | talkTopics -%}
+{%- set primary = topicList[0].slug if topicList.length else "talk" -%}
+{%- set links = sources | sourceGroups -%}
 {%- set paras = description | paragraphs -%}
 {%- set body = content | trim -%}
 {%- set related = collections.talks | relatedTalks(page.inputPath) -%}
@@ -17,17 +16,17 @@ layout: base.njk
   <header class="talk-page__header">
     <p class="talk-page__eyebrow"><a href="/speaking/">Speaking</a></p>
     {% if ttype.slug != "talk" %}<span class="talk-badge talk-badge--{{ ttype.slug }}">{{ ttype.label }}</span>{% endif %}
-    <h1 class="talk-page__title">{{ title | displayTitle }}</h1>
+    <h1 class="talk-page__title">{{ title }}</h1>
 
     <dl class="talk-page__meta">
       <div class="talk-page__meta-item">
         <dt>When</dt>
         <dd><time datetime="{{ date | htmlDateString }}">{{ date | dateDisplay }}</time></dd>
       </div>
-      {% if conference or location %}
+      {% if event.name or event.location %}
         <div class="talk-page__meta-item">
           <dt>Where</dt>
-          <dd>{{ conference }}{% if conference and location %} &middot; {% endif %}{{ location }}</dd>
+          <dd>{{ event.name }}{% if event.name and event.location %} &middot; {% endif %}{{ event.location }}</dd>
         </div>
       {% endif %}
       {% if coSpeakers %}
@@ -44,9 +43,9 @@ layout: base.njk
       {% endif %}
     </dl>
 
-    {% if topics.length %}
+    {% if topicList.length %}
       <ul class="talk-topics">
-        {% for top in topics %}<li class="talk-topic t-{{ top.slug }}">{{ top.label }}</li>{% endfor %}
+        {% for top in topicList %}<li class="talk-topic t-{{ top.slug }}">{{ top.label }}</li>{% endfor %}
       </ul>
     {% endif %}
   </header>
@@ -108,22 +107,21 @@ layout: base.njk
     </section>
   {% endif %}
 
-  {% if video or slides or links.reading.length or links.elsewhere.length or (press and press.length) or (resources and resources.length) %}
+  {% if video.url or slides.url or links.session.length or links.writing.length or links.coverage.length %}
     <section class="talk-section">
       <h2 class="talk-section__title">Links &amp; resources</h2>
       <ul class="talk-resources">
-        {% if video %}<li><a href="{{ video }}">Video</a> <span class="talk-resource__tag">{{ video | videoProvider }}{% if watchTime or duration %} &middot; {{ watchTime or duration }}{% endif %}</span></li>{% endif %}
-        {% if slides %}
-          {% if slidesIsPdf %}
-            <li><a href="{{ slides }}" download>Slides (PDF)</a>{% if slideCount %} <span class="talk-resource__tag">{{ slideCount }} slides</span>{% endif %}</li>
+        {% if video.url %}<li><a href="{{ video.url }}">Video</a> <span class="talk-resource__tag">{{ video.provider }}{% if video.duration %} &middot; {{ video.duration }}{% endif %}</span></li>{% endif %}
+        {% if slides.url %}
+          {% if slides.download %}
+            <li><a href="{{ slides.url }}" download>Slides (PDF)</a>{% if slides.count %} <span class="talk-resource__tag">{{ slides.count }} slides</span>{% endif %}</li>
           {% else %}
-            <li><a href="{{ slides }}">Slides</a> <span class="talk-resource__tag">{{ slides | slidesProvider }}{% if slideCount %} &middot; {{ slideCount }} slides{% endif %}</span></li>
+            <li><a href="{{ slides.url }}">Slides</a> <span class="talk-resource__tag">{{ slides.provider }}{% if slides.count %} &middot; {{ slides.count }} slides{% endif %}</span></li>
           {% endif %}
         {% endif %}
-        {% for r in resources %}<li><a href="{{ r.url }}"{% if r.download %} download{% endif %}>{{ r.label }}</a></li>{% endfor %}
-        {% for r in links.reading %}<li><a href="{{ r.url }}">{{ r.label }}</a> <span class="talk-resource__tag">on this site</span></li>{% endfor %}
-        {% for r in links.elsewhere %}<li><a href="{{ r.url }}">{{ r.label }}</a></li>{% endfor %}
-        {% for p in press %}<li><a href="{{ p.url }}">{{ p.label }}</a>{% if p.outlet %} <span class="talk-resource__tag">{{ p.outlet }}</span>{% endif %}</li>{% endfor %}
+        {% for r in links.session %}<li><a href="{{ r.url }}">{{ r.label }}</a>{% if r.duration %} <span class="talk-resource__tag">{{ r.duration }}</span>{% endif %}</li>{% endfor %}
+        {% for r in links.writing %}<li><a href="{{ r.url }}">{{ r.label }}</a> <span class="talk-resource__tag">on this site</span></li>{% endfor %}
+        {% for r in links.coverage %}<li><a href="{{ r.url }}">{{ r.label }}</a>{% if r.duration %} <span class="talk-resource__tag">{{ r.duration }}</span>{% endif %}</li>{% endfor %}
       </ul>
     </section>
   {% endif %}
@@ -140,15 +138,14 @@ layout: base.njk
       <h2 class="talk-section__title">Related talks</h2>
       <ul class="talk-related__list">
         {% for r in related %}
-          {%- set rself = { title: r.data.title, description: r.data.description } -%}
-          {%- set rtopics = rself | talkTopics -%}
+          {%- set rtopics = r.data.topics | talkTopics -%}
           {%- set rprimary = rtopics[0].slug if rtopics.length else "talk" -%}
           <li class="talk-related__item t-{{ rprimary }}">
             <a href="{{ r.url }}">
               <span class="talk-related__date">{{ r.date | dateDisplay }}</span>
               <span class="talk-related__main">
-                <span class="talk-related__title">{{ r.data.title | displayTitle }}</span>
-                {% if r.data.conference %}<span class="talk-related__conf">{{ r.data.conference }}</span>{% endif %}
+                <span class="talk-related__title">{{ r.data.title }}</span>
+                {% if r.data.event.name %}<span class="talk-related__conf">{{ r.data.event.name }}</span>{% endif %}
               </span>
             </a>
           </li>

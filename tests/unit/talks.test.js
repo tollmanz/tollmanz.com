@@ -1,137 +1,165 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  categorizeSources,
-  displayTitle,
   eventFacets,
-  isLocalPdf,
   relatedTalks,
-  slidesProvider,
+  sourceGroups,
   speakingStats,
+  talkEventType,
   talkTopics,
   talkType,
   topicFacets,
-  videoProvider,
 } from "../../filters/talks.js";
 
 function talk(inputPath, data, date) {
-  return { inputPath, data, date: date ?? new Date(data.date ?? "2015-01-01") };
+  return { inputPath, data, date: date ?? new Date("2015-01-01") };
 }
 
-test("talkTopics returns taxonomy-ordered slugs and labels", () => {
-  assert.deepEqual(talkTopics({ title: "HTTP/2 and You" }), [
-    { slug: "http2", label: "HTTP/2" },
+test("talkTopics resolves slugs to labels in the order the talk lists them", () => {
+  assert.deepEqual(talkTopics(["wordpress", "caching"]), [
+    { slug: "wordpress", label: "WordPress" },
+    { slug: "caching", label: "Caching" },
   ]);
 });
 
-test("talkTopics falls back to the description when the title names none", () => {
-  const topics = talkTopics({
-    title: "When Websites Stop Being Polite",
-    description: "An in-depth look at performance metrics in WordPress Core.",
+test("talkTopics echoes an unknown slug instead of dropping it", () => {
+  assert.deepEqual(talkTopics(["made-up"]), [
+    { slug: "made-up", label: "made-up" },
+  ]);
+});
+
+test("talkTopics returns an empty list when topics are missing", () => {
+  assert.deepEqual(talkTopics(undefined), []);
+  assert.deepEqual(talkTopics([]), []);
+});
+
+test("talkType labels the known formats and defaults to talk", () => {
+  assert.deepEqual(talkType("keynote"), { slug: "keynote", label: "Keynote" });
+  assert.deepEqual(talkType("panel"), { slug: "panel", label: "Panel" });
+  assert.deepEqual(talkType(undefined), { slug: "talk", label: "Talk" });
+});
+
+test("talkEventType labels the known events and defaults to other", () => {
+  assert.deepEqual(talkEventType("phpworld"), {
+    slug: "phpworld",
+    label: "php[world]",
   });
+  assert.deepEqual(talkEventType(undefined), {
+    slug: "other",
+    label: "Other",
+  });
+});
+
+test("sourceGroups splits sources by their declared kind", () => {
+  const groups = sourceGroups([
+    { kind: "code", label: "Code", url: "https://github.com/tollmanz/x" },
+    { kind: "writing", label: "Blog post", url: "/grokking/" },
+    { kind: "session", label: "Session", url: "https://example.com/session" },
+    { kind: "coverage", label: "Recap", url: "https://example.com/recap" },
+  ]);
   assert.deepEqual(
-    topics.map(topic => topic.slug),
-    ["performance", "wordpress"]
+    Object.fromEntries(
+      Object.entries(groups).map(([kind, list]) => [
+        kind,
+        list.map(source => source.label),
+      ])
+    ),
+    {
+      session: ["Session"],
+      code: ["Code"],
+      writing: ["Blog post"],
+      coverage: ["Recap"],
+    }
   );
 });
 
-test("talkTopics returns an empty list for missing data", () => {
-  assert.deepEqual(talkTopics(null), []);
-  assert.deepEqual(talkTopics({}), []);
+test("sourceGroups keeps an unknown kind out of the action buttons", () => {
+  const groups = sourceGroups([
+    { kind: "nonsense", label: "Odd", url: "https://example.com/" },
+  ]);
+  assert.deepEqual(groups.code, []);
+  assert.deepEqual(
+    groups.coverage.map(source => source.label),
+    ["Odd"]
+  );
 });
 
-test("talkType reads the format marker out of the title", () => {
-  assert.equal(talkType("A Talk (Keynote)").slug, "keynote");
-  assert.equal(talkType("Panel: Something").slug, "panel");
-  assert.equal(talkType("Workshop: Something").slug, "workshop");
-  assert.equal(talkType("Scaling WordPress").slug, "talk");
-  assert.equal(talkType(undefined).slug, "talk");
-});
-
-test("displayTitle strips the format marker from either end", () => {
-  assert.equal(displayTitle("Getting Real (Keynote)"), "Getting Real");
-  assert.equal(displayTitle("Panel: Moving to HTTPS"), "Moving to HTTPS");
-  assert.equal(displayTitle("Scaling WordPress"), "Scaling WordPress");
-});
-
-test("videoProvider names the known hosts and falls back", () => {
-  assert.equal(videoProvider("https://wordpress.tv/x/"), "WordPress.tv");
-  assert.equal(videoProvider("https://youtu.be/abc"), "YouTube");
-  assert.equal(videoProvider("https://vimeo.com/1"), "Vimeo");
-  assert.equal(videoProvider("https://www.oreilly.com/videos/x"), "O'Reilly");
-  assert.equal(videoProvider("https://example.com/x"), "Video");
-});
-
-test("slidesProvider distinguishes hosted decks from local PDFs", () => {
-  assert.equal(slidesProvider("https://speakerdeck.com/x"), "Speaker Deck");
-  assert.equal(slidesProvider("https://tollmanz.github.io/x/"), "GitHub");
-  assert.equal(slidesProvider("/media/pdf/WCSEA-2013.pdf"), "PDF");
-  assert.equal(slidesProvider("https://example.com/deck"), "Slides");
-});
-
-test("isLocalPdf accepts only site-relative PDF paths", () => {
-  assert.equal(isLocalPdf("/media/pdf/a.pdf"), true);
-  assert.equal(isLocalPdf("https://example.com/a.pdf"), false);
-  assert.equal(isLocalPdf("/media/pdf/a.html"), false);
-});
-
-test("categorizeSources splits code, on-site reading, and coverage", () => {
-  const groups = categorizeSources([
-    { label: "Code", url: "https://github.com/tollmanz/x" },
-    { label: "Blog post", url: "/grokking-the-wp-object-cache/" },
-    { label: "Session", url: "https://example.com/session" },
-    { label: "Broken", url: "" },
+test("sourceGroups skips entries without a url", () => {
+  const groups = sourceGroups([
+    { kind: "session", label: "Session", url: "" },
     null,
   ]);
-  assert.deepEqual(
-    groups.code.map(source => source.label),
-    ["Code"]
-  );
-  assert.deepEqual(
-    groups.reading.map(source => source.label),
-    ["Blog post"]
-  );
-  assert.deepEqual(
-    groups.elsewhere.map(source => source.label),
-    ["Session"]
-  );
+  assert.deepEqual(groups.session, []);
 });
 
-test("topicFacets counts every topic and keeps taxonomy order", () => {
+test("sourceGroups always returns every group", () => {
+  assert.deepEqual(Object.keys(sourceGroups(undefined)), [
+    "session",
+    "code",
+    "writing",
+    "coverage",
+  ]);
+});
+
+test("topicFacets counts declared topics and keeps taxonomy order", () => {
   const facets = topicFacets([
-    talk("a.md", { title: "HTTPS Is Coming" }),
-    talk("b.md", { title: "Caching for Coders" }),
-    talk("c.md", { title: "Understanding HTTPS and TLS" }),
+    talk("a.md", { topics: ["wordpress", "caching"] }),
+    talk("b.md", { topics: ["caching"] }),
+    talk("c.md", { topics: ["https-tls"] }),
   ]);
   assert.deepEqual(facets, [
-    { slug: "https-tls", label: "HTTPS & TLS", count: 2 },
-    { slug: "caching", label: "Caching", count: 1 },
+    { slug: "https-tls", label: "HTTPS & TLS", count: 1 },
+    { slug: "caching", label: "Caching", count: 2 },
+    { slug: "wordpress", label: "WordPress", count: 1 },
   ]);
 });
 
-test("eventFacets labels known event types and sorts by count", () => {
+test("topicFacets omits topics nobody speaks about", () => {
+  const slugs = topicFacets([talk("a.md", { topics: ["git"] })]).map(
+    facet => facet.slug
+  );
+  assert.deepEqual(slugs, ["git"]);
+});
+
+test("eventFacets counts declared event types in taxonomy order", () => {
   const facets = eventFacets([
-    talk("a.md", { eventType: "wordcamp" }),
-    talk("b.md", { eventType: "wordcamp" }),
-    talk("c.md", { eventType: "phpworld" }),
+    talk("a.md", { event: { type: "meetup" } }),
+    talk("b.md", { event: { type: "wordcamp" } }),
+    talk("c.md", { event: { type: "wordcamp" } }),
     talk("d.md", {}),
   ]);
   assert.deepEqual(facets, [
     { slug: "wordcamp", label: "WordCamp", count: 2 },
+    { slug: "meetup", label: "Meetup", count: 1 },
     { slug: "other", label: "Other", count: 1 },
-    { slug: "phpworld", label: "php[world]", count: 1 },
   ]);
 });
 
-test("speakingStats summarizes the collection", () => {
+test("eventFacets still reports an event type outside the taxonomy", () => {
+  const facets = eventFacets([
+    talk("a.md", { event: { type: "wordcamp" } }),
+    talk("b.md", { event: { type: "smashingconf" } }),
+  ]);
+  assert.deepEqual(facets.at(-1), {
+    slug: "smashingconf",
+    label: "smashingconf",
+    count: 1,
+  });
+});
+
+test("speakingStats counts only video and slides that have a url", () => {
   const stats = speakingStats([
-    talk("a.md", { video: "https://wordpress.tv/x/" }, new Date("2012-03-24")),
+    talk(
+      "a.md",
+      { video: { url: "https://wordpress.tv/x/" } },
+      new Date("2012-03-24")
+    ),
     talk(
       "b.md",
-      { slides: "https://speakerdeck.com/x" },
+      { slides: { url: "https://speakerdeck.com/x" } },
       new Date("2019-11-02")
     ),
-    talk("c.md", {}, new Date("2015-07-18")),
+    talk("c.md", { slides: { count: 76 } }, new Date("2015-07-18")),
   ]);
   assert.deepEqual(stats, {
     count: 3,
@@ -152,32 +180,43 @@ test("speakingStats reports null years for an empty collection", () => {
   });
 });
 
-test("relatedTalks ranks the same talk at another event first", () => {
+test("relatedTalks ranks another delivery of the same series first", () => {
   const talks = [
-    talk("a.md", { title: "HTTP/2 and You" }, new Date("2015-10-03")),
-    talk("b.md", { title: "HTTP/2 and You" }, new Date("2015-07-18")),
-    talk("c.md", { title: "HTTP/2 Server Push" }, new Date("2016-04-13")),
+    talk(
+      "a.md",
+      { series: "http-2-and-you", topics: ["http2"] },
+      new Date("2015-10-03")
+    ),
+    talk("b.md", { topics: ["http2", "performance"] }, new Date("2016-04-13")),
+    talk(
+      "c.md",
+      { series: "http-2-and-you", topics: ["http2"] },
+      new Date("2015-07-18")
+    ),
   ];
   assert.deepEqual(
     relatedTalks(talks, "a.md").map(item => item.inputPath),
-    ["b.md", "c.md"]
+    ["c.md", "b.md"]
   );
 });
 
-test("relatedTalks drops talks sharing nothing and honors the limit", () => {
+test("relatedTalks does not treat a missing series as a match", () => {
   const talks = [
-    talk("a.md", { title: "Caching for Coders" }, new Date("2012-03-24")),
-    talk("b.md", { title: "Core Caching Concepts" }, new Date("2013-06-08")),
-    talk(
-      "c.md",
-      { title: "Grokking the Object Cache" },
-      new Date("2012-08-25")
-    ),
-    talk("d.md", { title: "Getting TLS Right" }, new Date("2015-03-14")),
+    talk("a.md", { topics: ["git"] }, new Date("2013-06-30")),
+    talk("b.md", { topics: ["wordpress"] }, new Date("2012-03-24")),
+  ];
+  assert.deepEqual(relatedTalks(talks, "a.md"), []);
+});
+
+test("relatedTalks honors the limit and prefers newer talks within a score", () => {
+  const talks = [
+    talk("a.md", { topics: ["caching"] }, new Date("2012-03-24")),
+    talk("b.md", { topics: ["caching"] }, new Date("2013-06-08")),
+    talk("c.md", { topics: ["caching"] }, new Date("2015-11-18")),
   ];
   assert.deepEqual(
     relatedTalks(talks, "a.md", 1).map(item => item.inputPath),
-    ["b.md"]
+    ["c.md"]
   );
 });
 
