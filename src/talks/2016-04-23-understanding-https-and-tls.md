@@ -24,6 +24,7 @@ sources:
     url: "https://www.bluehost.com/blog/wordcamp-san-diego-recap/"
 quotes:
   - text: 'The classes on "Understand HTTPS and Transport Layer Security (TLS)" were very informative. I realized that majority of the websites using TLS are not correctly setup so these website are not secure. The presenter gave us a website to test our TLS setup. When I returned to my hotel room that night and ran a test on my client''s sites that use TLS I found they were all setup correctly! I was very pleased.'
+    source: "Attendee, quoted in the Bluehost WordCamp San Diego recap"
     url: "https://www.bluehost.com/blog/wordcamp-san-diego-recap/"
 photos:
   - src: "/media/images/talk-2016-understanding-https-wcsd.jpg"

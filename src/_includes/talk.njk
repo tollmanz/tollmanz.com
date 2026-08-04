@@ -79,9 +79,12 @@ layout: base.njk
     <section class="talk-section">
       <h2 class="talk-section__title">From the audience</h2>
       {% for q in quotes %}
+        {#- An unattributed quote still has a provenance: cite whatever names
+            it (author, then source), and link it whenever there is a url. -#}
+        {%- set cite = q.author or q.source -%}
         <blockquote class="talk-quote">
           <p>{{ q.text }}</p>
-          {% if q.author %}<cite>{% if q.url %}<a href="{{ q.url }}">{{ q.author }}</a>{% else %}{{ q.author }}{% endif %}</cite>{% endif %}
+          {% if cite or q.url %}<cite>{% if q.url %}<a href="{{ q.url }}">{{ cite or "Source" }}</a>{% else %}{{ cite }}{% endif %}</cite>{% endif %}
         </blockquote>
       {% endfor %}
     </section>

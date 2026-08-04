@@ -26,7 +26,7 @@ color, or which talks it links to.
 | `video`       | no       | `{ url, provider, duration }`                        |
 | `slides`      | no       | `{ url, provider, count, download }`                 |
 | `sources`     | no       | `[{ kind, label, url, duration }]`                   |
-| `quotes`      | no       | `[{ text, author, url }]`                            |
+| `quotes`      | no       | `[{ text, author, source, url }]`                    |
 | `photos`      | no       | `[{ src, alt, credit }]`                             |
 
 `topics[0]` is the primary topic and drives the accent color on the card and the
@@ -37,7 +37,9 @@ so it renders as a download link. A source `duration` is only for a URL that is
 the recording itself. Attendance figures are not modeled: an event's headcount
 says nothing about who was in the room for one session. `updated` is the only
 date the sitemap treats as `lastmod`: the engagement date says when the talk
-happened, not when the page was written or revised.
+happened, not when the page was written or revised. A quote is cited by its
+`author`, or by `source` when the speaker is anonymous, and the citation links
+to `url` either way, so a quote never loses its provenance for want of a name.
 
 ## Taxonomy
 
