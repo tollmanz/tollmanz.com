@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   FEATURED_LIMIT,
+  emptyFilterStates,
   eventFacetSlug,
   eventFacets,
   featuredTalks,
@@ -10,6 +11,7 @@ import {
   sourceLabel,
   speakingStats,
   talkEventType,
+  talkFilterStates,
   talkHook,
   talkTopics,
   talkType,
@@ -347,6 +349,129 @@ test("talksByYear keeps an undated talk in a trailing null group", () => {
 test("talksByYear returns nothing for an empty collection", () => {
   assert.deepEqual(talksByYear([]), []);
   assert.deepEqual(talksByYear(undefined), []);
+});
+
+// Six talks placing two topics against two event facets, with the video and
+// slides links spread so that some filter combinations match nothing.
+function filterFixture() {
+  const row = (topics, type, video, slides) => ({
+    data: {
+      topics,
+      event: { type },
+      video: video ? { url: "https://wordpress.tv/x/" } : {},
+      slides: slides ? { url: "https://speakerdeck.com/x" } : {},
+    },
+  });
+  return [
+    row(["caching"], "wordcamp", true, false),
+    row(["caching", "git"], "wordcamp", false, true),
+    row(["git"], "wordcamp", false, false),
+    row(["caching"], "meetup", true, true),
+    row(["caching"], "meetup", false, false),
+    row(["caching"], "meetup", false, false),
+  ];
+}
+
+test("talkFilterStates enumerates every combination of the controls", () => {
+  const states = talkFilterStates(filterFixture());
+  assert.equal(states.length, 4 * 3 * 3);
+  assert.deepEqual(states[0], { has: "", row: "", classes: [], count: 6 });
+  assert.equal(
+    new Set(states.map(state => state.has)).size,
+    states.length,
+    "each state is enumerated once"
+  );
+});
+
+test("talkFilterStates orders the fragments the way the rules read", () => {
+  const states = talkFilterStates(filterFixture());
+  const state = states.find(
+    entry => entry.classes.length === 4 && entry.classes[0] === ".topic-caching"
+  );
+  assert.equal(
+    state.has,
+    ":has(#flt-video:checked):has(#flt-slides:checked):has(#top-caching:checked):has(#evt-wordcamp:checked)"
+  );
+  assert.equal(state.row, ".topic-caching.evt-wordcamp.has-video.has-slides");
+  assert.deepEqual(state.classes, [
+    ".topic-caching",
+    ".evt-wordcamp",
+    ".has-video",
+    ".has-slides",
+  ]);
+});
+
+test("talkFilterStates counts the talks a state leaves visible", () => {
+  const states = talkFilterStates(filterFixture());
+  const count = row => states.find(state => state.row === row).count;
+  assert.equal(count(".has-video"), 2);
+  assert.equal(count(".has-video.has-slides"), 1);
+  assert.equal(count(".topic-caching"), 5);
+  assert.equal(count(".topic-git.evt-wordcamp"), 2);
+  assert.equal(count(".topic-git.evt-meetup"), 0);
+});
+
+test("talkFilterStates folds an under-threshold event into its facet", () => {
+  const states = talkFilterStates([
+    { data: { topics: ["git"], event: { type: "loopconf" }, video: {} } },
+  ]);
+  assert.equal(states.find(state => state.row === ".evt-other").count, 1);
+});
+
+test("emptyFilterStates keeps only the loosest zero-result states", () => {
+  const states = talkFilterStates(filterFixture());
+  assert.equal(states.filter(state => state.count === 0).length, 10);
+  assert.deepEqual(
+    emptyFilterStates(states).map(state => state.row),
+    [
+      ".topic-git.evt-meetup",
+      ".topic-git.has-video",
+      ".evt-wordcamp.has-video.has-slides",
+    ]
+  );
+});
+
+test("emptyFilterStates covers every zero-result state", () => {
+  const states = talkFilterStates(filterFixture());
+  const loosest = emptyFilterStates(states);
+  for (const state of states) {
+    const covered = loosest.some(entry =>
+      entry.classes.every(cls => state.classes.includes(cls))
+    );
+    assert.equal(
+      covered,
+      state.count === 0,
+      `${state.row || "(no filters)"} matches ${state.count} talks`
+    );
+  }
+});
+
+test("emptyFilterStates returns nothing when every state matches", () => {
+  const states = talkFilterStates([
+    {
+      data: {
+        topics: ["git"],
+        event: { type: "wordcamp" },
+        video: { url: "https://wordpress.tv/x/" },
+        slides: { url: "https://speakerdeck.com/x" },
+      },
+    },
+  ]);
+  assert.deepEqual(emptyFilterStates(states), []);
+  assert.deepEqual(emptyFilterStates([]), []);
+  assert.deepEqual(emptyFilterStates(undefined), []);
+});
+
+test("an empty collection collapses to the unfiltered empty state", () => {
+  // The format checkboxes render whatever the collection holds, so an empty
+  // collection still enumerates their four combinations; all of them fold into
+  // the state that filters on nothing.
+  const states = talkFilterStates([]);
+  assert.equal(states.length, 4);
+  assert.deepEqual(emptyFilterStates(states), [
+    { has: "", row: "", classes: [], count: 0 },
+  ]);
+  assert.deepEqual(emptyFilterStates(talkFilterStates(undefined)).length, 1);
 });
 
 test("speakingStats counts only video and slides that have a url", () => {

@@ -123,6 +123,91 @@ export function eventFacetSlug(talks) {
   return Object.fromEntries(eventFacetAssignment(talks).facetOf);
 }
 
+// The controls the index filters on, each pairing the CSS fragments a rule
+// needs with the test the matching row class encodes: `has` detects the control
+// from the inputs, `row` names the class a surviving row carries, and `matches`
+// answers the same question against the talk. Keeping the three together is
+// what stops a state's talk count from describing a different set than its
+// selector does.
+function filterControls(talks) {
+  const facetOf = eventFacetSlug(talks);
+  return {
+    format: [
+      {
+        has: ":has(#flt-video:checked)",
+        row: ".has-video",
+        matches: talk => Boolean(talk?.data?.video?.url),
+      },
+      {
+        has: ":has(#flt-slides:checked)",
+        row: ".has-slides",
+        matches: talk => Boolean(talk?.data?.slides?.url),
+      },
+    ],
+    topic: topicFacets(talks).map(facet => ({
+      has: `:has(#top-${facet.slug}:checked)`,
+      row: `.topic-${facet.slug}`,
+      matches: talk => (talk?.data?.topics || []).includes(facet.slug),
+    })),
+    event: eventFacets(talks).map(facet => ({
+      has: `:has(#evt-${facet.slug}:checked)`,
+      row: `.evt-${facet.slug}`,
+      matches: talk =>
+        (facetOf[talk?.data?.event?.type || "other"] || "other") === facet.slug,
+    })),
+  };
+}
+
+// Every filter state the index can reach, as { has, row, classes, count }: the
+// `:has()` chain that detects the state, the compound a row must carry to
+// survive it, that compound split into its classes, and how many talks the
+// state matches. The format checkboxes are independent, so all four of their
+// combinations appear; the Topic and Event radios contribute at most one
+// control each, and the leading empty entry stands for their "All" option.
+// Both the year-group rules and the empty-state rule are built from this one
+// list, so the page cannot hide every group in a state the empty message
+// considers populated.
+export function talkFilterStates(talks) {
+  const items = talks || [];
+  const { format, topic, event } = filterControls(items);
+  const formatStates = [[], [format[0]], [format[1]], format];
+  const radioStates = controls => [[], ...controls.map(control => [control])];
+  const states = [];
+  for (const fmt of formatStates) {
+    for (const top of radioStates(topic)) {
+      for (const evt of radioStates(event)) {
+        const active = [...top, ...evt, ...fmt];
+        states.push({
+          has: [...fmt, ...top, ...evt].map(control => control.has).join(""),
+          row: active.map(control => control.row).join(""),
+          classes: active.map(control => control.row),
+          count: items.filter(talk =>
+            active.every(control => control.matches(talk))
+          ).length,
+        });
+      }
+    }
+  }
+  return states;
+}
+
+// The zero-result states that need a rule of their own. Filters only narrow, so
+// a state matching no talk still matches none once more filters join it, and a
+// rule written for the loosest such state already fires in every state below
+// it. Dropping the covered states shortens the emitted selector list without
+// leaving a state uncovered.
+export function emptyFilterStates(states) {
+  const empty = (states || []).filter(state => state.count === 0);
+  return empty.filter(
+    state =>
+      !empty.some(
+        other =>
+          other !== state &&
+          other.classes.every(cls => state.classes.includes(cls))
+      )
+  );
+}
+
 // Fold the collection into [{ year, talks }] groups, newest year first, so the
 // index renders one year heading per group instead of repeating the year on
 // every row. Talks keep the order the collection hands over, which is already

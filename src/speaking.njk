@@ -91,31 +91,21 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
     </section>
   {% endif %}
 
-  {# Every filter state a year group has to answer for, as two CSS fragments:
-     `has` detects the state from the inputs, `row` is the compound a row must
-     carry to survive it. The Topic and Event lists lead with an empty entry
-     standing for their "All" option; the format checkboxes are independent, so
-     all four of their combinations appear. #}
-  {%- set fmtStates = [
-    { has: "", row: "" },
-    { has: ":has(#flt-video:checked)", row: ".has-video" },
-    { has: ":has(#flt-slides:checked)", row: ".has-slides" },
-    { has: ":has(#flt-video:checked):has(#flt-slides:checked)", row: ".has-video.has-slides" }
-  ] -%}
-  {%- set topStates = [{ has: "", row: "" }] -%}
-  {%- for f in topFacets -%}
-    {%- set _ = topStates.push({ has: ":has(#top-" + f.slug + ":checked)", row: ".topic-" + f.slug }) -%}
-  {%- endfor -%}
-  {%- set evtStates = [{ has: "", row: "" }] -%}
-  {%- for f in evtFacets -%}
-    {%- set _ = evtStates.push({ has: ":has(#evt-" + f.slug + ":checked)", row: ".evt-" + f.slug }) -%}
-  {%- endfor -%}
+  {# Every filter state the index can reach, with the CSS fragments its rules
+     need and the number of talks it matches. The year-group rules and the
+     empty-state rule both read this one enumeration, so a state that hides
+     every group is exactly a state the empty message answers for. #}
+  {%- set filterStates = collections.talks | talkFilterStates -%}
   {%- set groupSelectors = [] -%}
-  {%- for fmt in fmtStates -%}{%- for top in topStates -%}{%- for evt in evtStates -%}
-    {%- if fmt.row or top.row or evt.row -%}
-      {%- set _ = groupSelectors.push(".speaking" + fmt.has + top.has + evt.has + " .talk-year-group:not(:has(" + top.row + evt.row + fmt.row + "))") -%}
+  {%- for state in filterStates -%}
+    {%- if state.row -%}
+      {%- set _ = groupSelectors.push(".speaking" + state.has + " .talk-year-group:not(:has(" + state.row + "))") -%}
     {%- endif -%}
-  {%- endfor -%}{%- endfor -%}{%- endfor -%}
+  {%- endfor -%}
+  {%- set emptySelectors = [] -%}
+  {%- for state in filterStates | emptyFilterStates -%}
+    {%- set _ = emptySelectors.push(".speaking" + state.has + " .talk-index-empty") -%}
+  {%- endfor -%}
 
   {# Zero-JS filtering: the checkboxes/radios below drive these :has() rules.
      Format checkboxes combine (AND); the Topic and Event radios are single-select.
@@ -123,7 +113,9 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
      The second hides year groups left with no matching row, which needs one
      selector per combination of active facets: whether a group still has a row
      is a question about all of them at once, so the row rules' AND-by-cascade
-     does not carry over. #}
+     does not carry over. The third reveals the empty message in the states that
+     match no talk, listing only the loosest of them because narrowing a state
+     that matches nothing cannot produce a match. #}
   <style>
     .speaking:has(#flt-video:checked) .talk-row:not(.has-video) { display: none; }
     .speaking:has(#flt-slides:checked) .talk-row:not(.has-slides) { display: none; }
@@ -134,6 +126,9 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
     .speaking:has(#evt-{{ f.slug }}:checked) .talk-row:not(.evt-{{ f.slug }}) { display: none; }
     {%- endfor %}
     {{ groupSelectors | join(",") }} { display: none; }
+    {%- if emptySelectors.length %}
+    {{ emptySelectors | join(",") }} { display: block; }
+    {%- endif %}
   </style>
 
   <div class="talk-filters">
@@ -213,4 +208,12 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
       </ul>
     </section>
   {% endfor %}
+
+  {#- The zero-result message, hidden until one of the generated rules above
+      reveals it. It renders only when some filter combination reaches it, and
+      it states the way back in prose because a zero-JS page has no control that
+      can uncheck the inputs. -#}
+  {% if emptySelectors.length %}
+    <p class="talk-index-empty">No talks match these filters. Select All under Topic and Event and uncheck Video and Slides to see the full list.</p>
+  {% endif %}
 </div>
