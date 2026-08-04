@@ -110,13 +110,14 @@ test("collectionProblems returns an empty list for non-array input", () => {
   assert.deepEqual(collectionProblems(undefined, "posts"), []);
 });
 
-test("registerCollections registers posts, pages, talks, and collectionMeta", () => {
+test("registerCollections registers every collection", () => {
   const config = fakeConfig();
   registerCollections(config);
   assert.deepEqual(Object.keys(config.collections).sort(), [
     "collectionMeta",
     "pages",
     "posts",
+    "talkBacklinks",
     "talks",
   ]);
 });
@@ -164,6 +165,27 @@ test("talks is sorted newest first", () => {
   );
 });
 
+test("talkBacklinks keys talks by the post their writing source names", () => {
+  const config = fakeConfig();
+  registerCollections(config);
+  const older = {
+    inputPath: "src/talks/old.md",
+    url: "/speaking/old/",
+    date: new Date("2015-03-14"),
+    data: { sources: [{ kind: "writing", url: "/mwphp15/" }] },
+  };
+  const newer = {
+    inputPath: "src/talks/new.md",
+    url: "/speaking/new/",
+    date: new Date("2015-03-15"),
+    data: { sources: [{ kind: "writing", url: "/mwphp15/" }] },
+  };
+  const api = fakeApi({ [TALKS]: [older, newer] });
+  assert.deepEqual(config.collections.talkBacklinks(api), {
+    "/mwphp15/": [newer, older],
+  });
+});
+
 test("collectionMeta exposes item counts", () => {
   const config = fakeConfig();
   registerCollections(config);
@@ -200,12 +222,13 @@ test("a throwing collection degrades to empty instead of crashing", t => {
   assert.deepEqual(config.collections.posts(api), []);
   assert.deepEqual(config.collections.pages(api), []);
   assert.deepEqual(config.collections.talks(api), []);
+  assert.deepEqual(config.collections.talkBacklinks(api), {});
   assert.deepEqual(config.collections.collectionMeta(api), {
     posts: 0,
     pages: 0,
     talks: 0,
   });
-  assert.equal(console.error.mock.callCount(), 4);
+  assert.equal(console.error.mock.callCount(), 5);
 });
 
 function validTalk(overrides = {}) {

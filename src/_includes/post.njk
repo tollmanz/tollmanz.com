@@ -8,6 +8,18 @@ layout: base.njk
     <p class="post-meta">{{ date | dateDisplay }}</p>
   </header>
 
+  {#- Talks name their wrap-up article in front matter; collections.talkBacklinks
+      inverts that so the article can name the talk. See docs/collections.md. -#}
+  {%- set talks = collections.talkBacklinks[page.url] -%}
+  {% if talks.length %}
+    <p class="post-talk-note">
+      This post accompanies {{ "a talk" if talks.length == 1 else "these talks" }}:
+      {%- for talk in talks %}
+        <a href="{{ talk.url }}">{{ talk.data.title }}</a>{% if talk.data.event.name %} at {{ talk.data.event.name }}{% endif %}{{ "." if loop.last else ";" }}
+      {%- endfor %}
+    </p>
+  {% endif %}
+
   <article class="post-content">
     {{ content | safe }}
   </article>

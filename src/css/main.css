@@ -430,6 +430,23 @@ pre > code {
   margin-bottom: 30px;
 }
 
+/* Backlink from a post to the talk it accompanies, built from
+   collections.talkBacklinks. Quiet by design: it sits above the article and
+   must not compete with it. */
+.post-talk-note {
+  margin-bottom: 30px;
+  padding-left: 15px;
+  border-left: 3px solid var(--color-border);
+  font-size: 15.75px;
+  color: var(--color-text-muted);
+}
+
+/* One quiet pointer to the speaking section under the homepage post list. */
+.home-speaking {
+  font-size: 15.75px;
+  color: var(--color-text-muted);
+}
+
 /* Speaking
 
    The speaking index is a card wall; each talk also has its own page. Both

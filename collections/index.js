@@ -1,4 +1,6 @@
 import { talkProblems, validateCollection } from "./validate.js";
+import { talkBacklinks } from "./backlinks.js";
+import site from "../src/_data/site.js";
 
 const POSTS_GLOB = "src/posts/*.md";
 const PAGES_GLOB = "src/pages/*.md";
@@ -47,6 +49,20 @@ export default function registerCollections(eleventyConfig) {
           .sort((a, b) => b.date - a.date),
         "talks",
         talkProblems
+      )
+    )
+  );
+
+  // Reverse links: { postUrl: [talk, ...] } for every post a talk cites as its
+  // wrap-up writing, so post.njk can point back at the talk without the link
+  // being maintained on both sides. Keys only existing post URLs; creates none.
+  eleventyConfig.addCollection("talkBacklinks", collectionApi =>
+    buildCollection("talkBacklinks", {}, () =>
+      talkBacklinks(
+        collectionApi
+          .getFilteredByGlob(TALKS_GLOB)
+          .sort((a, b) => b.date - a.date),
+        site.url
       )
     )
   );

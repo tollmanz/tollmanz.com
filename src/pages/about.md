@@ -8,6 +8,8 @@ description: Zack Tollman is an Application Performance Architect at Condé Nast
 
 My name is Zack Tollman. I am Application Performance Architect at Condé Nast. While I am well versed in general web development, WordPress is my bread and butter. I enjoy working on WordPress projects, writing plugins, and helping other learn about appreciate how incredible the WordPress software is. Additionally, I am interested in performance and security.
 
+From 2012 to 2019 I spoke at conferences and meetups pretty regularly, mostly about WordPress caching, web performance, and helping big sites move to HTTPS. The two I am proudest of are my 2014 keynote at WordCamp Ventura County, on what performance metrics actually tell you, and "Defining Fast: The Hardest Problem in Performance Engineering", which I gave at WordCamp US 2019. Slides, video, and the rest of the back catalog are on the [speaking](/speaking/) page.
+
 I hope to be writing about fun and interesting WordPress, performance, and security topics for the foreseeable future. I hope to expand on the structure of the site and add a few features along the way. I also tend to use personal sites as testing grounds for new ideas and concepts, so there will definitely be some downtime along the way.
 
 If you need to get in touch with me, feel free to reach out at tollmanz (at) gmail _dot_ com.
