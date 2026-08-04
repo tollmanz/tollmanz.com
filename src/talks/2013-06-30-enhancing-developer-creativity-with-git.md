@@ -15,9 +15,9 @@ video:
   duration: "42:47"
 sources:
   - kind: "session"
-    label: "Session"
+    title: "Session"
     url: "https://chicago.wordcamp.org/2013/session/enhancing-developer-creativity-with-git/"
   - kind: "writing"
-    label: "Blog post"
+    title: "Blog post"
     url: "/enhancing-developer-creativity-with-git/"
 ---

@@ -16,9 +16,9 @@ slides:
   download: true
 sources:
   - kind: "session"
-    label: "Session"
+    title: "Session"
     url: "https://seattle.wordcamp.org/2013/sessions/"
   - kind: "writing"
-    label: "Blog post"
+    title: "Blog post"
     url: "/core-caching-concepts-in-wordpress/"
 ---

@@ -6,6 +6,7 @@ import {
   eventFacets,
   relatedTalks,
   sourceGroups,
+  sourceLabel,
   speakingStats,
   talkEventType,
   talkTopics,
@@ -30,6 +31,7 @@ export default function registerFilters(eleventyConfig) {
   eleventyConfig.addFilter("talkTopics", talkTopics);
   eleventyConfig.addFilter("talkEventType", talkEventType);
   eleventyConfig.addFilter("sourceGroups", sourceGroups);
+  eleventyConfig.addFilter("sourceLabel", sourceLabel);
   eleventyConfig.addFilter("topicFacets", topicFacets);
   eleventyConfig.addFilter("eventFacets", eventFacets);
   eleventyConfig.addFilter("eventFacetSlug", eventFacetSlug);

@@ -56,7 +56,7 @@ layout: base.njk
       {% if slides.url %}
         <a class="talk-action" href="{{ slides.url }}"{% if slides.download %} download{% endif %}>{% if slides.download %}Download the slides{% else %}View the slides{% endif %}{% if slides.provider or slides.count %} <span class="talk-action__meta">{{ slides.provider }}{% if slides.provider and slides.count %} &middot; {% endif %}{% if slides.count %}{{ slides.count }} slides{% endif %}</span>{% endif %}</a>
       {% endif %}
-      {% for repo in links.code %}<a class="talk-action" href="{{ repo.url }}">{{ repo.label }}</a>{% endfor %}
+      {% for repo in links.code %}<a class="talk-action" href="{{ repo.url }}">{{ repo | sourceLabel }}</a>{% endfor %}
     </div>
   {% endif %}
 
@@ -120,9 +120,11 @@ layout: base.njk
     <section class="talk-section">
       <h2 class="talk-section__title">Links &amp; resources</h2>
       <ul class="talk-resources">
-        {% for r in links.session %}<li><a href="{{ r.url }}">{{ r.label }}</a>{% if r.duration %} <span class="talk-resource__tag">{{ r.duration }}</span>{% endif %}</li>{% endfor %}
-        {% for r in links.writing %}<li><a href="{{ r.url }}">{{ r.label }}</a> <span class="talk-resource__tag">on this site</span></li>{% endfor %}
-        {% for r in links.coverage %}<li><a href="{{ r.url }}">{{ r.label }}</a>{% if r.duration %} <span class="talk-resource__tag">{{ r.duration }}</span>{% endif %}</li>{% endfor %}
+        {#- Anchors carry "Publisher: title" and nothing else. Editorial detail
+            about what a link contains lives in `note` and renders under it. -#}
+        {% for r in links.session %}<li><a href="{{ r.url }}">{{ r | sourceLabel }}</a>{% if r.duration %} <span class="talk-resource__tag">{{ r.duration }}</span>{% endif %}{% if r.note %}<span class="talk-resource__note">{{ r.note }}</span>{% endif %}</li>{% endfor %}
+        {% for r in links.writing %}<li><a href="{{ r.url }}">{{ r | sourceLabel }}</a> <span class="talk-resource__tag">on this site</span>{% if r.note %}<span class="talk-resource__note">{{ r.note }}</span>{% endif %}</li>{% endfor %}
+        {% for r in links.coverage %}<li><a href="{{ r.url }}">{{ r | sourceLabel }}</a>{% if r.duration %} <span class="talk-resource__tag">{{ r.duration }}</span>{% endif %}{% if r.note %}<span class="talk-resource__note">{{ r.note }}</span>{% endif %}</li>{% endfor %}
       </ul>
     </section>
   {% endif %}

@@ -15,13 +15,15 @@ video:
   provider: "YouTube"
 sources:
   - kind: "code"
-    label: "Code"
+    title: "Code"
     url: "https://github.com/tollmanz/backbone-wordpress-theme"
   - kind: "coverage"
-    label: "Write-up"
+    publisher: "WordPress Vancouver"
+    title: "meetup write-up"
     url: "https://wpyvr.org/backbone-themin-zack-tollman-developer-meetup-april-17th/"
   - kind: "coverage"
-    label: "WPSessions"
+    publisher: "WPSessions"
+    title: "session recording"
     url: "https://wpsessions.com/sessions/wordpress-themes-and-backbone-js/"
 photos:
   - src: "/media/images/talk-2014-backbone-wpyvr.jpg"

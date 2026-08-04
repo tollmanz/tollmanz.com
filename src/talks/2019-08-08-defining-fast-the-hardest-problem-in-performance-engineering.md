@@ -20,9 +20,10 @@ slides:
   count: 54
 sources:
   - kind: "session"
-    label: "Session"
+    title: "Session"
     url: "https://publishers.wordcamp.org/2019-columbus/session/defining-fast-the-hardest-problem-in-performance-engineering/"
   - kind: "coverage"
-    label: "WordCamp for Publishers 2019: Warm Ohio nights and a lot of community socializing"
+    publisher: "Dwayne McDaniel"
+    title: "WordCamp for Publishers 2019 recap"
     url: "https://www.mcdwayne.com/2019/08/10/wcpub-2019/"
 ---

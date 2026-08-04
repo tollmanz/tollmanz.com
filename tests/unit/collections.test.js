@@ -263,12 +263,12 @@ test("talkProblems flags a missing event name and an unknown event type", () => 
   assert.match(problems[1], /unknown event type "unconference"/);
 });
 
-test("talkProblems flags sources missing a kind, label, or url", () => {
+test("talkProblems flags sources missing a kind, title, or url", () => {
   const problems = talkProblems(
     [
       validTalk({
         sources: [
-          { kind: "elsewhere", label: "Recap", url: "https://example.com/" },
+          { kind: "elsewhere", title: "Recap", url: "https://example.com/" },
           { kind: "session", url: "https://example.com/session" },
         ],
       }),
@@ -277,7 +277,21 @@ test("talkProblems flags sources missing a kind, label, or url", () => {
   );
   assert.equal(problems.length, 2);
   assert.match(problems[0], /unknown kind "elsewhere"/);
-  assert.match(problems[1], /without a label or url/);
+  assert.match(problems[1], /without a title or url/);
+});
+
+test("talkProblems accepts a source that still carries only a label", () => {
+  const problems = talkProblems(
+    [
+      validTalk({
+        sources: [
+          { kind: "coverage", label: "Recap", url: "https://example.com/" },
+        ],
+      }),
+    ],
+    "talks"
+  );
+  assert.deepEqual(problems, []);
 });
 
 test("talkProblems flags a video or slides block with no url", () => {

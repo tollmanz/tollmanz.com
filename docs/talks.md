@@ -26,7 +26,7 @@ color, or which talks it links to.
 | `description`   | no       | Abstract; blank lines split it into paragraphs       |
 | `video`         | no       | `{ url, provider, duration }`                        |
 | `slides`        | no       | `{ url, provider, count, download }`                 |
-| `sources`       | no       | `[{ kind, label, url, duration }]`                   |
+| `sources`       | no       | `[{ kind, publisher, title, url, note, duration }]`  |
 | `quotes`        | no       | `[{ text, author, source, url }]`                    |
 | `photos`        | no       | `[{ src, alt, credit }]`                             |
 
@@ -34,15 +34,20 @@ color, or which talks it links to.
 page, so order matters. `series` is what makes two files the same presentation:
 related-talk ranking scores a series match far above shared topics. A `video` or
 `slides` block needs a `url`; `download: true` marks a deck hosted on this site
-so it renders as a download link. A source `duration` is only for a URL that is
-the recording itself. `updated` is the only date the sitemap treats as
-`lastmod`: the engagement date says when the talk happened, not when the page
-was written or revised. A quote is cited by its `author`, or by `source` when
-the speaker is anonymous, and the citation links to `url` either way, so a quote
-never loses its provenance for want of a name. `datePrecision` says how exactly
-the date is known: talks still sort by the full `date`, but a `month` or `year`
-talk renders and marks up only what it can support, so a stand-in day never
-reads as fact.
+so it renders as a download link. A source renders as `Publisher: title`, so a
+coverage link names who published it rather than standing as a bare
+"WPSessions"; `label` is the older single-field form and still supplies the link
+text when there is no `title`. Editorial detail about what a link contains goes
+in `note`, which renders as muted text under the link and never inside the
+anchor, so link text stays short enough to scan. A source `duration` is only for
+a URL that is the recording itself. `updated` is the only date the sitemap
+treats as `lastmod`: the engagement date says when the talk happened, not when
+the page was written or revised. A quote is cited by its `author`, or by
+`source` when the speaker is anonymous, and the citation links to `url` either
+way, so a quote never loses its provenance for want of a name. `datePrecision`
+says how exactly the date is known: talks still sort by the full `date`, but a
+`month` or `year` talk renders and marks up only what it can support, so a
+stand-in day never reads as fact.
 
 ## Taxonomy
 
@@ -67,10 +72,10 @@ under the header, alongside the video and the slides; the rest render in
 
 `collections/validate.js` checks every talk on each build and warns, naming the
 file: an unknown `type`, missing or unknown `topics`, a missing `event.name` or
-unknown `event.type`, a source with no `kind`, `label`, or `url`, and a `video`
-or `slides` block with no `url`. An unknown slug still renders as its raw text
-rather than disappearing, so a typo is visible on the page as well as in the
-build log.
+unknown `event.type`, a source with no `kind`, `url`, or `title` (or `label`),
+and a `video` or `slides` block with no `url`. An unknown slug still renders as
+its raw text rather than disappearing, so a typo is visible on the page as well
+as in the build log.
 
 ## Adding a talk
 

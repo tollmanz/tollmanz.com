@@ -16,6 +16,7 @@ slides:
   count: 14
 sources:
   - kind: "coverage"
-    label: "Fastly blog"
+    publisher: "Fastly"
+    title: "Altitude 2016 conference recap"
     url: "https://www.fastly.com/blog/altitude-2016-future-edge"
 ---

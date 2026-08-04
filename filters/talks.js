@@ -47,6 +47,19 @@ export function sourceGroups(sources) {
   return groups;
 }
 
+// Link text for one source: "Publisher: title", so a coverage link names who
+// published it instead of standing as a bare "WPSessions". `label` is the
+// pre-migration field name and still reads as the title. Editorial commentary
+// lives in `note` and renders beside the link, never inside the anchor.
+export function sourceLabel(source) {
+  const title = source?.title || source?.label || "";
+  const publisher = source?.publisher || "";
+  if (publisher && title) {
+    return `${publisher}: ${title}`;
+  }
+  return title || publisher;
+}
+
 // Topic filter facets: { slug, label, count } in taxonomy order, counting every
 // talk that carries each topic. Topics nobody speaks about are omitted.
 export function topicFacets(talks) {

@@ -955,6 +955,14 @@ pre > code {
   margin-left: 6px;
 }
 
+/* Editorial detail about a link sits under it as a sentence, so the anchor
+   itself stays short enough to scan. */
+.talk-resource__note {
+  display: block;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
 .talk-related__list {
   list-style: none;
   margin: 0;

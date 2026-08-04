@@ -5,6 +5,7 @@ import {
   eventFacets,
   relatedTalks,
   sourceGroups,
+  sourceLabel,
   speakingStats,
   talkEventType,
   talkTopics,
@@ -100,6 +101,45 @@ test("sourceGroups always returns every group", () => {
     "writing",
     "coverage",
   ]);
+});
+
+test("sourceLabel joins the publisher and the title", () => {
+  assert.equal(
+    sourceLabel({ publisher: "Post Status", title: "LoopConf in review" }),
+    "Post Status: LoopConf in review"
+  );
+});
+
+test("sourceLabel falls back to the pre-migration label", () => {
+  assert.equal(sourceLabel({ label: "Session" }), "Session");
+  assert.equal(
+    sourceLabel({ publisher: "WPSessions", label: "session recording" }),
+    "WPSessions: session recording"
+  );
+});
+
+test("sourceLabel prefers the title over the label", () => {
+  assert.equal(
+    sourceLabel({ title: "session recording", label: "WPSessions" }),
+    "session recording"
+  );
+});
+
+test("sourceLabel renders whichever field it has on its own", () => {
+  assert.equal(sourceLabel({ title: "Code" }), "Code");
+  assert.equal(sourceLabel({ publisher: "Fastly" }), "Fastly");
+  assert.equal(sourceLabel(undefined), "");
+});
+
+test("sourceLabel never pulls the note into the link text", () => {
+  assert.equal(
+    sourceLabel({
+      publisher: "Bluehost",
+      title: "WordCamp San Diego recap",
+      note: "Event recap carrying attendee feedback on this session.",
+    }),
+    "Bluehost: WordCamp San Diego recap"
+  );
 });
 
 test("topicFacets counts declared topics and keeps taxonomy order", () => {

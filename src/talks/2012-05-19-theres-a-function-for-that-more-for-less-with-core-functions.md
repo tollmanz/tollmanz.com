@@ -15,10 +15,10 @@ video:
   duration: "39:37"
 sources:
   - kind: "session"
-    label: "Session"
+    title: "Session"
     url: "https://seattle.wordcamp.org/2012/session/theres-a-function-for-that-doing-more-for-less-with-core-functions/"
   - kind: "writing"
-    label: "Errata"
+    title: "Errata"
     url: "/errata-and-clarifications-for-my-wordcamp-seattle-2012-talk/"
 quotes:
   - text: "Great video, the slide deck or a transcript would be really useful reference"
