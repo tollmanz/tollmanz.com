@@ -123,6 +123,27 @@ export function eventFacetSlug(talks) {
   return Object.fromEntries(eventFacetAssignment(talks).facetOf);
 }
 
+// Fold the collection into [{ year, talks }] groups, newest year first, so the
+// index renders one year heading per group instead of repeating the year on
+// every row. Talks keep the order the collection hands over, which is already
+// newest first within a year. A talk whose date yields no year groups under
+// `year: null` and sorts last, so a malformed item still reaches the index.
+export function talksByYear(talks) {
+  const groups = new Map();
+  for (const talk of talks || []) {
+    const value = talk?.date?.getUTCFullYear?.();
+    const year = Number.isFinite(value) ? value : null;
+    if (!groups.has(year)) {
+      groups.set(year, []);
+    }
+    groups.get(year).push(talk);
+  }
+  const rank = year => (year === null ? -Infinity : year);
+  return [...groups]
+    .map(([year, items]) => ({ year, talks: items }))
+    .sort((a, b) => rank(b.year) - rank(a.year));
+}
+
 // Headline numbers for the speaking index hero.
 export function speakingStats(talks) {
   const items = talks || [];

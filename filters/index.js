@@ -11,6 +11,7 @@ import {
   talkEventType,
   talkTopics,
   talkType,
+  talksByYear,
   topicFacets,
 } from "./talks.js";
 
@@ -35,6 +36,7 @@ export default function registerFilters(eleventyConfig) {
   eleventyConfig.addFilter("topicFacets", topicFacets);
   eleventyConfig.addFilter("eventFacets", eventFacets);
   eleventyConfig.addFilter("eventFacetSlug", eventFacetSlug);
+  eleventyConfig.addFilter("talksByYear", talksByYear);
   eleventyConfig.addFilter("speakingStats", speakingStats);
   eleventyConfig.addFilter("relatedTalks", relatedTalks);
 }

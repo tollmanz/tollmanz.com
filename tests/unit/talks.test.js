@@ -10,6 +10,7 @@ import {
   talkEventType,
   talkTopics,
   talkType,
+  talksByYear,
   topicFacets,
 } from "../../filters/talks.js";
 
@@ -287,6 +288,62 @@ test("eventFacetSlug points every talk at a rendered facet", () => {
 test("eventFacetSlug returns nothing for an empty collection", () => {
   assert.deepEqual(eventFacetSlug([]), {});
   assert.deepEqual(eventFacetSlug(undefined), {});
+});
+
+test("talksByYear groups the collection newest year first", () => {
+  const groups = talksByYear([
+    talk("a.md", {}, new Date("2017-02-07")),
+    talk("b.md", {}, new Date("2015-11-18")),
+    talk("c.md", {}, new Date("2019-06-04")),
+  ]);
+  assert.deepEqual(
+    groups.map(group => [group.year, group.talks.map(item => item.inputPath)]),
+    [
+      [2019, ["c.md"]],
+      [2017, ["a.md"]],
+      [2015, ["b.md"]],
+    ]
+  );
+});
+
+test("talksByYear keeps the order the collection hands over", () => {
+  const groups = talksByYear([
+    talk("a.md", {}, new Date("2015-11-18")),
+    talk("b.md", {}, new Date("2015-03-21")),
+    talk("c.md", {}, new Date("2015-07-18")),
+  ]);
+  assert.deepEqual(groups.length, 1);
+  assert.deepEqual(
+    groups[0].talks.map(item => item.inputPath),
+    ["a.md", "b.md", "c.md"]
+  );
+});
+
+test("talksByYear reads the year in UTC", () => {
+  const groups = talksByYear([talk("a.md", {}, new Date("2016-01-01"))]);
+  assert.deepEqual(
+    groups.map(group => group.year),
+    [2016]
+  );
+});
+
+test("talksByYear keeps an undated talk in a trailing null group", () => {
+  const groups = talksByYear([
+    talk("a.md", {}, new Date("nonsense")),
+    talk("b.md", {}, new Date("2012-03-24")),
+  ]);
+  assert.deepEqual(
+    groups.map(group => [group.year, group.talks.map(item => item.inputPath)]),
+    [
+      [2012, ["b.md"]],
+      [null, ["a.md"]],
+    ]
+  );
+});
+
+test("talksByYear returns nothing for an empty collection", () => {
+  assert.deepEqual(talksByYear([]), []);
+  assert.deepEqual(talksByYear(undefined), []);
 });
 
 test("speakingStats counts only video and slides that have a url", () => {

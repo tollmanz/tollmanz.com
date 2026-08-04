@@ -450,9 +450,9 @@ pre > code {
 /* Speaking
 
    The speaking index is a card wall; each talk also has its own page. Both
-   share the topic accent colors and chips below. Color coding, the oversized
-   year, and the per-topic accent are the "fun" layer; everything stays zero-JS
-   and falls back to plain borders where color-mix/light-dark are unsupported. */
+   share the topic accent colors and chips below. Color coding and the
+   per-topic accent are the "fun" layer; everything stays zero-JS and falls
+   back to plain borders where color-mix/light-dark are unsupported. */
 
 /* Topic accent colors. A talk's primary topic sets --topic-color through a
    t-<slug> class on its card, page, and related-talk items; chips reuse the
@@ -647,7 +647,21 @@ pre > code {
   border-bottom-color: var(--topic-color);
 }
 
-/* Index (editorial, rule-separated; deliberately not cards) */
+/* Index (editorial, rule-separated; deliberately not cards). Talks group under
+   one year heading each, so a row carries only its month and day. */
+.talk-year-group + .talk-year-group {
+  margin-top: 26px;
+}
+
+.talk-year {
+  font-family: "Coustard", Georgia, serif;
+  font-size: 22px;
+  line-height: 1;
+  margin: 0 0 10px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .talk-index {
   list-style: none;
   margin: 0;
@@ -658,9 +672,9 @@ pre > code {
 .talk-row {
   position: relative;
   display: grid;
-  grid-template-columns: 6.5rem 1fr;
-  gap: 0 32px;
-  padding: 26px 0;
+  grid-template-columns: 5rem 1fr;
+  gap: 0 24px;
+  padding: 11px 0;
   border-bottom: 1px solid var(--color-border);
   transition: background-color 0.15s ease;
 }
@@ -676,19 +690,11 @@ pre > code {
   outline-offset: -2px;
 }
 
-.talk-row__year {
-  display: block;
-  font-family: "Coustard", Georgia, serif;
-  font-size: 32px;
-  line-height: 1;
-  color: var(--topic-color);
-  font-variant-numeric: tabular-nums;
-}
-
 .talk-row__date {
   display: block;
-  margin-top: 6px;
+  padding-top: 4px;
   font-size: 12px;
+  line-height: 1.4;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--color-text-muted);
@@ -699,8 +705,9 @@ pre > code {
 }
 
 .talk-row__kind {
-  margin: 0 0 4px;
-  font-size: 12px;
+  margin: 0 0 2px;
+  font-size: 11px;
+  line-height: 1.4;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -709,8 +716,8 @@ pre > code {
 
 .talk-row__title {
   font-family: "Coustard", Georgia, serif;
-  font-size: 26px;
-  line-height: 1.22;
+  font-size: 19px;
+  line-height: 1.25;
   margin: 0;
 }
 
@@ -737,17 +744,19 @@ pre > code {
 }
 
 .talk-row__meta {
-  margin: 7px 0 0;
-  font-size: 14.5px;
+  margin: 2px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
   color: var(--color-text-muted);
 }
 
 .talk-row__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 16px;
-  margin: 10px 0 0;
-  font-size: 12px;
+  gap: 2px 14px;
+  margin: 3px 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
   text-transform: uppercase;
   letter-spacing: 0.07em;
 }
@@ -786,22 +795,14 @@ pre > code {
 @media screen and (max-width: 600px) {
   .talk-row {
     grid-template-columns: 1fr;
-    gap: 6px;
-    padding: 22px 0;
-  }
-  .talk-row__when {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-  }
-  .talk-row__year {
-    font-size: 24px;
+    gap: 2px;
+    padding: 12px 0;
   }
   .talk-row__date {
-    margin-top: 0;
+    padding-top: 0;
   }
   .talk-row__title {
-    font-size: 22px;
+    font-size: 18px;
   }
 }
 

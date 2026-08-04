@@ -38,7 +38,7 @@ export function htmlDateString(dateObj, precision) {
   return format(dateObj, precision, "machine");
 }
 
-// Year only, for the large numeral on speaking index rows.
+// Year only, in UTC.
 export function year(dateObj) {
   return format(dateObj, "year", "display");
 }

@@ -9,7 +9,7 @@ them all.
 | ---------------- | -------------------- | ------------------------------------------------------ |
 | `dateDisplay`    | `filters/dates.js`   | Format a JS Date as `LLL dd, yyyy` in UTC              |
 | `htmlDateString` | `filters/dates.js`   | Format a JS Date as `yyyy-LL-dd` for `<time datetime>` |
-| `year`           | `filters/dates.js`   | Year only, for speaking index rows                     |
+| `year`           | `filters/dates.js`   | Year only, in UTC                                      |
 | `monthDay`       | `filters/dates.js`   | Month and day, for speaking index rows                 |
 | `head`           | `filters/arrays.js`  | First `n` items of an array (last `\|n\|` if negative) |
 | `hasCodeBlocks`  | `filters/content.js` | True when content contains Prism-highlighted code      |
@@ -21,6 +21,7 @@ them all.
 | `topicFacets`    | `filters/talks.js`   | `{ slug, label, count }` topic filter chips            |
 | `eventFacets`    | `filters/talks.js`   | `{ slug, label, count }` event filter chips            |
 | `eventFacetSlug` | `filters/talks.js`   | Event type slug to the facet slug its chip filters on  |
+| `talksByYear`    | `filters/talks.js`   | Talks grouped into `[{ year, talks }]`, newest first   |
 | `speakingStats`  | `filters/talks.js`   | Headline counts for the speaking hero                  |
 | `relatedTalks`   | `filters/talks.js`   | Up to `limit` talks ranked by series and shared topics |
 
