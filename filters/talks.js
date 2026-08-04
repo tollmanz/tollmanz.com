@@ -62,21 +62,52 @@ export function topicFacets(talks) {
   }));
 }
 
-// Event filter facets in taxonomy order, so the chip row reads the same way on
-// every build regardless of how the counts happen to fall.
-export function eventFacets(talks) {
+// An event chip matching one or two talks narrows the collection to what the
+// row already states in its metadata, so an event needs at least this many
+// talks to earn a chip of its own.
+const EVENT_FACET_MIN_COUNT = 3;
+
+// Count talks per declared event type, then place each type in a facet: its own
+// when it clears the threshold, `other` when it does not. Both eventFacets and
+// eventFacetSlug read this, so a chip and the row classes it targets cannot
+// disagree.
+function eventFacetAssignment(talks) {
   const counts = new Map();
   for (const talk of talks || []) {
     const slug = talk?.data?.event?.type || "other";
     counts.set(slug, (counts.get(slug) || 0) + 1);
   }
-  const known = EVENT_TYPES.filter(entry => counts.has(entry.slug)).map(
-    entry => ({ ...entry, count: counts.get(entry.slug) })
+  const facetOf = new Map();
+  const facetCounts = new Map();
+  for (const [slug, count] of counts) {
+    const facet = count >= EVENT_FACET_MIN_COUNT ? slug : "other";
+    facetOf.set(slug, facet);
+    facetCounts.set(facet, (facetCounts.get(facet) || 0) + count);
+  }
+  return { facetOf, facetCounts };
+}
+
+// Event filter facets in taxonomy order, so the chip row reads the same way on
+// every build regardless of how the counts happen to fall. Below-threshold
+// events land in `other` rather than losing their chip, which keeps every talk
+// reachable from the filters.
+export function eventFacets(talks) {
+  const { facetCounts } = eventFacetAssignment(talks);
+  const known = EVENT_TYPES.filter(entry => facetCounts.has(entry.slug)).map(
+    entry => ({ ...entry, count: facetCounts.get(entry.slug) })
   );
-  const unknown = [...counts]
+  const unknown = [...facetCounts]
     .filter(([slug]) => !EVENT_TYPES.some(entry => entry.slug === slug))
     .map(([slug, count]) => ({ slug, label: slug, count }));
   return [...known, ...unknown];
+}
+
+// Companion lookup for eventFacets, keyed by event type slug and valued by the
+// facet that type filters under. The index template indexes it to build row
+// classes, so a folded event carries the class its facet targets instead of its
+// own name. Event types the collection never uses are absent.
+export function eventFacetSlug(talks) {
+  return Object.fromEntries(eventFacetAssignment(talks).facetOf);
 }
 
 // Headline numbers for the speaking index hero.

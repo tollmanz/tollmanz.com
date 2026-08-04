@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  eventFacetSlug,
   eventFacets,
   relatedTalks,
   sourceGroups,
@@ -121,30 +122,131 @@ test("topicFacets omits topics nobody speaks about", () => {
   assert.deepEqual(slugs, ["git"]);
 });
 
+// `count` talks at the same kind of event, one per input path.
+function eventTalks(type, count) {
+  return Array.from({ length: count }, (_, index) =>
+    talk(`${type}-${index}.md`, type ? { event: { type } } : {})
+  );
+}
+
 test("eventFacets counts declared event types in taxonomy order", () => {
   const facets = eventFacets([
-    talk("a.md", { event: { type: "meetup" } }),
-    talk("b.md", { event: { type: "wordcamp" } }),
-    talk("c.md", { event: { type: "wordcamp" } }),
-    talk("d.md", {}),
+    ...eventTalks("meetup", 4),
+    ...eventTalks("wordcamp", 3),
+    ...eventTalks("phpworld", 3),
   ]);
   assert.deepEqual(facets, [
-    { slug: "wordcamp", label: "WordCamp", count: 2 },
-    { slug: "meetup", label: "Meetup", count: 1 },
-    { slug: "other", label: "Other", count: 1 },
+    { slug: "wordcamp", label: "WordCamp", count: 3 },
+    { slug: "phpworld", label: "php[world]", count: 3 },
+    { slug: "meetup", label: "Meetup", count: 4 },
   ]);
+});
+
+test("eventFacets folds events under the threshold into other", () => {
+  const facets = eventFacets([
+    ...eventTalks("wordcamp", 5),
+    ...eventTalks("velocity", 1),
+    ...eventTalks("xbiz", 1),
+    ...eventTalks("altitude", 1),
+  ]);
+  assert.deepEqual(facets, [
+    { slug: "wordcamp", label: "WordCamp", count: 5 },
+    { slug: "other", label: "Other", count: 3 },
+  ]);
+});
+
+test("eventFacets keeps three talks and folds two", () => {
+  const facets = eventFacets([
+    ...eventTalks("meetup", 3),
+    ...eventTalks("loopconf", 2),
+  ]);
+  assert.deepEqual(facets, [
+    { slug: "meetup", label: "Meetup", count: 3 },
+    { slug: "other", label: "Other", count: 2 },
+  ]);
+});
+
+test("eventFacets counts a talk with no event type as other", () => {
+  const facets = eventFacets([
+    ...eventTalks("wordcamp", 3),
+    ...eventTalks(undefined, 3),
+  ]);
+  assert.deepEqual(facets.at(-1), { slug: "other", label: "Other", count: 3 });
 });
 
 test("eventFacets still reports an event type outside the taxonomy", () => {
   const facets = eventFacets([
-    talk("a.md", { event: { type: "wordcamp" } }),
-    talk("b.md", { event: { type: "smashingconf" } }),
+    ...eventTalks("wordcamp", 3),
+    ...eventTalks("smashingconf", 3),
   ]);
   assert.deepEqual(facets.at(-1), {
     slug: "smashingconf",
     label: "smashingconf",
-    count: 1,
+    count: 3,
   });
+});
+
+test("eventFacets folds an under-threshold unknown event type into other", () => {
+  const facets = eventFacets([
+    ...eventTalks("wordcamp", 3),
+    ...eventTalks("smashingconf", 2),
+  ]);
+  assert.deepEqual(facets, [
+    { slug: "wordcamp", label: "WordCamp", count: 3 },
+    { slug: "other", label: "Other", count: 2 },
+  ]);
+});
+
+test("eventFacetSlug maps each event type to the facet it filters under", () => {
+  const talks = [
+    ...eventTalks("wordcamp", 3),
+    ...eventTalks("loopconf", 2),
+    ...eventTalks("velocity", 1),
+    ...eventTalks(undefined, 1),
+  ];
+  assert.deepEqual(eventFacetSlug(talks), {
+    wordcamp: "wordcamp",
+    loopconf: "other",
+    velocity: "other",
+    other: "other",
+  });
+});
+
+test("eventFacetSlug points every talk at a rendered facet", () => {
+  const talks = [
+    ...eventTalks("wordcamp", 21),
+    ...eventTalks("meetup", 3),
+    ...eventTalks("phpworld", 2),
+    ...eventTalks("midwestphp", 2),
+    ...eventTalks("loopconf", 2),
+    ...eventTalks("xbiz", 1),
+    ...eventTalks("wpsessions", 1),
+    ...eventTalks("velocity", 1),
+    ...eventTalks("altitude", 1),
+  ];
+  const facets = eventFacets(talks);
+  const facetOf = eventFacetSlug(talks);
+  const rendered = new Set(facets.map(facet => facet.slug));
+  for (const talk of talks) {
+    assert.ok(rendered.has(facetOf[talk.data.event.type]));
+  }
+  assert.deepEqual(
+    facets.map(facet => [facet.label, facet.count]),
+    [
+      ["WordCamp", 21],
+      ["Meetup", 3],
+      ["Other", 10],
+    ]
+  );
+  assert.equal(
+    facets.reduce((total, facet) => total + facet.count, 0),
+    talks.length
+  );
+});
+
+test("eventFacetSlug returns nothing for an empty collection", () => {
+  assert.deepEqual(eventFacetSlug([]), {});
+  assert.deepEqual(eventFacetSlug(undefined), {});
 });
 
 test("speakingStats counts only video and slides that have a url", () => {

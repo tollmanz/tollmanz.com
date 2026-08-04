@@ -20,6 +20,7 @@ them all.
 | `sourceGroups`   | `filters/talks.js`   | Group source links by their declared kind              |
 | `topicFacets`    | `filters/talks.js`   | `{ slug, label, count }` topic filter chips            |
 | `eventFacets`    | `filters/talks.js`   | `{ slug, label, count }` event filter chips            |
+| `eventFacetSlug` | `filters/talks.js`   | Event type slug to the facet slug its chip filters on  |
 | `speakingStats`  | `filters/talks.js`   | Headline counts for the speaking hero                  |
 | `relatedTalks`   | `filters/talks.js`   | Up to `limit` talks ranked by series and shared topics |
 

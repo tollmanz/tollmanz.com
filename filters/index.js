@@ -2,6 +2,7 @@ import { dateDisplay, htmlDateString, monthDay, year } from "./dates.js";
 import { head } from "./arrays.js";
 import { hasCodeBlocks, paragraphs } from "./content.js";
 import {
+  eventFacetSlug,
   eventFacets,
   relatedTalks,
   sourceGroups,
@@ -31,6 +32,7 @@ export default function registerFilters(eleventyConfig) {
   eleventyConfig.addFilter("sourceGroups", sourceGroups);
   eleventyConfig.addFilter("topicFacets", topicFacets);
   eleventyConfig.addFilter("eventFacets", eventFacets);
+  eleventyConfig.addFilter("eventFacetSlug", eventFacetSlug);
   eleventyConfig.addFilter("speakingStats", speakingStats);
   eleventyConfig.addFilter("relatedTalks", relatedTalks);
 }
