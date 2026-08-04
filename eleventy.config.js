@@ -206,6 +206,7 @@ export default function (eleventyConfig) {
     midwestphp: "MidwestPHP",
     velocity: "Velocity",
     altitude: "Fastly Altitude",
+    xbiz: "XBIZ",
     meetup: "Meetup",
     wpsessions: "WPSessions",
     other: "Other",
