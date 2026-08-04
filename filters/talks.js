@@ -263,24 +263,12 @@ function firstSentence(text) {
   return sentence.length <= HOOK_MAX_LENGTH ? sentence : "";
 }
 
-// One-line hook for a featured card as { text, cite, quote }, or null when the
-// talk offers nothing short enough. An audience quote outranks the abstract,
-// and the shortest quote that fits wins. The hook is chosen whole rather than
-// clipped, so a card never shows half a sentence.
+// One-line hook for a featured card: the abstract's opening sentence, or null
+// when the talk offers nothing short enough. The hook is chosen whole rather
+// than clipped, so a card never shows half a sentence. Talks carry `quotes` in
+// front matter, but audience praise is deliberately not rendered anywhere.
 export function talkHook(data) {
-  const quotes = (data?.quotes || [])
-    .filter(entry => entry?.text && entry.text.length <= HOOK_MAX_LENGTH)
-    .sort((a, b) => a.text.length - b.text.length);
-  if (quotes.length) {
-    const [quote] = quotes;
-    return {
-      text: quote.text,
-      cite: quote.author || quote.source || "",
-      quote: true,
-    };
-  }
-  const sentence = firstSentence(data?.description);
-  return sentence ? { text: sentence, cite: "", quote: false } : null;
+  return firstSentence(data?.description) || null;
 }
 
 // Headline numbers for the speaking index hero.

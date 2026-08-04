@@ -69,14 +69,7 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
                 {{ talk.data.event.name }}{% if talk.date %} &middot; {{ talk.date | year }}{% endif %}
               </p>
               {%- if hook %}
-                {% if hook.quote %}
-                  <blockquote class="talk-card__hook">
-                    <p>{{ hook.text }}</p>
-                    {% if hook.cite %}<cite>{{ hook.cite }}</cite>{% endif %}
-                  </blockquote>
-                {% else %}
-                  <p class="talk-card__hook">{{ hook.text }}</p>
-                {% endif %}
+                <p class="talk-card__hook">{{ hook }}</p>
               {% endif -%}
               {% if talk.data.video.url or talk.data.slides.url %}
                 <p class="talk-card__links">

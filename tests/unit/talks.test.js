@@ -580,47 +580,29 @@ test("featuredTalks returns an empty list for missing input", () => {
   assert.deepEqual(featuredTalks([]), []);
 });
 
-test("talkHook prefers the shortest quote that fits a card", () => {
-  const hook = talkHook({
-    description: "An abstract.",
-    quotes: [
-      { text: `${"long ".repeat(20)}quote.`, author: "Someone" },
-      { text: "Short and quotable.", author: "Brian Krogsgard" },
-    ],
-  });
-  assert.deepEqual(hook, {
-    text: "Short and quotable.",
-    cite: "Brian Krogsgard",
-    quote: true,
-  });
-});
-
-test("talkHook cites an unattributed quote by its source", () => {
-  const hook = talkHook({
-    quotes: [{ text: "Very informative.", source: "Event recap" }],
-  });
-  assert.equal(hook.cite, "Event recap");
-});
-
-test("talkHook falls back to the opening sentence when no quote fits", () => {
+test("talkHook takes the opening sentence of the abstract", () => {
   const hook = talkHook({
     description:
       "Deploying HTTPS is a project, not a switch. The rest of the abstract " +
       "explains why.\n\nA second paragraph nobody reads.",
-    quotes: [{ text: "x".repeat(400), author: "Someone" }],
   });
-  assert.deepEqual(hook, {
-    text: "Deploying HTTPS is a project, not a switch.",
-    cite: "",
-    quote: false,
+  assert.equal(hook, "Deploying HTTPS is a project, not a switch.");
+});
+
+test("talkHook ignores quotes, which are never rendered", () => {
+  const hook = talkHook({
+    description: "An abstract.",
+    quotes: [{ text: "Short and quotable.", author: "Brian Krogsgard" }],
   });
+  assert.equal(hook, "An abstract.");
+  assert.equal(talkHook({ quotes: [{ text: "Very informative." }] }), null);
 });
 
 test("talkHook keeps an abbreviation inside the sentence it belongs to", () => {
   const hook = talkHook({
     description: "Put Backbone.js to work today. Then read on.",
   });
-  assert.equal(hook.text, "Put Backbone.js to work today.");
+  assert.equal(hook, "Put Backbone.js to work today.");
 });
 
 test("talkHook returns nothing when the talk offers no short line", () => {

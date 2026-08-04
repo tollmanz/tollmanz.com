@@ -676,32 +676,14 @@ pre > code {
 }
 
 /* The hook is picked whole in the template, never clamped here, so a card shows
-   a full sentence or nothing. A quoted hook stays upright: the accent rule and
-   the citation already mark it as a quote, and the italic face is a font file
-   the index otherwise never downloads. */
+   a full sentence or nothing. */
 .talk-card__hook {
   margin: 0;
   padding-left: 12px;
   border-left: 2px solid var(--topic-color);
   color: inherit;
   font-size: 14px;
-  font-style: normal;
-  letter-spacing: normal;
   line-height: 1.5;
-}
-
-.talk-card__hook p {
-  margin: 0;
-}
-
-.talk-card__hook cite {
-  display: block;
-  margin-top: 3px;
-  font-size: 11.5px;
-  font-style: normal;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
 }
 
 .talk-card__links {
@@ -1123,14 +1105,6 @@ pre > code {
 
 .talk-takeaways {
   margin: 0 0 0 22px;
-}
-
-.talk-quote cite {
-  display: block;
-  margin-top: 6px;
-  font-size: 14px;
-  font-style: normal;
-  color: var(--color-text-muted);
 }
 
 .talk-gallery {

@@ -28,7 +28,7 @@ color, or which talks it links to.
 | `video`         | no       | `{ url, provider, duration }`                        |
 | `slides`        | no       | `{ url, provider, count, download }`                 |
 | `sources`       | no       | `[{ kind, publisher, title, url, note, duration }]`  |
-| `quotes`        | no       | `[{ text, author, source, url }]`                    |
+| `quotes`        | no       | `[{ text, author, source, url }]`; stored, not shown |
 | `photos`        | no       | `[{ src, alt, credit }]`                             |
 
 `topics[0]` is the primary topic and drives the accent color on the card and the
@@ -43,20 +43,20 @@ in `note`, which renders as muted text under the link and never inside the
 anchor, so link text stays short enough to scan. A source `duration` is only for
 a URL that is the recording itself. `updated` is the only date the sitemap
 treats as `lastmod`: the engagement date says when the talk happened, not when
-the page was written or revised. A quote is cited by its `author`, or by
-`source` when the speaker is anonymous, and the citation links to `url` either
-way, so a quote never loses its provenance for want of a name. `datePrecision`
-says how exactly the date is known: talks still sort by the full `date`, but a
-`month` or `year` talk renders and marks up only what it can support, so a
-stand-in day never reads as fact.
+the page was written or revised. `quotes` keeps sourced audience reactions with
+their attribution, but nothing renders them: the site does not publish praise of
+its author, and the field exists so the sourcing survives rather than being
+re-researched if that ever changes. `datePrecision` says how exactly the date is
+known: talks still sort by the full `date`, but a `month` or `year` talk renders
+and marks up only what it can support, so a stand-in day never reads as fact.
 
 `featured: true` offers a talk to the "Start here" tier above the index filters,
 which holds at most five cards; `filters/talks.js` enforces that cap, so a sixth
 flagged talk drops off the end rather than widening the section. A featured card
 carries a photo, so `photos` is what makes the flag worth setting, and its hook
-is the shortest `quotes` entry that fits on one line, falling back to the
-opening sentence of `description`. Featured talks still appear in the
-chronological list, and the tier hides itself while any filter is active.
+is the opening sentence of `description`, taken whole or not at all. Featured
+talks still appear in the chronological list, and the tier hides itself while
+any filter is active.
 
 ## Taxonomy
 
