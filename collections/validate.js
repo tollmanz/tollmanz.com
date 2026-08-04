@@ -1,3 +1,4 @@
+import { DATE_PRECISIONS } from "../filters/dates.js";
 import {
   isKnownEventType,
   isKnownSourceKind,
@@ -68,6 +69,13 @@ export function talkProblems(items, label) {
       problems.push(
         `${label}: "${inputPath}" has an unknown type "${data.type}"`
       );
+    }
+
+    if (
+      data.datePrecision !== undefined &&
+      !DATE_PRECISIONS.includes(data.datePrecision)
+    ) {
+      problem(`has an unknown datePrecision "${data.datePrecision}"`);
     }
 
     if (!Array.isArray(data.topics) || data.topics.length === 0) {

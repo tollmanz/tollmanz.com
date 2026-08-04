@@ -46,3 +46,27 @@ test("every date filter returns an empty string for invalid input", () => {
     assert.equal(filter("2026-07-16"), "");
   }
 });
+
+test("a month-precision date drops the day everywhere it renders", () => {
+  const date = new Date("2014-06-01T00:00:00Z");
+  assert.equal(dateDisplay(date, "month"), "Jun 2014");
+  assert.equal(htmlDateString(date, "month"), "2014-06");
+  assert.equal(monthDay(date, "month"), "Jun");
+});
+
+test("a year-precision date renders only the year", () => {
+  const date = new Date("2014-06-01T00:00:00Z");
+  assert.equal(dateDisplay(date, "year"), "2014");
+  assert.equal(htmlDateString(date, "year"), "2014");
+  assert.equal(monthDay(date, "year"), "");
+});
+
+test("an unknown precision falls back to the full date", () => {
+  const date = new Date("2014-06-01T00:00:00Z");
+  assert.equal(dateDisplay(date, "decade"), "Jun 01, 2014");
+  assert.equal(htmlDateString(date, "decade"), "2014-06-01");
+});
+
+test("year ignores the precision, since the numeral always shows", () => {
+  assert.equal(year(new Date("2014-06-01T00:00:00Z"), "year"), "2014");
+});

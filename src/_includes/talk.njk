@@ -21,7 +21,7 @@ layout: base.njk
     <dl class="talk-page__meta">
       <div class="talk-page__meta-item">
         <dt>When</dt>
-        <dd><time datetime="{{ date | htmlDateString }}">{{ date | dateDisplay }}</time></dd>
+        <dd><time datetime="{{ date | htmlDateString(datePrecision) }}">{{ date | dateDisplay(datePrecision) }}</time></dd>
       </div>
       {% if event.name or event.location %}
         <div class="talk-page__meta-item">
@@ -139,7 +139,7 @@ layout: base.njk
           {%- set rprimary = rtopics[0].slug if rtopics.length else "talk" -%}
           <li class="talk-related__item t-{{ rprimary }}">
             <a href="{{ r.url }}">
-              <span class="talk-related__date">{{ r.date | dateDisplay }}</span>
+              <span class="talk-related__date">{{ r.date | dateDisplay(r.data.datePrecision) }}</span>
               <span class="talk-related__main">
                 <span class="talk-related__title">{{ r.data.title }}</span>
                 {% if r.data.event.name %}<span class="talk-related__conf">{{ r.data.event.name }}</span>{% endif %}

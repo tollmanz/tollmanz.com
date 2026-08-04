@@ -12,34 +12,37 @@ color, or which talks it links to.
 
 ## Front matter
 
-| Field         | Required | Shape                                                |
-| ------------- | -------- | ---------------------------------------------------- |
-| `title`       | yes      | Clean title, with no `(Keynote)` or `Panel:` marker  |
-| `date`        | yes      | Engagement date                                      |
-| `updated`     | no       | Date the page itself last changed                    |
-| `type`        | yes      | `talk`, `keynote`, `panel`, or `workshop`            |
-| `topics`      | yes      | Topic slugs, primary first                           |
-| `event`       | yes      | `{ name, type, location }`                           |
-| `series`      | no       | Slug shared by repeat deliveries of one presentation |
-| `coSpeakers`  | no       | Free text                                            |
-| `description` | no       | Abstract; blank lines split it into paragraphs       |
-| `video`       | no       | `{ url, provider, duration }`                        |
-| `slides`      | no       | `{ url, provider, count, download }`                 |
-| `sources`     | no       | `[{ kind, label, url, duration }]`                   |
-| `quotes`      | no       | `[{ text, author, source, url }]`                    |
-| `photos`      | no       | `[{ src, alt, credit }]`                             |
+| Field           | Required | Shape                                                |
+| --------------- | -------- | ---------------------------------------------------- |
+| `title`         | yes      | Clean title, with no `(Keynote)` or `Panel:` marker  |
+| `date`          | yes      | Engagement date                                      |
+| `datePrecision` | no       | `day` (default), `month`, or `year`                  |
+| `updated`       | no       | Date the page itself last changed                    |
+| `type`          | yes      | `talk`, `keynote`, `panel`, or `workshop`            |
+| `topics`        | yes      | Topic slugs, primary first                           |
+| `event`         | yes      | `{ name, type, location }`                           |
+| `series`        | no       | Slug shared by repeat deliveries of one presentation |
+| `coSpeakers`    | no       | Free text                                            |
+| `description`   | no       | Abstract; blank lines split it into paragraphs       |
+| `video`         | no       | `{ url, provider, duration }`                        |
+| `slides`        | no       | `{ url, provider, count, download }`                 |
+| `sources`       | no       | `[{ kind, label, url, duration }]`                   |
+| `quotes`        | no       | `[{ text, author, source, url }]`                    |
+| `photos`        | no       | `[{ src, alt, credit }]`                             |
 
 `topics[0]` is the primary topic and drives the accent color on the card and the
 page, so order matters. `series` is what makes two files the same presentation:
 related-talk ranking scores a series match far above shared topics. A `video` or
 `slides` block needs a `url`; `download: true` marks a deck hosted on this site
 so it renders as a download link. A source `duration` is only for a URL that is
-the recording itself. Attendance figures are not modeled: an event's headcount
-says nothing about who was in the room for one session. `updated` is the only
-date the sitemap treats as `lastmod`: the engagement date says when the talk
-happened, not when the page was written or revised. A quote is cited by its
-`author`, or by `source` when the speaker is anonymous, and the citation links
-to `url` either way, so a quote never loses its provenance for want of a name.
+the recording itself. `updated` is the only date the sitemap treats as
+`lastmod`: the engagement date says when the talk happened, not when the page
+was written or revised. A quote is cited by its `author`, or by `source` when
+the speaker is anonymous, and the citation links to `url` either way, so a quote
+never loses its provenance for want of a name. `datePrecision` says how exactly
+the date is known: talks still sort by the full `date`, but a `month` or `year`
+talk renders and marks up only what it can support, so a stand-in day never
+reads as fact.
 
 ## Taxonomy
 

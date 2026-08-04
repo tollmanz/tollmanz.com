@@ -93,7 +93,8 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
       <li class="talk-row t-{{ primary }} evt-{{ talk.data.event.type or 'other' }} type-{{ ttype.slug }}{{ topicClasses }}{% if talk.data.video.url %} has-video{% endif %}{% if talk.data.slides.url %} has-slides{% endif %}">
         <div class="talk-row__when">
           <span class="talk-row__year">{{ talk.date | year }}</span>
-          <time class="talk-row__date" datetime="{{ talk.date | htmlDateString }}">{{ talk.date | monthDay }}</time>
+          {%- set shortDate = talk.date | monthDay(talk.data.datePrecision) -%}
+          {% if shortDate %}<time class="talk-row__date" datetime="{{ talk.date | htmlDateString(talk.data.datePrecision) }}">{{ shortDate }}</time>{% endif %}
         </div>
         <div class="talk-row__body">
           {% if ttype.slug != "talk" %}<p class="talk-row__kind">{{ ttype.label }}</p>{% endif %}

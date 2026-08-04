@@ -1,7 +1,7 @@
 ---
 title: "Understanding WordPress Caching"
 date: 2014-06-01
-dateText: "WPSessions"
+datePrecision: "year"
 type: "talk"
 topics:
   - "caching"

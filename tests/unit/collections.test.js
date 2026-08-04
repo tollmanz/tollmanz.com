@@ -229,6 +229,19 @@ test("talkProblems flags a type outside the taxonomy", () => {
   assert.match(problems[0], /unknown type "fireside"/);
 });
 
+test("talkProblems accepts a known datePrecision and flags an unknown one", () => {
+  assert.deepEqual(
+    talkProblems([validTalk({ datePrecision: "year" })], "talks"),
+    []
+  );
+  const problems = talkProblems(
+    [validTalk({ datePrecision: "decade" })],
+    "talks"
+  );
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /unknown datePrecision "decade"/);
+});
+
 test("talkProblems flags missing and unknown topics", () => {
   assert.match(
     talkProblems([validTalk({ topics: [] })], "talks")[0],
