@@ -26,10 +26,15 @@ eleventyExcludeFromCollections: true
     <priority>0.6</priority>
   </url>
 {%- endfor %}
+{#- Talk pages describe past engagements but were authored much later, so the
+    engagement date says nothing about when the page last changed. Emit lastmod
+    only when a talk records an explicit `updated` date. -#}
 {%- for talk in collections.talks %}
   <url>
     <loc>{{ talk.url | absoluteUrl(site.url) }}</loc>
-    <lastmod>{{ talk.date | dateToRfc3339 }}</lastmod>
+{%- if talk.data.updated %}
+    <lastmod>{{ talk.data.updated | dateToRfc3339 }}</lastmod>
+{%- endif %}
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>

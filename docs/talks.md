@@ -16,6 +16,7 @@ color, or which talks it links to.
 | ------------- | -------- | ---------------------------------------------------- |
 | `title`       | yes      | Clean title, with no `(Keynote)` or `Panel:` marker  |
 | `date`        | yes      | Engagement date                                      |
+| `updated`     | no       | Date the page itself last changed                    |
 | `type`        | yes      | `talk`, `keynote`, `panel`, or `workshop`            |
 | `topics`      | yes      | Topic slugs, primary first                           |
 | `event`       | yes      | `{ name, type, location }`                           |
@@ -34,7 +35,9 @@ related-talk ranking scores a series match far above shared topics. A `video` or
 `slides` block needs a `url`; `download: true` marks a deck hosted on this site
 so it renders as a download link. A source `duration` is only for a URL that is
 the recording itself. Attendance figures are not modeled: an event's headcount
-says nothing about who was in the room for one session.
+says nothing about who was in the room for one session. `updated` is the only
+date the sitemap treats as `lastmod`: the engagement date says when the talk
+happened, not when the page was written or revised.
 
 ## Taxonomy
 
