@@ -2,7 +2,6 @@
 title: "Understanding HTTPS and TLS"
 date: 2016-04-23
 type: "talk"
-featured: true
 topics:
   - "https-tls"
   - "http2"

@@ -229,48 +229,6 @@ export function talksByYear(talks) {
     .sort((a, b) => rank(b.year) - rank(a.year));
 }
 
-// Most talks a featured tier may hold. A tier that grows stops being a
-// shortlist, so the cap is enforced here rather than trusted to front matter:
-// flagging a sixth talk shortens the list from the bottom instead of widening
-// the section.
-export const FEATURED_LIMIT = 5;
-
-// The featured shortlist for the index, newest first because the collection
-// already arrives that way. Talks opt in with `featured: true`; anything else,
-// including a truthy string, is not an opt-in.
-export function featuredTalks(talks) {
-  return (talks || [])
-    .filter(talk => talk?.data?.featured === true)
-    .slice(0, FEATURED_LIMIT);
-}
-
-// Longest hook a featured card takes. A card holds one line, so a hook longer
-// than this is passed over rather than cut.
-const HOOK_MAX_LENGTH = 200;
-
-// Leading sentence of `text`, or "" when the opening sentence is longer than a
-// card can hold. Only the first paragraph is considered: an abstract's later
-// paragraphs are context, not a summary.
-function firstSentence(text) {
-  const paragraph = String(text || "")
-    .split(/\n\s*\n/)[0]
-    .trim();
-  if (!paragraph) {
-    return "";
-  }
-  const match = paragraph.match(/^[\s\S]*?[.!?](?=\s|$)/);
-  const sentence = (match ? match[0] : paragraph).trim();
-  return sentence.length <= HOOK_MAX_LENGTH ? sentence : "";
-}
-
-// One-line hook for a featured card: the abstract's opening sentence, or null
-// when the talk offers nothing short enough. The hook is chosen whole rather
-// than clipped, so a card never shows half a sentence. Talks carry `quotes` in
-// front matter, but audience praise is deliberately not rendered anywhere.
-export function talkHook(data) {
-  return firstSentence(data?.description) || null;
-}
-
 // Headline numbers for the speaking index hero.
 export function speakingStats(talks) {
   const items = talks || [];

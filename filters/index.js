@@ -5,14 +5,12 @@ import {
   emptyFilterStates,
   eventFacetSlug,
   eventFacets,
-  featuredTalks,
   relatedTalks,
   sourceGroups,
   sourceLabel,
   speakingStats,
   talkEventType,
   talkFilterStates,
-  talkHook,
   talkTopics,
   talkType,
   talksByYear,
@@ -43,8 +41,6 @@ export default function registerFilters(eleventyConfig) {
   eleventyConfig.addFilter("talksByYear", talksByYear);
   eleventyConfig.addFilter("talkFilterStates", talkFilterStates);
   eleventyConfig.addFilter("emptyFilterStates", emptyFilterStates);
-  eleventyConfig.addFilter("featuredTalks", featuredTalks);
-  eleventyConfig.addFilter("talkHook", talkHook);
   eleventyConfig.addFilter("speakingStats", speakingStats);
   eleventyConfig.addFilter("relatedTalks", relatedTalks);
 }

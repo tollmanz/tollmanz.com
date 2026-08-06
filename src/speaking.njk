@@ -9,7 +9,6 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
 {%- set topFacets = collections.talks | topicFacets -%}
 {%- set evtFacets = collections.talks | eventFacets -%}
 {%- set evtFacetOf = collections.talks | eventFacetSlug -%}
-{%- set featured = collections.talks | featuredTalks -%}
 
 <div class="speaking">
   <header class="speaking-hero">
@@ -38,51 +37,6 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
       </div>
     </dl>
   </header>
-
-  {#- Featured tier: an editorial shortlist, capped by featuredTalks rather than
-      by the front matter that opts talks in. Every talk here also appears in
-      the chronological list below. The section hides whenever a narrowing
-      filter is checked (see .talk-filter--narrow in main.css), so the cards are
-      never a stale subset of a filtered list. -#}
-  {% if featured.length %}
-    <section class="talk-featured" aria-labelledby="talk-featured-title">
-      <h2 class="talk-featured__title" id="talk-featured-title">Start here</h2>
-      <ul class="talk-featured__list">
-        {% for talk in featured %}
-          {%- set topics = talk.data.topics | talkTopics -%}
-          {%- set primary = topics[0].slug if topics.length else "talk" -%}
-          {%- set photo = talk.data.photos[0] if talk.data.photos.length -%}
-          {%- set hook = talk.data | talkHook -%}
-          <li class="talk-card t-{{ primary }}">
-            {%- if photo %}
-              {#- Card-sized derivatives: the transform plugin's page defaults
-                  are sized for a full-width figure, which a card never is. The
-                  tier renders in the first viewport, so these load eagerly
-                  rather than under the plugin's lazy default. -#}
-              <img class="talk-card__img" src="{{ photo.src }}" alt="{{ photo.alt or talk.data.title }}" loading="eager" eleventy:widths="250,500,780" eleventy:sizes="(max-width: 640px) calc(100vw - 30px), 244px" />
-            {% endif -%}
-            <div class="talk-card__body">
-              <h3 class="talk-card__title">
-                <a class="talk-card__link" href="{{ talk.url }}">{{ talk.data.title }}</a>
-              </h3>
-              <p class="talk-card__meta">
-                {{ talk.data.event.name }}{% if talk.date %} &middot; {{ talk.date | year }}{% endif %}
-              </p>
-              {%- if hook %}
-                <p class="talk-card__hook">{{ hook }}</p>
-              {% endif -%}
-              {% if talk.data.video.url or talk.data.slides.url %}
-                <p class="talk-card__links">
-                  {% if talk.data.video.url %}<a class="talk-card__fmt" href="{{ talk.data.video.url }}" aria-label="Video: {{ talk.data.title }}">Video</a>{% endif %}
-                  {% if talk.data.slides.url %}<a class="talk-card__fmt" href="{{ talk.data.slides.url }}" aria-label="Slides: {{ talk.data.title }}">Slides</a>{% endif %}
-                </p>
-              {% endif %}
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
-    </section>
-  {% endif %}
 
   {# Every filter state the index can reach, with the CSS fragments its rules
      need and the number of talks it matches. The year-group rules and the
@@ -128,14 +82,11 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
     <fieldset class="talk-filters__group">
       <legend class="talk-filters__legend">Format</legend>
       {#- `talk-filter` earns a chip its active underline and belongs on every
-          control, including the All radios. `talk-filter--narrow` marks the
-          controls that actually narrow the index, which is what hides the
-          featured tier; the All radios are checked by default and narrow
-          nothing, so they carry only the first class. -#}
+          control, including the All radios that are checked by default. -#}
       <div class="talk-filters__chips">
-        <input class="visually-hidden talk-filter talk-filter--narrow" type="checkbox" id="flt-video" />
+        <input class="visually-hidden talk-filter" type="checkbox" id="flt-video" />
         <label class="talk-chip" for="flt-video">Video</label>
-        <input class="visually-hidden talk-filter talk-filter--narrow" type="checkbox" id="flt-slides" />
+        <input class="visually-hidden talk-filter" type="checkbox" id="flt-slides" />
         <label class="talk-chip" for="flt-slides">Slides</label>
       </div>
     </fieldset>
@@ -145,7 +96,7 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
         <input class="visually-hidden talk-filter" type="radio" name="top" id="top-all" checked />
         <label class="talk-chip" for="top-all">All</label>
         {% for f in topFacets %}
-          <input class="visually-hidden talk-filter talk-filter--narrow" type="radio" name="top" id="top-{{ f.slug }}" />
+          <input class="visually-hidden talk-filter" type="radio" name="top" id="top-{{ f.slug }}" />
           <label class="talk-chip talk-chip--topic t-{{ f.slug }}" for="top-{{ f.slug }}">{{ f.label }} <span class="talk-chip__count">{{ f.count }}</span></label>
         {% endfor %}
       </div>
@@ -156,7 +107,7 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
         <input class="visually-hidden talk-filter" type="radio" name="evt" id="evt-all" checked />
         <label class="talk-chip" for="evt-all">All</label>
         {% for f in evtFacets %}
-          <input class="visually-hidden talk-filter talk-filter--narrow" type="radio" name="evt" id="evt-{{ f.slug }}" />
+          <input class="visually-hidden talk-filter" type="radio" name="evt" id="evt-{{ f.slug }}" />
           <label class="talk-chip" for="evt-{{ f.slug }}">{{ f.label }} <span class="talk-chip__count">{{ f.count }}</span></label>
         {% endfor %}
       </div>

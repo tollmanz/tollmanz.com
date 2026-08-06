@@ -2,7 +2,6 @@
 title: "Backbone Themin': WordPress Themes and Backbone.js"
 date: 2014-04-17
 type: "talk"
-featured: true
 topics:
   - "javascript"
   - "wordpress"

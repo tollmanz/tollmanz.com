@@ -317,14 +317,6 @@ test("talkProblems accepts a source that still carries only a label", () => {
   assert.deepEqual(problems, []);
 });
 
-test("talkProblems accepts a boolean featured and flags anything else", () => {
-  assert.deepEqual(talkProblems([validTalk({ featured: true })], "talks"), []);
-  assert.deepEqual(talkProblems([validTalk({ featured: false })], "talks"), []);
-  const problems = talkProblems([validTalk({ featured: "yes" })], "talks");
-  assert.equal(problems.length, 1);
-  assert.match(problems[0], /non-boolean "featured" value "yes"/);
-});
-
 test("talkProblems flags a video or slides block with no url", () => {
   const problems = talkProblems(
     [validTalk({ video: { provider: "YouTube" }, slides: { count: 76 } })],

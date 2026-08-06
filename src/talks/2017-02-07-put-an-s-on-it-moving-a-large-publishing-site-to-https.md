@@ -2,7 +2,6 @@
 title: 'Put an "S" on It: Moving a Large Publishing Site to HTTPS'
 date: 2017-02-07
 type: "talk"
-featured: true
 topics:
   - "https-tls"
 event:
