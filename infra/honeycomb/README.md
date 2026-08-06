@@ -28,11 +28,12 @@ providers the board tier adds.
 
 ## RUM boards
 
-The board tier (issue #59) manages a compact Core Web Vitals board as code, one
-per environment: five query panels, one per metric (LCP, INP, CLS, FCP, TTFB),
-each a p75 over the last 7 days against the `tollmanz-com-web` dataset. It is a
-hand-built board rather than an import of the sprawling UI template, whose panels
-reference many UI-managed queries that `pulumi import` would leave unmanaged.
+The board tier (issue #59) manages a compact board named `Core Web Vitals
+(Pulumi-managed)` as code, one per environment: five query panels, one per metric
+(LCP, INP, CLS, FCP, TTFB), each a p75 over the last 7 days against the
+`tollmanz-com-web` dataset. It is a hand-built board rather than an import of the
+sprawling UI template, whose panels reference many UI-managed queries that
+`pulumi import` would leave unmanaged.
 
 Boards, queries, and query annotations are Honeycomb v1 API resources. They need
 a v1 Configuration Key scoped to one environment, not the v2 Management Key the
@@ -54,16 +55,40 @@ Each environment has its own flag, config key, and board:
 | `tollmanz-com`       | `manageProdBoard`  | `HONEYCOMB_CONFIG_KEY`       | `rumBoardIdProd`  |
 | `tollmanz-com-local` | `manageLocalBoard` | `HONEYCOMB_LOCAL_CONFIG_KEY` | `rumBoardIdLocal` |
 
-Prerequisite: the `tollmanz-com-web` dataset must already exist in the target
-environment (that environment has received at least one RUM event), or query
-creation fails with a dataset-not-found error. Prod has live RUM; for local, run
-the site with `RUM_MODE=local` at least once first.
+Prerequisite: every column the board queries must already exist in the target
+environment, because Honeycomb validates columns when a saved query is created
+(`missing unknown column or derived column "<name>"`). Columns are created by
+ingest, so the environment needs real RUM traffic first: run the site with
+`RUM_MODE=local` and browse it (see `local/otel/README.md`). Prod has live
+traffic and all five columns.
+
+`inp.value` is the one that bites. INP is only emitted after a qualifying user
+interaction, and synthetic or headless clicks generally do not produce one, so a
+local environment can have every other vital and still be missing INP. Seeding
+the column with a single event is enough to unblock query creation:
+
+```bash
+curl -X POST https://api.honeycomb.io/1/events/tollmanz-com-web \
+  -H "X-Honeycomb-Team: $HONEYCOMB_LOCAL_INGEST_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"inp","inp.value":120}'
+```
+
+Column types are inferred per environment from the first value seen, so they can
+differ between environments (`cls.value` is `integer` in prod, `float` in local).
+That is harmless for these queries, which reference columns by name, and it is
+why the columns are left to ingest rather than declared as Pulumi resources.
 
 To enable a board (prod shown; substitute the local flag and key for local):
 
 1. In the Honeycomb UI, switch to the target environment, open its settings ->
    API Keys, and create a Configuration Key. Grant it "Manage Queries and
-   Columns" and "Manage Boards" (or full permissions). Copy the key.
+   Columns" and "Manage Boards". The "Run Queries" permission is not needed: the
+   board tier only creates saved query specs, it never executes them, and that
+   permission is plan-gated. Verify a key with
+   `curl -H "X-Honeycomb-Team: $KEY" https://api.honeycomb.io/1/auth`, which
+   should report `boards: true` and `columns: true` for the right environment.
+   Copy the key.
 2. Set the matching env var in the repo-root `.env` and add it as a GitHub
    Actions repository secret of the same name.
 3. Turn the flag on for the stack, then apply:
@@ -74,9 +99,12 @@ To enable a board (prod shown; substitute the local flag and key for local):
    npm run up
    ```
 
-The pre-existing manually-created `Real User Monitoring (RUM)` board
-(`nUnmjid2hYb`, in `tollmanz-com-local`) is left untouched; delete it in the UI
-once the managed board covers what you need.
+Both environments already contain a hand-made 9-panel board named `Real User
+Monitoring (RUM)` (`uymoPQWt5Hh` in `tollmanz-com`, `nUnmjid2hYb` in
+`tollmanz-com-local`). The managed board carries a different name on purpose, so
+it coexists with those rather than adding a second board with an identical name.
+Both hand-made boards are left untouched; retire them in the UI, and rename the
+managed board, once it covers what you need.
 
 ## The prod ingest key never reaches the browser
 

@@ -1,1 +1,1 @@
-{}
+{ config: { "tollmanz-com-honeycomb:manageLocalBoard": "true" } }

@@ -119,6 +119,12 @@ const vitals = [
 // unique across the two boards. A compact hand-built board is preferred over
 // importing the sprawling template board (see issue #59): the template's panels
 // reference many UI-managed queries that `pulumi import` would leave unmanaged.
+//
+// The name deliberately differs from the hand-made `Real User Monitoring (RUM)`
+// template board that already exists in both environments, so the two coexist
+// unambiguously in the boards list. Honeycomb keys boards by ID and permits
+// duplicate names, so reusing that name would silently produce two similar-
+// looking boards in the same environment.
 function rumBoard(
   slug: string,
   configKey: string,
@@ -166,7 +172,7 @@ function rumBoard(
   const board = new honeycombio.FlexibleBoard(
     `rum-${slug}-board`,
     {
-      name: "Real User Monitoring (RUM)",
+      name: "Core Web Vitals (Pulumi-managed)",
       description,
       panels,
     },
