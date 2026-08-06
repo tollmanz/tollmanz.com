@@ -9,7 +9,7 @@ event:
   name: "WordPress Vancouver (WPYVR) Developer Meetup"
   type: "meetup"
   location: "Vancouver, BC, Canada"
-description: "Let's start writing cleaner, more responsive WordPress-based applications by using Backbone.js. If that sounds intimidating to you, then perhaps I should introduce our speakers. Our expert presenter, Zack Tollman. This WordPress expert is hands-down one of the best presenters I've met who can take a complex idea and explain it in simple, easy-to-follow terms.\n\nThis session is actually an introduction to Backbone, a primer to help us all get going on the right foot. Zack will demonstrate ways you can start putting Backbone.js to work immediately in your themes. By the time the session is over, you should know how to take an existing project (or start a new one) and integrate Backbone.js to either reduce code, improve performance, or both!\n\nJoin Zack Tollman for an exciting and informative talk that provides useful examples of how you can implement it in your WordPress themes."
+description: "Backbone.js gives the browser half of a WordPress theme some structure: models for the data, views for what renders, and a router for the URL. This talk was a primer. It worked from a stock theme toward one that fetches content as JSON, renders its templates client side, and routes with a catchall pattern loose enough to cope with WordPress permalinks. The accompanying theme on GitHub is deliberately stripped down, built to be read rather than shipped, and the talk walks the same path it takes."
 video:
   url: "https://www.youtube.com/watch?v=snw2C1R5mp4"
   provider: "YouTube"
