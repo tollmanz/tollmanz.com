@@ -23,6 +23,3 @@ sources:
     note: "Show recap citing the HTTPS panel."
     url: "https://www.xbiz.com/news/216268/xbiz-2017-defines-future-of-industry"
 ---
-
-Programmed as the Free Speech Coalition panel, held in the Rooftop Panorama
-Ballroom at the Andaz West Hollywood.
