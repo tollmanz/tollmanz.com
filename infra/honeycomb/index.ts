@@ -311,11 +311,11 @@ const OVERVIEW_ORIGIN_Y = OVERVIEW_HEADING_Y + HEADING_HEIGHT;
 // environment's v1 Configuration Key. `slug` (prod/local) keeps resource names
 // unique across the two boards.
 //
-// The name deliberately differs from the hand-made `Real User Monitoring (RUM)`
-// template board that already exists in both environments, so the two coexist
-// unambiguously in the boards list. Honeycomb keys boards by ID and permits
-// duplicate names, so reusing that name would silently produce two similar-
-// looking boards in the same environment.
+// This is now the only RUM board in each environment. The hand-made template
+// board that Honeycomb created, also called `Real User Monitoring (RUM)`, was
+// deleted once its panels were reproduced in the overview section below, so the
+// name is free and there is one board per environment rather than two similar
+// ones.
 function rumBoard(
   slug: string,
   configKey: string,
@@ -425,7 +425,7 @@ function rumBoard(
   const board = new honeycombio.FlexibleBoard(
     `rum-${slug}-board`,
     {
-      name: "Real User Monitoring (Pulumi-managed)",
+      name: "Real User Monitoring (RUM)",
       description,
       panels,
     },

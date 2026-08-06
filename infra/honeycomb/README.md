@@ -28,9 +28,9 @@ providers the board tier adds.
 
 ## RUM boards
 
-The board tier (issue #59) manages a board named `Real User Monitoring
-(Pulumi-managed)` as code, one per environment, in two sections against the
-`tollmanz-com-web` dataset:
+The board tier (issue #59) manages the `Real User Monitoring (RUM)` board as
+code, one per environment, in two sections against the `tollmanz-com-web`
+dataset:
 
 | Section         | Panels | Window                  | Content                                                  |
 | --------------- | ------ | ----------------------- | -------------------------------------------------------- |
@@ -43,10 +43,10 @@ rather than whatever order the API returns. The vitals sit on top, three to a
 row; the overview section below keeps the template board's own arrangement.
 
 The overview queries are reproduced as managed `Query` and `QueryAnnotation`
-resources rather than referenced by ID, so retiring the hand-made board cannot
-break this one. That is why the board is hand-built rather than a `pulumi
-import` of the template, whose panels point at UI-owned queries that import
-would leave unmanaged.
+resources rather than referenced by ID, so this board does not depend on any
+UI-owned query. That is also why it is hand-built rather than a `pulumi import`
+of the template board, whose panels pointed at queries import would have left
+unmanaged.
 
 Boards, queries, and query annotations are Honeycomb v1 API resources. They need
 a v1 Configuration Key scoped to one environment, not the v2 Management Key the
@@ -104,23 +104,21 @@ To enable a board (prod shown; substitute the local flag and key for local):
    Copy the key.
 2. Set the matching env var in the repo-root `.env` and add it as a GitHub
    Actions repository secret of the same name.
-3. Turn the flag on for the stack, then apply:
+3. Turn the flag on for the stack. Committing the flag is what enables the board;
+   CI applies it on push to `main`, so a local apply is optional:
 
    ```bash
    cd infra/honeycomb
    pulumi config set manageProdBoard true
-   npm run up
+   npm run up   # or let the honeycomb workflow apply it on merge
    ```
 
-Both environments already contain a hand-made 9-panel board named `Real User
-Monitoring (RUM)` (`uymoPQWt5Hh` in `tollmanz-com`, `nUnmjid2hYb` in
-`tollmanz-com-local`). The managed board carries a different name on purpose, so
-it coexists with those rather than adding a second board with an identical name.
-
-The two boards are complementary and both are kept on purpose. The hand-made
-boards stay as they are, untouched and unmanaged, and the managed board's
-distinct name is what lets them sit side by side. Nothing here deletes or edits
-them.
+Honeycomb's own template had created a hand-made 9-panel board, also named `Real
+User Monitoring (RUM)`, in both environments (`uymoPQWt5Hh` in `tollmanz-com`,
+`nUnmjid2hYb` in `tollmanz-com-local`). Both were deleted once their panels were
+reproduced in the overview section, so each environment has exactly one RUM
+board and it is fully managed here. Recreating either by hand would produce two
+boards with the same name, since Honeycomb keys boards by ID.
 
 ## The prod ingest key never reaches the browser
 

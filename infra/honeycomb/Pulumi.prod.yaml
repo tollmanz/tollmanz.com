@@ -1,1 +1,7 @@
-{ config: { "tollmanz-com-honeycomb:manageLocalBoard": "true" } }
+{
+  config:
+    {
+      "tollmanz-com-honeycomb:manageLocalBoard": "true",
+      "tollmanz-com-honeycomb:manageProdBoard": "true",
+    },
+}
