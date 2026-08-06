@@ -6,7 +6,7 @@ topics:
   - "performance"
 series: "defining-fast"
 event:
-  name: "WordCamp for Publishers: Columbus 2019"
+  name: "WordCamp for Publishers Columbus 2019"
   type: "wordcamp"
   location: "Columbus, OH"
 description: "We all want fast sites, but what is fast? What is performant? We may know it when we see; yet quantifying and communicating about web performance effectively is still a challenge. In this talk, we will discuss our ever-evolving set of standards for what comprises a fast site. With special attention to the problems that ads and analytics present for publishers, we will discuss how antiquated notions of web performance are a ripe environment for abuses by 3rd party code. Finally, we will discuss techniques for improving performance monitoring as a tool for institutional change."
