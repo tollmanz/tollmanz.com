@@ -28,12 +28,25 @@ providers the board tier adds.
 
 ## RUM boards
 
-The board tier (issue #59) manages a compact board named `Core Web Vitals
-(Pulumi-managed)` as code, one per environment: five query panels, one per metric
-(LCP, INP, CLS, FCP, TTFB), each a p75 over the last 7 days against the
-`tollmanz-com-web` dataset. It is a hand-built board rather than an import of the
-sprawling UI template, whose panels reference many UI-managed queries that
-`pulumi import` would leave unmanaged.
+The board tier (issue #59) manages a board named `Real User Monitoring
+(Pulumi-managed)` as code, one per environment, in two sections against the
+`tollmanz-com-web` dataset:
+
+| Section         | Panels | Window                  | Content                                                  |
+| --------------- | ------ | ----------------------- | -------------------------------------------------------- |
+| Core Web Vitals | 5      | 7 day p75               | LCP, INP, CLS, FCP, TTFB, the window Google reports over |
+| RUM overview    | 9      | 2 hour, 10s granularity | Ported from the hand-made template board (see below)     |
+
+A full-width Markdown text panel titles each section, and every panel carries an
+explicit position on Honeycomb's 12 column grid, so the layout is deterministic
+rather than whatever order the API returns. The vitals sit on top, three to a
+row; the overview section below keeps the template board's own arrangement.
+
+The overview queries are reproduced as managed `Query` and `QueryAnnotation`
+resources rather than referenced by ID, so retiring the hand-made board cannot
+break this one. That is why the board is hand-built rather than a `pulumi
+import` of the template, whose panels point at UI-owned queries that import
+would leave unmanaged.
 
 Boards, queries, and query annotations are Honeycomb v1 API resources. They need
 a v1 Configuration Key scoped to one environment, not the v2 Management Key the
@@ -103,8 +116,11 @@ Both environments already contain a hand-made 9-panel board named `Real User
 Monitoring (RUM)` (`uymoPQWt5Hh` in `tollmanz-com`, `nUnmjid2hYb` in
 `tollmanz-com-local`). The managed board carries a different name on purpose, so
 it coexists with those rather than adding a second board with an identical name.
-Both hand-made boards are left untouched; retire them in the UI, and rename the
-managed board, once it covers what you need.
+
+The two boards are complementary and both are kept on purpose. The hand-made
+boards stay as they are, untouched and unmanaged, and the managed board's
+distinct name is what lets them sit side by side. Nothing here deletes or edits
+them.
 
 ## The prod ingest key never reaches the browser
 

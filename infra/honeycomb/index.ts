@@ -114,11 +114,202 @@ const vitals = [
   },
 ];
 
+// The RUM overview section, ported from the hand-made `Real User Monitoring
+// (RUM)` board that Honeycomb's template created in both environments. Each
+// entry reproduces that board's saved query as a managed resource rather than
+// pointing at the UI-owned query by ID, so the whole board is code and nothing
+// breaks if the hand-made board is retired.
+//
+// These queries are environment-wide in the template (`__all__`); here they are
+// scoped to the one dataset the environment has, matching the vitals section.
+// Every column they reference exists in both environments. `position` preserves
+// the template's own arrangement, offset below the vitals section.
+//
+// They all use a 7200s (two hour) window at 10s granularity, as the template
+// did. That is deliberately shorter than the vitals section's 7 day p75, so the
+// two sections answer different questions: what is happening now, and what the
+// steady-state user experience looks like.
+const overview = [
+  {
+    key: "lcp-ratings",
+    label: "Largest Contentful Paint (LCP)",
+    description:
+      "Ratings based on the render time for the largest content on a page",
+    style: "combo",
+    position: { x: 0, y: 0, width: 4, height: 8 },
+    query: {
+      granularity: 10,
+      breakdowns: ["lcp.rating", "name"],
+      calculations: [{ op: "COUNT" }],
+      filters: [{ column: "name", op: "in", value: ["LCP", "lcp"] }],
+      orders: [{ op: "COUNT", order: "descending" }],
+      time_range: 7200,
+    },
+  },
+  {
+    key: "cls-ratings",
+    label: "Cumulative Layout Shift (CLS)",
+    description: "Ratings based on the stability of content layout on a page",
+    style: "combo",
+    position: { x: 4, y: 0, width: 4, height: 8 },
+    query: {
+      granularity: 10,
+      breakdowns: ["cls.rating", "name"],
+      calculations: [{ op: "COUNT" }],
+      filters: [{ column: "name", op: "in", value: ["CLS", "cls"] }],
+      orders: [{ op: "COUNT", order: "descending" }],
+      time_range: 7200,
+    },
+  },
+  {
+    key: "lcp-p75",
+    label: "Largest Contentful Paint P75",
+    description: "The 75th percentile for LCP",
+    style: "graph",
+    position: { x: 8, y: 0, width: 4, height: 4 },
+    query: {
+      granularity: 10,
+      calculations: [{ column: "lcp.value", op: "P75" }],
+      filters: [{ column: "name", op: "in", value: ["LCP", "lcp"] }],
+      orders: [{ column: "lcp.value", op: "P75", order: "descending" }],
+      time_range: 7200,
+    },
+  },
+  {
+    key: "cls-p75",
+    label: "Cumulative Layout Shift P75",
+    description: "The 75th percentile for CLS",
+    style: "graph",
+    position: { x: 0, y: 8, width: 4, height: 4 },
+    query: {
+      granularity: 10,
+      calculations: [{ column: "cls.value", op: "P75" }],
+      filters: [{ column: "name", op: "in", value: ["CLS", "cls"] }],
+      orders: [{ column: "cls.value", op: "P75", order: "descending" }],
+      time_range: 7200,
+    },
+  },
+  {
+    key: "events-by-type",
+    label: "Total Events by Type",
+    description: "Event types ranked by occurrence",
+    style: "combo",
+    position: { x: 4, y: 8, width: 4, height: 8 },
+    query: {
+      granularity: 10,
+      breakdowns: ["name"],
+      calculations: [{ op: "COUNT" }],
+      filters: [
+        { column: "meta.annotation_type", op: "!=", value: "span_event" },
+      ],
+      orders: [{ op: "COUNT", order: "descending" }],
+      limit: 100,
+      time_range: 7200,
+    },
+  },
+  {
+    key: "largest-resources",
+    label: "Largest Resource Requests",
+    description:
+      "The largest resource requests ranked by the average length of their response content",
+    style: "table",
+    position: { x: 8, y: 8, width: 4, height: 8 },
+    query: {
+      granularity: 10,
+      breakdowns: ["http.url"],
+      calculations: [{ column: "http.response_content_length", op: "AVG" }],
+      filters: [
+        { column: "http.response_content_length", op: "exists" },
+        { column: "name", op: "=", value: "resourceFetch" },
+      ],
+      orders: [
+        {
+          column: "http.response_content_length",
+          op: "AVG",
+          order: "descending",
+        },
+      ],
+      limit: 100,
+      time_range: 7200,
+    },
+  },
+  {
+    key: "slowest-endpoints",
+    label: "Slowest Requests by Endpoint",
+    description:
+      "The slowest endpoints based on the 75th percentile of request durations",
+    style: "table",
+    position: { x: 0, y: 16, width: 4, height: 8 },
+    query: {
+      breakdowns: ["name", "http.url"],
+      calculations: [{ column: "duration_ms", op: "P75" }],
+      filters: [
+        { column: "http.url", op: "exists" },
+        {
+          column: "name",
+          op: "in",
+          value: ["HTTP GET", "HTTP POST", "GET", "POST"],
+        },
+      ],
+      orders: [{ column: "duration_ms", op: "P75", order: "descending" }],
+      limit: 100,
+      time_range: 7200,
+    },
+  },
+  {
+    key: "top-landing-pages",
+    label: "Top Landing Pages by Session Count",
+    description: "The most visited landing pages ranked by session count",
+    style: "table",
+    position: { x: 4, y: 16, width: 4, height: 8 },
+    query: {
+      granularity: 10,
+      breakdowns: ["entry_page.path"],
+      calculations: [{ op: "COUNT" }],
+      filters: [
+        { column: "entry_page.path", op: "exists" },
+        { column: "name", op: "=", value: "documentLoad" },
+      ],
+      orders: [{ op: "COUNT", order: "descending" }],
+      limit: 100,
+      time_range: 7200,
+    },
+  },
+  {
+    key: "busiest-pages",
+    label: "Pages With the Most Events",
+    description:
+      "Pages with the highest number of events, highlighting the most active pages",
+    style: "table",
+    position: { x: 8, y: 16, width: 4, height: 8 },
+    query: {
+      granularity: 10,
+      breakdowns: ["page.route"],
+      calculations: [{ op: "COUNT" }],
+      filters: [{ column: "page.route", op: "exists" }],
+      orders: [{ op: "COUNT", order: "descending" }],
+      limit: 100,
+      time_range: 7200,
+    },
+  },
+];
+
+// Honeycomb lays boards out on a 12 column grid. The vitals sit three to a row
+// under their heading, then the ported overview section starts below them, so
+// each section reads as its own block.
+const GRID_COLUMNS = 12;
+const HEADING_HEIGHT = 2;
+const VITAL_WIDTH = 4;
+const VITAL_HEIGHT = 4;
+const VITALS_PER_ROW = GRID_COLUMNS / VITAL_WIDTH;
+const VITALS_ORIGIN_Y = HEADING_HEIGHT;
+const OVERVIEW_HEADING_Y =
+  VITALS_ORIGIN_Y + Math.ceil(vitals.length / VITALS_PER_ROW) * VITAL_HEIGHT;
+const OVERVIEW_ORIGIN_Y = OVERVIEW_HEADING_Y + HEADING_HEIGHT;
+
 // Build a curated RUM board in one environment, authenticated with that
 // environment's v1 Configuration Key. `slug` (prod/local) keeps resource names
-// unique across the two boards. A compact hand-built board is preferred over
-// importing the sprawling template board (see issue #59): the template's panels
-// reference many UI-managed queries that `pulumi import` would leave unmanaged.
+// unique across the two boards.
 //
 // The name deliberately differs from the hand-made `Real User Monitoring (RUM)`
 // template board that already exists in both environments, so the two coexist
@@ -135,44 +326,106 @@ function rumBoard(
   });
   const providerOpts = { provider };
 
-  const panels = vitals.map(v => {
+  // A query panel and the two resources behind it. `name` is the Pulumi resource
+  // name and must stay stable: the vitals panels were created as
+  // `rum-<slug>-<key>` before the overview section existed, and changing those
+  // names would replace live queries.
+  const queryPanel = (
+    name: string,
+    queryJson: object,
+    label: string,
+    caption: string,
+    style: string,
+    position: { x: number; y: number; width: number; height: number }
+  ) => {
     const query = new honeycombio.Query(
-      `rum-${slug}-${v.key}`,
-      {
-        dataset: datasetName,
-        queryJson: JSON.stringify({
-          calculations: [{ op: "P75", column: `${v.key}.value` }],
-          time_range: 604800,
-        }),
-      },
+      name,
+      { dataset: datasetName, queryJson: JSON.stringify(queryJson) },
       providerOpts
     );
     const annotation = new honeycombio.QueryAnnotation(
-      `rum-${slug}-${v.key}`,
+      name,
       {
         dataset: datasetName,
         queryId: query.id,
-        name: v.label,
-        description: v.description,
+        name: label,
+        description: caption,
       },
       providerOpts
     );
     return {
       type: "query",
+      position: {
+        xCoordinate: position.x,
+        yCoordinate: position.y,
+        width: position.width,
+        height: position.height,
+      },
       queryPanels: [
         {
           queryId: query.id,
           queryAnnotationId: annotation.id,
-          queryStyle: "graph",
+          queryStyle: style,
         },
       ],
     };
+  };
+
+  // Full-width Markdown panel that titles a section.
+  const heading = (yCoordinate: number, content: string) => ({
+    type: "text",
+    position: {
+      xCoordinate: 0,
+      yCoordinate,
+      width: GRID_COLUMNS,
+      height: HEADING_HEIGHT,
+    },
+    textPanels: [{ content }],
   });
+
+  const panels = [
+    heading(
+      0,
+      "## Core Web Vitals\n\np75 over the last 7 days, the window Google reports Core Web Vitals over."
+    ),
+    ...vitals.map((v, i) =>
+      queryPanel(
+        `rum-${slug}-${v.key}`,
+        {
+          calculations: [{ op: "P75", column: `${v.key}.value` }],
+          time_range: 604800,
+        },
+        v.label,
+        v.description,
+        "graph",
+        {
+          x: (i % VITALS_PER_ROW) * VITAL_WIDTH,
+          y: VITALS_ORIGIN_Y + Math.floor(i / VITALS_PER_ROW) * VITAL_HEIGHT,
+          width: VITAL_WIDTH,
+          height: VITAL_HEIGHT,
+        }
+      )
+    ),
+    heading(
+      OVERVIEW_HEADING_Y,
+      "## RUM overview\n\nPorted from the hand-made `Real User Monitoring (RUM)` board, over a two hour window."
+    ),
+    ...overview.map(o =>
+      queryPanel(
+        `rum-${slug}-ov-${o.key}`,
+        o.query,
+        o.label,
+        o.description,
+        o.style,
+        { ...o.position, y: OVERVIEW_ORIGIN_Y + o.position.y }
+      )
+    ),
+  ];
 
   const board = new honeycombio.FlexibleBoard(
     `rum-${slug}-board`,
     {
-      name: "Core Web Vitals (Pulumi-managed)",
+      name: "Real User Monitoring (Pulumi-managed)",
       description,
       panels,
     },
@@ -199,7 +452,7 @@ if (manageProdBoard) {
   prodBoardId = rumBoard(
     "prod",
     requireConfigKey("HONEYCOMB_CONFIG_KEY", "manageProdBoard"),
-    "Core Web Vitals for tollmanz.com browser RUM (p75 over the last 7 days). Managed by infra/honeycomb (Pulumi)."
+    "Core Web Vitals and a RUM overview for tollmanz.com browser RUM. Managed by infra/honeycomb (Pulumi)."
   );
 }
 
@@ -208,7 +461,7 @@ if (manageLocalBoard) {
   localBoardId = rumBoard(
     "local",
     requireConfigKey("HONEYCOMB_LOCAL_CONFIG_KEY", "manageLocalBoard"),
-    "Core Web Vitals for tollmanz.com browser RUM, local testing environment (p75 over the last 7 days). Managed by infra/honeycomb (Pulumi)."
+    "Core Web Vitals and a RUM overview for tollmanz.com browser RUM, local testing environment. Managed by infra/honeycomb (Pulumi)."
   );
 }
 
