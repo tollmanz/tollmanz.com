@@ -234,23 +234,22 @@ const overview = [
     },
   },
   {
+    // Retargeted from the template's version, which filtered `name` to fetch and
+    // XHR span names (`HTTP GET` and friends). This site issues no fetch or XHR
+    // calls, and the RUM exporter's own request is excluded from instrumentation
+    // (see assets/rum/index.js), so that filter matched nothing and the panel was
+    // always empty. The navigation request is a `documentFetch` span, which is
+    // what "slowest request" means here.
     key: "slowest-endpoints",
-    label: "Slowest Requests by Endpoint",
+    label: "Slowest Pages by Document Fetch",
     description:
-      "The slowest endpoints based on the 75th percentile of request durations",
+      "Routes ranked by the 75th percentile of their navigation request duration",
     style: "table",
     position: { x: 0, y: 16, width: 4, height: 8 },
     query: {
-      breakdowns: ["name", "http.url"],
+      breakdowns: ["page.route"],
       calculations: [{ column: "duration_ms", op: "P75" }],
-      filters: [
-        { column: "http.url", op: "exists" },
-        {
-          column: "name",
-          op: "in",
-          value: ["HTTP GET", "HTTP POST", "GET", "POST"],
-        },
-      ],
+      filters: [{ column: "name", op: "=", value: "documentFetch" }],
       orders: [{ column: "duration_ms", op: "P75", order: "descending" }],
       limit: 100,
       time_range: 7200,
@@ -258,8 +257,15 @@ const overview = [
   },
   {
     key: "top-landing-pages",
-    label: "Top Landing Pages by Session Count",
-    description: "The most visited landing pages ranked by session count",
+    // Counting document loads, not visits. The Honeycomb web SDK mints its
+    // session id once per document (`sessionId` is module scoped with no
+    // storage), so on this multi-page site every navigation starts a new session
+    // and `entry_page.path` is just the path that was loaded. COUNT_DISTINCT over
+    // `session.id` would return the same number under a name that implies
+    // otherwise, so the label says page load instead.
+    label: "Top Landing Pages by Page Load",
+    description:
+      "Landing pages ranked by document load count. Each navigation is its own session here, so this counts page loads rather than distinct visits",
     style: "table",
     position: { x: 4, y: 16, width: 4, height: 8 },
     query: {

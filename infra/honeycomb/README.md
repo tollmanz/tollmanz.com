@@ -48,6 +48,20 @@ UI-owned query. That is also why it is hand-built rather than a `pulumi import`
 of the template board, whose panels pointed at queries import would have left
 unmanaged.
 
+Seven of the nine overview queries are reproduced verbatim. Two were corrected,
+because the template was written for a generic web app rather than this one:
+
+- `Slowest Pages by Document Fetch` was `Slowest Requests by Endpoint`, filtering
+  `name` to fetch and XHR spans (`HTTP GET` and friends). This site makes no fetch
+  or XHR calls at all, and the RUM exporter's own request is excluded from
+  instrumentation, so nothing ever matched and the panel was permanently empty. It
+  now measures `documentFetch`, the navigation request, by `page.route`
+- `Top Landing Pages by Page Load` was `Top Landing Pages by Session Count`. The
+  Honeycomb web SDK mints a session id once per document with no persistence, so
+  every navigation on this multi-page site starts a new session. The query counts
+  document loads, and `COUNT_DISTINCT(session.id)` would return the same figure, so
+  only the label was wrong
+
 Boards, queries, and query annotations are Honeycomb v1 API resources. They need
 a v1 Configuration Key scoped to one environment, not the v2 Management Key the
 rest of this project uses. Two constraints shape how the keys are supplied:
@@ -88,9 +102,32 @@ curl -X POST https://api.honeycomb.io/1/events/tollmanz-com-web \
 ```
 
 Column types are inferred per environment from the first value seen, so they can
-differ between environments (`cls.value` is `integer` in prod, `float` in local).
-That is harmless for these queries, which reference columns by name, and it is
-why the columns are left to ingest rather than declared as Pulumi resources.
+differ between environments, and the type is not cosmetic. Honeycomb coerces
+incoming values to the column's type and substitutes `0` when coercion is not
+possible, so a numeric metric on the wrong type is corrupted at ingest rather
+than merely displayed oddly.
+
+`cls.value` is the one that matters. CLS is fractional, with the "good" and "poor"
+thresholds at 0.1 and 0.25, so an `integer` column truncates every score toward
+zero and makes `P75(cls.value)` meaningless. Prod had exactly that, and the column
+was corrected to `float`; local was already `float`. Data written to prod before
+the correction was coerced on the way in and is not recoverable by changing the
+type, which only governs later writes.
+
+`lcp.value`, `fcp.value`, and `inp.value` are still `integer` in prod. Those are
+whole-millisecond timings in the hundreds or thousands, so truncation is
+insignificant and they are left alone. Check the types before trusting a new
+environment's board:
+
+```bash
+curl -sS -H "X-Honeycomb-Team: $KEY" \
+  https://api.honeycomb.io/1/columns/tollmanz-com-web \
+  | jq -r '.[] | select(.key_name|endswith(".value")) | "\(.key_name) \(.type)"'
+```
+
+Columns are still left to ingest rather than declared as Pulumi resources, since a
+declared type would try to mutate whatever ingest already created. Fix a wrong
+type in the UI schema view, or with `PUT /1/columns/<dataset>/<id>`.
 
 To enable a board (prod shown; substitute the local flag and key for local):
 
