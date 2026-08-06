@@ -7,7 +7,7 @@ layout: base.njk
 {%- set ttype = type | talkType -%}
 {%- set topicList = topics | talkTopics -%}
 {%- set primary = topicList[0].slug if topicList.length else "talk" -%}
-{%- set links = sources | sourceGroups -%}
+{%- set links = sources | sourceGroups(event.name) -%}
 {%- set paras = description | paragraphs -%}
 {%- set body = content | trim -%}
 {%- set related = collections.talks | relatedTalks(page.inputPath) -%}

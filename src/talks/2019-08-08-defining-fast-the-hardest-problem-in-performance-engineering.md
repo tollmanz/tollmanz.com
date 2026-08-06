@@ -20,7 +20,7 @@ slides:
   count: 54
 sources:
   - kind: "session"
-    title: "Session"
+    title: "session page"
     url: "https://publishers.wordcamp.org/2019-columbus/session/defining-fast-the-hardest-problem-in-performance-engineering/"
   - kind: "coverage"
     publisher: "Dwayne McDaniel"

@@ -20,7 +20,7 @@ video:
   duration: "29:02"
 sources:
   - kind: "session"
-    title: "Session"
+    title: "session page"
     url: "https://us.wordcamp.org/2015/session/the-future-stack-running-wordpress-with-tomorrows-technologies/"
   - kind: "coverage"
     publisher: "Fight With Tools"

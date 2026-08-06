@@ -35,14 +35,24 @@ export function talkEventType(slug) {
 // Group source links by their declared kind. The talk page renders `code` as
 // action buttons and the rest as a resource list, so an unknown kind is kept
 // out of the way in `coverage` rather than dropped.
-export function sourceGroups(sources) {
+//
+// A `session` link points at the event's own page for the talk, so it is the
+// one kind whose publisher is already known: it is the event. Stamping it here
+// from `eventName` means front matter states only what kind of page it is
+// ("session page", "speaker page", "schedule") and the event name can never
+// drift from `event.name`. A session link that names its own publisher, such as
+// a third-party host like WPSessions, keeps it.
+export function sourceGroups(sources, eventName) {
   const groups = Object.fromEntries(SOURCE_KINDS.map(kind => [kind, []]));
   for (const source of sources || []) {
     if (!source || !source.url) {
       continue;
     }
     const kind = SOURCE_KINDS.includes(source.kind) ? source.kind : "coverage";
-    groups[kind].push(source);
+    const needsEvent = kind === "session" && !source.publisher && eventName;
+    groups[kind].push(
+      needsEvent ? { ...source, publisher: eventName } : source
+    );
   }
   return groups;
 }

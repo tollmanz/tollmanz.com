@@ -106,6 +106,47 @@ test("sourceGroups always returns every group", () => {
   ]);
 });
 
+test("sourceGroups names the event as the publisher of a session link", () => {
+  const groups = sourceGroups(
+    [{ kind: "session", title: "session page", url: "https://e.test/s/" }],
+    "WordCamp Seattle 2012"
+  );
+  assert.equal(
+    sourceLabel(groups.session[0]),
+    "WordCamp Seattle 2012: session page"
+  );
+});
+
+test("sourceGroups leaves a session link that names its own publisher", () => {
+  const groups = sourceGroups(
+    [
+      {
+        kind: "session",
+        publisher: "WPSessions",
+        title: "session page",
+        url: "https://e.test/s/",
+      },
+    ],
+    "WPSessions"
+  );
+  assert.equal(sourceLabel(groups.session[0]), "WPSessions: session page");
+});
+
+test("sourceGroups names the event only on session links", () => {
+  const groups = sourceGroups(
+    [{ kind: "coverage", title: "recap", url: "https://e.test/c/" }],
+    "WordCamp Seattle 2012"
+  );
+  assert.equal(sourceLabel(groups.coverage[0]), "recap");
+});
+
+test("sourceGroups leaves the source untouched when no event is given", () => {
+  const groups = sourceGroups([
+    { kind: "session", title: "session page", url: "https://e.test/s/" },
+  ]);
+  assert.equal(sourceLabel(groups.session[0]), "session page");
+});
+
 test("sourceLabel joins the publisher and the title", () => {
   assert.equal(
     sourceLabel({ publisher: "Post Status", title: "LoopConf in review" }),

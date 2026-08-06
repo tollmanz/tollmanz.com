@@ -16,7 +16,7 @@ slides:
   download: true
 sources:
   - kind: "session"
-    title: "Session"
+    title: "schedule"
     url: "https://seattle.wordcamp.org/2013/sessions/"
   - kind: "writing"
     title: "Blog post"

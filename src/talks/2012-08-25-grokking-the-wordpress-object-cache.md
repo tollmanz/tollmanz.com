@@ -17,7 +17,7 @@ video:
   duration: "39:58"
 sources:
   - kind: "session"
-    title: "Session"
+    title: "session page"
     url: "https://chicago.wordcamp.org/2012/session/grokking-the-wordpress-object-cache-getting-a-handle-on-the-wp_object_cache-class/"
   - kind: "writing"
     title: "Blog post"

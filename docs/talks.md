@@ -68,6 +68,15 @@ anything written or hosted elsewhere. Code sources render in the action row
 under the header, alongside the video and the slides; the rest render in
 "Links & resources".
 
+A `session` link takes its publisher from `event.name`, because the event is
+already known to be the publisher of its own page. Give such a source only a
+`title` naming what the page is, in lower case: `session page`, `speaker page`,
+or `schedule` when the URL lists a whole conference rather than this talk. The
+result reads "WordCamp Seattle 2012: session page" without repeating the event
+name in front matter, so renaming an event relabels its links. A session hosted
+by somebody other than the event, such as WPSessions, states its own
+`publisher` and keeps it.
+
 ## Validation
 
 `collections/validate.js` checks every talk on each build and warns, naming the

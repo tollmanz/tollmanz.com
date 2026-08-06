@@ -15,7 +15,7 @@ video:
   duration: "39:37"
 sources:
   - kind: "session"
-    title: "Session"
+    title: "session page"
     url: "https://seattle.wordcamp.org/2012/session/theres-a-function-for-that-doing-more-for-less-with-core-functions/"
   - kind: "writing"
     title: "Errata"
