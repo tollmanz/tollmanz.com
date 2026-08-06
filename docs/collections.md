@@ -5,22 +5,28 @@ exports `registerCollections(eleventyConfig)`, which `eleventy.config.js` calls
 to register them all; `collections/validate.js` holds the front-matter checks as
 plain, testable functions.
 
-| Collection       | Source           | Shape                             |
-| ---------------- | ---------------- | --------------------------------- |
-| `posts`          | `src/posts/*.md` | Items sorted newest first by date |
-| `pages`          | `src/pages/*.md` | Items in default (file) order     |
-| `collectionMeta` | both globs       | `{ posts, pages }` item counts    |
+| Collection       | Source           | Shape                                 |
+| ---------------- | ---------------- | ------------------------------------- |
+| `posts`          | `src/posts/*.md` | Items sorted newest first by date     |
+| `pages`          | `src/pages/*.md` | Items in default (file) order         |
+| `talks`          | `src/talks/*.md` | Items sorted newest first by date     |
+| `collectionMeta` | all three globs  | `{ posts, pages, talks }` item counts |
 
 `collectionMeta` exists for templates that need a count without re-globbing,
 e.g. `{{ collections.collectionMeta.posts }}`.
 
+Talks also render individual pages under `/speaking/`, but that permalink comes
+from `src/talks/talks.11tydata.js`, not from the collection. The collection
+drives the speaking index, its facet counts, and related-talk ranking.
+
 ## Validation
 
-Each item in `posts` and `pages` is checked for the required front-matter
-fields `title` and `date`. A missing or empty value emits a `console.warn`
-naming the file; an unparseable `date` warns as well. Validation warns rather
-than throws so a single malformed draft cannot block the build. Eleventy still
-fails hard on genuinely fatal input.
+Each item in `posts`, `pages`, and `talks` is checked for the required
+front-matter fields `title` and `date`. A missing or empty value emits a
+`console.warn` naming the file; an unparseable `date` warns as well. Talks get
+the extra taxonomy checks described in [talks.md](talks.md). Validation warns
+rather than throws so a single malformed draft cannot block the build. Eleventy
+still fails hard on genuinely fatal input.
 
 Collection construction is wrapped in `try`/`catch`: on an unexpected error the
 collection degrades to an empty value with a `console.error` instead of crashing

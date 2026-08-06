@@ -56,13 +56,14 @@ export default function (eleventyConfig) {
     eleventyConfig.addPassthroughCopy({ "build/js": "js" });
   }
 
-  // Content collections (posts, pages, collectionMeta), extracted into the
-  // collections/ directory with their front-matter validation. See
+  // Content collections (posts, pages, talks, collectionMeta), extracted into
+  // the collections/ directory with their front-matter validation. See
   // docs/collections.md.
   registerCollections(eleventyConfig);
 
-  // Custom filters (dateDisplay, head, hasCodeBlocks), extracted into the
-  // filters/ directory and grouped by concern. See docs/filters.md.
+  // Custom filters (date formatting, array slicing, content inspection, and
+  // the speaking section), extracted into the filters/ directory and grouped
+  // by concern. See docs/filters.md.
   registerFilters(eleventyConfig);
 
   // Configure markdown

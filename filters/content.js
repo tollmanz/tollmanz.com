@@ -7,3 +7,17 @@ export function hasCodeBlocks(content) {
   }
   return /<pre[^>]*><code[^>]*class="[^"]*language-/.test(content);
 }
+
+// Split a front-matter string into paragraphs on blank lines. Talk abstracts
+// live in front matter rather than the Markdown body, so they need splitting
+// before they can be rendered as <p> elements. Guards empty and non-string
+// input by returning an empty array.
+export function paragraphs(str) {
+  if (!str) {
+    return [];
+  }
+  return String(str)
+    .split(/\n{2,}/)
+    .map(part => part.trim())
+    .filter(Boolean);
+}
