@@ -7,7 +7,7 @@ layout: base.njk
 {%- set ttype = type | talkType -%}
 {%- set topicList = topics | talkTopics -%}
 {%- set primary = topicList[0].slug if topicList.length else "talk" -%}
-{%- set links = sources | sourceGroups -%}
+{%- set links = sources | sourceGroups(event.name) -%}
 {%- set paras = description | paragraphs -%}
 {%- set body = content | trim -%}
 {%- set related = collections.talks | relatedTalks(page.inputPath) -%}
@@ -44,9 +44,19 @@ layout: base.njk
     {% endif %}
   </header>
 
-  {% if links.code.length %}
+  {#- The recording and the deck are what most visitors came for, so they lead
+      the page instead of sitting at the bottom of "Links & resources". Each
+      button carries the provider and the size of the artifact, so the link
+      says where it goes and what it costs before it is clicked. -#}
+  {% if video.url or slides.url or links.code.length %}
     <div class="talk-actions">
-      {% for repo in links.code %}<a class="talk-action" href="{{ repo.url }}">{{ repo.label }}</a>{% endfor %}
+      {% if video.url %}
+        <a class="talk-action talk-action--primary" href="{{ video.url }}">Watch the talk{% if video.provider or video.duration %} <span class="talk-action__meta">{{ video.provider }}{% if video.provider and video.duration %} &middot; {% endif %}{{ video.duration }}</span>{% endif %}</a>
+      {% endif %}
+      {% if slides.url %}
+        <a class="talk-action" href="{{ slides.url }}"{% if slides.download %} download{% endif %}>{% if slides.download %}Download the slides{% else %}View the slides{% endif %}{% if slides.provider or slides.count %} <span class="talk-action__meta">{{ slides.provider }}{% if slides.provider and slides.count %} &middot; {% endif %}{% if slides.count %}{{ slides.count }} slides{% endif %}</span>{% endif %}</a>
+      {% endif %}
+      {% for repo in links.code %}<a class="talk-action" href="{{ repo.url }}">{{ repo | sourceLabel }}</a>{% endfor %}
     </div>
   {% endif %}
 
@@ -75,21 +85,6 @@ layout: base.njk
     </section>
   {% endif %}
 
-  {% if quotes and quotes.length %}
-    <section class="talk-section">
-      <h2 class="talk-section__title">From the audience</h2>
-      {% for q in quotes %}
-        {#- An unattributed quote still has a provenance: cite whatever names
-            it (author, then source), and link it whenever there is a url. -#}
-        {%- set cite = q.author or q.source -%}
-        <blockquote class="talk-quote">
-          <p>{{ q.text }}</p>
-          {% if cite or q.url %}<cite>{% if q.url %}<a href="{{ q.url }}">{{ cite or "Source" }}</a>{% else %}{{ cite }}{% endif %}</cite>{% endif %}
-        </blockquote>
-      {% endfor %}
-    </section>
-  {% endif %}
-
   {% if photos and photos.length %}
     <section class="talk-section">
       <h2 class="talk-section__title">Photos</h2>
@@ -104,21 +99,17 @@ layout: base.njk
     </section>
   {% endif %}
 
-  {% if video.url or slides.url or links.session.length or links.writing.length or links.coverage.length %}
+  {#- Secondary material only: the video and the deck render in the action row
+      above, so nothing here repeats them. -#}
+  {% if links.session.length or links.writing.length or links.coverage.length %}
     <section class="talk-section">
       <h2 class="talk-section__title">Links &amp; resources</h2>
       <ul class="talk-resources">
-        {% if video.url %}<li><a href="{{ video.url }}">Video</a> <span class="talk-resource__tag">{{ video.provider }}{% if video.duration %} &middot; {{ video.duration }}{% endif %}</span></li>{% endif %}
-        {% if slides.url %}
-          {% if slides.download %}
-            <li><a href="{{ slides.url }}" download>Slides (PDF)</a>{% if slides.count %} <span class="talk-resource__tag">{{ slides.count }} slides</span>{% endif %}</li>
-          {% else %}
-            <li><a href="{{ slides.url }}">Slides</a> <span class="talk-resource__tag">{{ slides.provider }}{% if slides.count %} &middot; {{ slides.count }} slides{% endif %}</span></li>
-          {% endif %}
-        {% endif %}
-        {% for r in links.session %}<li><a href="{{ r.url }}">{{ r.label }}</a>{% if r.duration %} <span class="talk-resource__tag">{{ r.duration }}</span>{% endif %}</li>{% endfor %}
-        {% for r in links.writing %}<li><a href="{{ r.url }}">{{ r.label }}</a> <span class="talk-resource__tag">on this site</span></li>{% endfor %}
-        {% for r in links.coverage %}<li><a href="{{ r.url }}">{{ r.label }}</a>{% if r.duration %} <span class="talk-resource__tag">{{ r.duration }}</span>{% endif %}</li>{% endfor %}
+        {#- Anchors carry "Publisher: title" and nothing else. Editorial detail
+            about what a link contains lives in `note` and renders under it. -#}
+        {% for r in links.session %}<li><a href="{{ r.url }}">{{ r | sourceLabel }}</a>{% if r.duration %} <span class="talk-resource__tag">{{ r.duration }}</span>{% endif %}{% if r.note %}<span class="talk-resource__note">{{ r.note }}</span>{% endif %}</li>{% endfor %}
+        {% for r in links.writing %}<li><a href="{{ r.url }}">{{ r | sourceLabel }}</a> <span class="talk-resource__tag">on this site</span>{% if r.note %}<span class="talk-resource__note">{{ r.note }}</span>{% endif %}</li>{% endfor %}
+        {% for r in links.coverage %}<li><a href="{{ r.url }}">{{ r | sourceLabel }}</a>{% if r.duration %} <span class="talk-resource__tag">{{ r.duration }}</span>{% endif %}{% if r.note %}<span class="talk-resource__note">{{ r.note }}</span>{% endif %}</li>{% endfor %}
       </ul>
     </section>
   {% endif %}

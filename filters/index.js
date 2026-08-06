@@ -2,13 +2,18 @@ import { dateDisplay, htmlDateString, monthDay, year } from "./dates.js";
 import { head } from "./arrays.js";
 import { hasCodeBlocks, paragraphs } from "./content.js";
 import {
+  emptyFilterStates,
+  eventFacetSlug,
   eventFacets,
   relatedTalks,
   sourceGroups,
+  sourceLabel,
   speakingStats,
   talkEventType,
+  talkFilterStates,
   talkTopics,
   talkType,
+  talksByYear,
   topicFacets,
 } from "./talks.js";
 
@@ -29,8 +34,13 @@ export default function registerFilters(eleventyConfig) {
   eleventyConfig.addFilter("talkTopics", talkTopics);
   eleventyConfig.addFilter("talkEventType", talkEventType);
   eleventyConfig.addFilter("sourceGroups", sourceGroups);
+  eleventyConfig.addFilter("sourceLabel", sourceLabel);
   eleventyConfig.addFilter("topicFacets", topicFacets);
   eleventyConfig.addFilter("eventFacets", eventFacets);
+  eleventyConfig.addFilter("eventFacetSlug", eventFacetSlug);
+  eleventyConfig.addFilter("talksByYear", talksByYear);
+  eleventyConfig.addFilter("talkFilterStates", talkFilterStates);
+  eleventyConfig.addFilter("emptyFilterStates", emptyFilterStates);
   eleventyConfig.addFilter("speakingStats", speakingStats);
   eleventyConfig.addFilter("relatedTalks", relatedTalks);
 }

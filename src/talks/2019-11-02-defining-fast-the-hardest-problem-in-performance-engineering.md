@@ -20,6 +20,6 @@ slides:
   count: 49
 sources:
   - kind: "session"
-    label: "Session"
+    title: "session page"
     url: "https://us.wordcamp.org/2019/session/defining-fast-the-hardest-problem-in-performance-engineering/"
 ---

@@ -110,13 +110,14 @@ test("collectionProblems returns an empty list for non-array input", () => {
   assert.deepEqual(collectionProblems(undefined, "posts"), []);
 });
 
-test("registerCollections registers posts, pages, talks, and collectionMeta", () => {
+test("registerCollections registers every collection", () => {
   const config = fakeConfig();
   registerCollections(config);
   assert.deepEqual(Object.keys(config.collections).sort(), [
     "collectionMeta",
     "pages",
     "posts",
+    "talkBacklinks",
     "talks",
   ]);
 });
@@ -164,6 +165,27 @@ test("talks is sorted newest first", () => {
   );
 });
 
+test("talkBacklinks keys talks by the post their writing source names", () => {
+  const config = fakeConfig();
+  registerCollections(config);
+  const older = {
+    inputPath: "src/talks/old.md",
+    url: "/speaking/old/",
+    date: new Date("2015-03-14"),
+    data: { sources: [{ kind: "writing", url: "/mwphp15/" }] },
+  };
+  const newer = {
+    inputPath: "src/talks/new.md",
+    url: "/speaking/new/",
+    date: new Date("2015-03-15"),
+    data: { sources: [{ kind: "writing", url: "/mwphp15/" }] },
+  };
+  const api = fakeApi({ [TALKS]: [older, newer] });
+  assert.deepEqual(config.collections.talkBacklinks(api), {
+    "/mwphp15/": [newer, older],
+  });
+});
+
 test("collectionMeta exposes item counts", () => {
   const config = fakeConfig();
   registerCollections(config);
@@ -200,12 +222,13 @@ test("a throwing collection degrades to empty instead of crashing", t => {
   assert.deepEqual(config.collections.posts(api), []);
   assert.deepEqual(config.collections.pages(api), []);
   assert.deepEqual(config.collections.talks(api), []);
+  assert.deepEqual(config.collections.talkBacklinks(api), {});
   assert.deepEqual(config.collections.collectionMeta(api), {
     posts: 0,
     pages: 0,
     talks: 0,
   });
-  assert.equal(console.error.mock.callCount(), 4);
+  assert.equal(console.error.mock.callCount(), 5);
 });
 
 function validTalk(overrides = {}) {
@@ -263,12 +286,12 @@ test("talkProblems flags a missing event name and an unknown event type", () => 
   assert.match(problems[1], /unknown event type "unconference"/);
 });
 
-test("talkProblems flags sources missing a kind, label, or url", () => {
+test("talkProblems flags sources missing a kind, title, or url", () => {
   const problems = talkProblems(
     [
       validTalk({
         sources: [
-          { kind: "elsewhere", label: "Recap", url: "https://example.com/" },
+          { kind: "elsewhere", title: "Recap", url: "https://example.com/" },
           { kind: "session", url: "https://example.com/session" },
         ],
       }),
@@ -277,7 +300,21 @@ test("talkProblems flags sources missing a kind, label, or url", () => {
   );
   assert.equal(problems.length, 2);
   assert.match(problems[0], /unknown kind "elsewhere"/);
-  assert.match(problems[1], /without a label or url/);
+  assert.match(problems[1], /without a title or url/);
+});
+
+test("talkProblems accepts a source that still carries only a label", () => {
+  const problems = talkProblems(
+    [
+      validTalk({
+        sources: [
+          { kind: "coverage", label: "Recap", url: "https://example.com/" },
+        ],
+      }),
+    ],
+    "talks"
+  );
+  assert.deepEqual(problems, []);
 });
 
 test("talkProblems flags a video or slides block with no url", () => {

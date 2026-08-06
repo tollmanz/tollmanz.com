@@ -8,17 +8,17 @@ event:
   name: "WordCamp Seattle 2012"
   type: "wordcamp"
   location: "Seattle, WA"
-description: "For my talk, I plan to curate a plethora of interesting, obscure and powerful WordPress functions to give them the attention and love that they need. Drawing from my experience with complex WordPress projects, I would introduce developers to incredible WordPress functions that they never knew existed. Need a function to pull a list of values from an object by key name? Yep! There's a function for that (wp_list_pluck)! WordPress Core has had so many brilliant developers contribute to it. Part of those contributions have led to an extensive catalog of powerful functions that are waiting to make developer's lives easier. In my talk, I hope to shed light on these functions to make developer's work more agile, allow developers to do things the 'WordPress way,' and help contribute to the cannon of poetic code in the world."
+description: "WordPress Core carries a large catalog of functions that most developers never find, and hand-rolling what Core already ships is a habit worth breaking. This talk pulled the obscure and genuinely useful ones into the open: wp_list_pluck for pulling values out of a set of objects by key, current_filter for knowing which hook you are inside, wp_localize_script for handing structured data to JavaScript, and the query helpers behind caching an expensive wp_nav_menu call. The goal was fewer lines, fewer bugs, and code that reads the way Core does."
 video:
   url: "https://wordpress.tv/2012/09/02/zack-tollman-theres-a-function-for-that-more-for-less-with-core-functions/"
   provider: "WordPress.tv"
   duration: "39:37"
 sources:
   - kind: "session"
-    label: "Session"
+    title: "session page"
     url: "https://seattle.wordcamp.org/2012/session/theres-a-function-for-that-doing-more-for-less-with-core-functions/"
   - kind: "writing"
-    label: "Errata"
+    title: "Errata"
     url: "/errata-and-clarifications-for-my-wordcamp-seattle-2012-talk/"
 quotes:
   - text: "Great video, the slide deck or a transcript would be really useful reference"

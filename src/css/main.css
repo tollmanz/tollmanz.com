@@ -430,12 +430,29 @@ pre > code {
   margin-bottom: 30px;
 }
 
+/* Backlink from a post to the talk it accompanies, built from
+   collections.talkBacklinks. Quiet by design: it sits above the article and
+   must not compete with it. */
+.post-talk-note {
+  margin-bottom: 30px;
+  padding-left: 15px;
+  border-left: 3px solid var(--color-border);
+  font-size: 15.75px;
+  color: var(--color-text-muted);
+}
+
+/* One quiet pointer to the speaking section under the homepage post list. */
+.home-speaking {
+  font-size: 15.75px;
+  color: var(--color-text-muted);
+}
+
 /* Speaking
 
    The speaking index is a card wall; each talk also has its own page. Both
-   share the topic accent colors and chips below. Color coding, the oversized
-   year, and the per-topic accent are the "fun" layer; everything stays zero-JS
-   and falls back to plain borders where color-mix/light-dark are unsupported. */
+   share the topic accent colors and chips below. Color coding and the
+   per-topic accent are the "fun" layer; everything stays zero-JS and falls
+   back to plain borders where color-mix/light-dark are unsupported. */
 
 /* Topic accent colors. A talk's primary topic sets --topic-color through a
    t-<slug> class on its card, page, and related-talk items; chips reuse the
@@ -630,7 +647,21 @@ pre > code {
   border-bottom-color: var(--topic-color);
 }
 
-/* Index (editorial, rule-separated; deliberately not cards) */
+/* Index (editorial, rule-separated; deliberately not cards). Talks group under
+   one year heading each, so a row carries only its month and day. */
+.talk-year-group + .talk-year-group {
+  margin-top: 26px;
+}
+
+.talk-year {
+  font-family: "Coustard", Georgia, serif;
+  font-size: 22px;
+  line-height: 1;
+  margin: 0 0 10px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .talk-index {
   list-style: none;
   margin: 0;
@@ -641,9 +672,9 @@ pre > code {
 .talk-row {
   position: relative;
   display: grid;
-  grid-template-columns: 6.5rem 1fr;
-  gap: 0 32px;
-  padding: 26px 0;
+  grid-template-columns: 5rem 1fr;
+  gap: 0 24px;
+  padding: 11px 0;
   border-bottom: 1px solid var(--color-border);
   transition: background-color 0.15s ease;
 }
@@ -659,19 +690,11 @@ pre > code {
   outline-offset: -2px;
 }
 
-.talk-row__year {
-  display: block;
-  font-family: "Coustard", Georgia, serif;
-  font-size: 32px;
-  line-height: 1;
-  color: var(--topic-color);
-  font-variant-numeric: tabular-nums;
-}
-
 .talk-row__date {
   display: block;
-  margin-top: 6px;
+  padding-top: 4px;
   font-size: 12px;
+  line-height: 1.4;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--color-text-muted);
@@ -682,8 +705,9 @@ pre > code {
 }
 
 .talk-row__kind {
-  margin: 0 0 4px;
-  font-size: 12px;
+  margin: 0 0 2px;
+  font-size: 11px;
+  line-height: 1.4;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -692,8 +716,8 @@ pre > code {
 
 .talk-row__title {
   font-family: "Coustard", Georgia, serif;
-  font-size: 26px;
-  line-height: 1.22;
+  font-size: 19px;
+  line-height: 1.25;
   margin: 0;
 }
 
@@ -720,17 +744,19 @@ pre > code {
 }
 
 .talk-row__meta {
-  margin: 7px 0 0;
-  font-size: 14.5px;
+  margin: 2px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
   color: var(--color-text-muted);
 }
 
 .talk-row__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 16px;
-  margin: 10px 0 0;
-  font-size: 12px;
+  gap: 2px 14px;
+  margin: 3px 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
   text-transform: uppercase;
   letter-spacing: 0.07em;
 }
@@ -739,30 +765,58 @@ pre > code {
   color: var(--topic-color);
 }
 
+/* Format links sit above the full-row overlay cast by .talk-row__link::after,
+   so a click on Video or Slides reaches the artifact instead of the talk page.
+   The underline is the affordance that separates them from the topic labels. */
 .talk-row__fmt {
+  position: relative;
+  z-index: 1;
   color: var(--color-text-muted);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition:
+    text-decoration-color 0.2s ease,
+    color 0.15s ease;
+}
+
+.talk-row__fmt:hover,
+.talk-row__fmt:focus-visible {
+  color: var(--color-link);
+  text-decoration-color: currentColor;
+}
+
+.talk-row__fmt:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: 3px;
 }
 
 @media screen and (max-width: 600px) {
   .talk-row {
     grid-template-columns: 1fr;
-    gap: 6px;
-    padding: 22px 0;
-  }
-  .talk-row__when {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-  }
-  .talk-row__year {
-    font-size: 24px;
+    gap: 2px;
+    padding: 12px 0;
   }
   .talk-row__date {
-    margin-top: 0;
+    padding-top: 0;
   }
   .talk-row__title {
-    font-size: 22px;
+    font-size: 18px;
   }
+}
+
+/* Zero-result state. Hidden by default and revealed by a generated rule (see
+   speaking.njk) in the filter combinations no talk answers, so `display` rather
+   than a visual-only hide: while the message does not apply it is out of the
+   accessibility tree instead of read out under an empty index. */
+.talk-index-empty {
+  display: none;
+  margin: 0;
+  padding-top: 4px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
 }
 
 /* Individual talk page */
@@ -856,6 +910,20 @@ pre > code {
   color: var(--color-link);
 }
 
+/* The recording is the primary artifact, so it carries the accent border while
+   the other actions stay quiet until hover. */
+.talk-action--primary {
+  border-color: var(--topic-color);
+  background-color: var(--color-surface);
+  font-weight: 700;
+}
+
+.talk-action__meta {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
 .talk-section {
   margin-bottom: 32px;
 }
@@ -880,14 +948,6 @@ pre > code {
 
 .talk-takeaways {
   margin: 0 0 0 22px;
-}
-
-.talk-quote cite {
-  display: block;
-  margin-top: 6px;
-  font-size: 14px;
-  font-style: normal;
-  color: var(--color-text-muted);
 }
 
 .talk-gallery {
@@ -916,6 +976,14 @@ pre > code {
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
   margin-left: 6px;
+}
+
+/* Editorial detail about a link sits under it as a sentence, so the anchor
+   itself stays short enough to scan. */
+.talk-resource__note {
+  display: block;
+  font-size: 13px;
+  color: var(--color-text-muted);
 }
 
 .talk-related__list {
@@ -995,6 +1063,7 @@ pre > code {
 @media (prefers-reduced-motion: reduce) {
   .talk-row,
   .talk-row__link,
+  .talk-row__fmt,
   .talk-related__item {
     transition: none;
   }

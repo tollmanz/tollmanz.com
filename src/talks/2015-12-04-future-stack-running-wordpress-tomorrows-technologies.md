@@ -20,9 +20,11 @@ video:
   duration: "29:02"
 sources:
   - kind: "session"
-    label: "Session"
+    title: "session page"
     url: "https://us.wordcamp.org/2015/session/the-future-stack-running-wordpress-with-tomorrows-technologies/"
   - kind: "coverage"
-    label: "Notes from WordCamp US 2015 (Fight With Tools by Aram Zucker-Scharff) - contemporaneous session recap with a dedicated section on this talk"
+    publisher: "Fight With Tools"
+    title: "Notes from WordCamp US 2015"
+    note: "Contemporaneous notes by Aram Zucker-Scharff, with a section on this talk."
     url: "https://aramzs.github.io/notes/wordpress/wordpressus2015/2015/12/04/wordcamp-us.html"
 ---

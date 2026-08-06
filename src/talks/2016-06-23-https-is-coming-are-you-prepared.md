@@ -17,10 +17,11 @@ slides:
   count: 56
 sources:
   - kind: "code"
-    label: "Code"
+    title: "Code"
     url: "https://github.com/tollmanz/diffie-hellman-key-exchange-demo"
   - kind: "coverage"
-    label: "O'Reilly"
+    publisher: "O'Reilly"
+    title: "Velocity 2016 session video"
     url: "https://www.oreilly.com/videos/velocity-2016/9781491944646/"
     duration: "42:31"
 ---

@@ -20,7 +20,9 @@ slides:
   count: 57
 sources:
   - kind: "coverage"
-    label: "WordCamp San Diego Recap (Bluehost Blog, May 2, 2016) - event recap featuring attendee feedback on the Understanding HTTPS and TLS session"
+    publisher: "Bluehost"
+    title: "WordCamp San Diego recap"
+    note: "Event recap carrying attendee feedback on this session."
     url: "https://www.bluehost.com/blog/wordcamp-san-diego-recap/"
 quotes:
   - text: 'The classes on "Understand HTTPS and Transport Layer Security (TLS)" were very informative. I realized that majority of the websites using TLS are not correctly setup so these website are not secure. The presenter gave us a website to test our TLS setup. When I returned to my hotel room that night and ran a test on my client''s sites that use TLS I found they were all setup correctly! I was very pleased.'

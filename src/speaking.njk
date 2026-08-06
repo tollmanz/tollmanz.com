@@ -8,6 +8,7 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
 {%- set stats = collections.talks | speakingStats -%}
 {%- set topFacets = collections.talks | topicFacets -%}
 {%- set evtFacets = collections.talks | eventFacets -%}
+{%- set evtFacetOf = collections.talks | eventFacetSlug -%}
 
 <div class="speaking">
   <header class="speaking-hero">
@@ -37,8 +38,31 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
     </dl>
   </header>
 
+  {# Every filter state the index can reach, with the CSS fragments its rules
+     need and the number of talks it matches. The year-group rules and the
+     empty-state rule both read this one enumeration, so a state that hides
+     every group is exactly a state the empty message answers for. #}
+  {%- set filterStates = collections.talks | talkFilterStates -%}
+  {%- set groupSelectors = [] -%}
+  {%- for state in filterStates -%}
+    {%- if state.row -%}
+      {%- set _ = groupSelectors.push(".speaking" + state.has + " .talk-year-group:not(:has(" + state.row + "))") -%}
+    {%- endif -%}
+  {%- endfor -%}
+  {%- set emptySelectors = [] -%}
+  {%- for state in filterStates | emptyFilterStates -%}
+    {%- set _ = emptySelectors.push(".speaking" + state.has + " .talk-index-empty") -%}
+  {%- endfor -%}
+
   {# Zero-JS filtering: the checkboxes/radios below drive these :has() rules.
-     Format checkboxes combine (AND); the Topic and Event radios are single-select. #}
+     Format checkboxes combine (AND); the Topic and Event radios are single-select.
+     The first block hides rows the active facets exclude, one rule per facet.
+     The second hides year groups left with no matching row, which needs one
+     selector per combination of active facets: whether a group still has a row
+     is a question about all of them at once, so the row rules' AND-by-cascade
+     does not carry over. The third reveals the empty message in the states that
+     match no talk, listing only the loosest of them because narrowing a state
+     that matches nothing cannot produce a match. #}
   <style>
     .speaking:has(#flt-video:checked) .talk-row:not(.has-video) { display: none; }
     .speaking:has(#flt-slides:checked) .talk-row:not(.has-slides) { display: none; }
@@ -48,11 +72,17 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
     {%- for f in evtFacets %}
     .speaking:has(#evt-{{ f.slug }}:checked) .talk-row:not(.evt-{{ f.slug }}) { display: none; }
     {%- endfor %}
+    {{ groupSelectors | join(",") }} { display: none; }
+    {%- if emptySelectors.length %}
+    {{ emptySelectors | join(",") }} { display: block; }
+    {%- endif %}
   </style>
 
   <div class="talk-filters">
     <fieldset class="talk-filters__group">
       <legend class="talk-filters__legend">Format</legend>
+      {#- `talk-filter` earns a chip its active underline and belongs on every
+          control, including the All radios that are checked by default. -#}
       <div class="talk-filters__chips">
         <input class="visually-hidden talk-filter" type="checkbox" id="flt-video" />
         <label class="talk-chip" for="flt-video">Video</label>
@@ -84,37 +114,50 @@ description: Conference talks, keynotes, and meetups by Zack Tollman, with links
     </fieldset>
   </div>
 
-  <ul class="talk-index">
-    {% for talk in collections.talks %}
-      {%- set ttype = talk.data.type | talkType -%}
-      {%- set topics = talk.data.topics | talkTopics -%}
-      {%- set primary = topics[0].slug if topics.length else "talk" -%}
-      {%- set topicClasses %}{% for top in topics %} topic-{{ top.slug }}{% endfor %}{% endset -%}
-      <li class="talk-row t-{{ primary }} evt-{{ talk.data.event.type or 'other' }} type-{{ ttype.slug }}{{ topicClasses }}{% if talk.data.video.url %} has-video{% endif %}{% if talk.data.slides.url %} has-slides{% endif %}">
-        <div class="talk-row__when">
-          <span class="talk-row__year">{{ talk.date | year }}</span>
-          {%- set shortDate = talk.date | monthDay(talk.data.datePrecision) -%}
-          {% if shortDate %}<time class="talk-row__date" datetime="{{ talk.date | htmlDateString(talk.data.datePrecision) }}">{{ shortDate }}</time>{% endif %}
-        </div>
-        <div class="talk-row__body">
-          {% if ttype.slug != "talk" %}<p class="talk-row__kind">{{ ttype.label }}</p>{% endif %}
-          <h2 class="talk-row__title">
-            <a class="talk-row__link" href="{{ talk.url }}">{{ talk.data.title }}</a>
-          </h2>
-          <p class="talk-row__meta">
-            {% if talk.data.event.name %}{{ talk.data.event.name }}{% endif %}
-            {%- if talk.data.event.location %} &middot; {{ talk.data.event.location }}{% endif %}
-            {%- if talk.data.coSpeakers %} &middot; with {{ talk.data.coSpeakers }}{% endif %}
-          </p>
-          {% if topics.length or talk.data.video.url or talk.data.slides.url %}
-            <p class="talk-row__tags">
-              {% for top in topics %}<span class="talk-row__topic t-{{ top.slug }}">{{ top.label }}</span>{% endfor %}
-              {% if talk.data.video.url %}<span class="talk-row__fmt">Video</span>{% endif %}
-              {% if talk.data.slides.url %}<span class="talk-row__fmt">Slides</span>{% endif %}
-            </p>
-          {% endif %}
-        </div>
-      </li>
-    {% endfor %}
-  </ul>
+  {% for group in collections.talks | talksByYear %}
+    <section class="talk-year-group">
+      {% if group.year %}<h2 class="talk-year">{{ group.year }}</h2>{% endif %}
+      <ul class="talk-index">
+        {% for talk in group.talks %}
+          {%- set ttype = talk.data.type | talkType -%}
+          {%- set topics = talk.data.topics | talkTopics -%}
+          {%- set primary = topics[0].slug if topics.length else "talk" -%}
+          {%- set topicClasses %}{% for top in topics %} topic-{{ top.slug }}{% endfor %}{% endset -%}
+          {%- set evtSlug = evtFacetOf[talk.data.event.type or "other"] or "other" -%}
+          <li class="talk-row t-{{ primary }} evt-{{ evtSlug }} type-{{ ttype.slug }}{{ topicClasses }}{% if talk.data.video.url %} has-video{% endif %}{% if talk.data.slides.url %} has-slides{% endif %}">
+            <div class="talk-row__when">
+              {%- set shortDate = talk.date | monthDay(talk.data.datePrecision) -%}
+              {% if shortDate %}<time class="talk-row__date" datetime="{{ talk.date | htmlDateString(talk.data.datePrecision) }}">{{ shortDate }}</time>{% endif %}
+            </div>
+            <div class="talk-row__body">
+              {% if ttype.slug != "talk" %}<p class="talk-row__kind">{{ ttype.label }}</p>{% endif %}
+              <h3 class="talk-row__title">
+                <a class="talk-row__link" href="{{ talk.url }}">{{ talk.data.title }}</a>
+              </h3>
+              <p class="talk-row__meta">
+                {% if talk.data.event.name %}{{ talk.data.event.name }}{% endif %}
+                {%- if talk.data.event.location %} &middot; {{ talk.data.event.location }}{% endif %}
+                {%- if talk.data.coSpeakers %} &middot; with {{ talk.data.coSpeakers }}{% endif %}
+              </p>
+              {% if topics.length or talk.data.video.url or talk.data.slides.url %}
+                <p class="talk-row__tags">
+                  {% for top in topics %}<span class="talk-row__topic t-{{ top.slug }}">{{ top.label }}</span>{% endfor %}
+                  {% if talk.data.video.url %}<a class="talk-row__fmt" href="{{ talk.data.video.url }}" aria-label="Video: {{ talk.data.title }}">Video</a>{% endif %}
+                  {% if talk.data.slides.url %}<a class="talk-row__fmt" href="{{ talk.data.slides.url }}" aria-label="Slides: {{ talk.data.title }}">Slides</a>{% endif %}
+                </p>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endfor %}
+
+  {#- The zero-result message, hidden until one of the generated rules above
+      reveals it. It renders only when some filter combination reaches it, and
+      it states the way back in prose because a zero-JS page has no control that
+      can uncheck the inputs. -#}
+  {% if emptySelectors.length %}
+    <p class="talk-index-empty">No talks match these filters. Select All under Topic and Event and uncheck Video and Slides to see the full list.</p>
+  {% endif %}
 </div>

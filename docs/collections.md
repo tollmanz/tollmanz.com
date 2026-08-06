@@ -2,18 +2,27 @@
 
 Eleventy content collections live in `collections/`. `collections/index.js`
 exports `registerCollections(eleventyConfig)`, which `eleventy.config.js` calls
-to register them all; `collections/validate.js` holds the front-matter checks as
-plain, testable functions.
+to register them all; `collections/validate.js` holds the front-matter checks
+and `collections/backlinks.js` the post-to-talk index, both as plain, testable
+functions.
 
-| Collection       | Source           | Shape                                 |
-| ---------------- | ---------------- | ------------------------------------- |
-| `posts`          | `src/posts/*.md` | Items sorted newest first by date     |
-| `pages`          | `src/pages/*.md` | Items in default (file) order         |
-| `talks`          | `src/talks/*.md` | Items sorted newest first by date     |
-| `collectionMeta` | all three globs  | `{ posts, pages, talks }` item counts |
+| Collection       | Source           | Shape                                    |
+| ---------------- | ---------------- | ---------------------------------------- |
+| `posts`          | `src/posts/*.md` | Items sorted newest first by date        |
+| `pages`          | `src/pages/*.md` | Items in default (file) order            |
+| `talks`          | `src/talks/*.md` | Items sorted newest first by date        |
+| `talkBacklinks`  | `src/talks/*.md` | `{ postUrl: [talk, ...] }` reverse index |
+| `collectionMeta` | the three globs  | `{ posts, pages, talks }` item counts    |
 
 `collectionMeta` exists for templates that need a count without re-globbing,
 e.g. `{{ collections.collectionMeta.posts }}`.
+
+`talkBacklinks` inverts the `sources` entries a talk declares with
+kind `writing`: each such URL is normalized to the path form Eleventy uses for
+`page.url` and mapped to the talks that cite it. `src/_includes/post.njk` looks
+the current page up in it and renders a note linking back to the talk, so the
+relationship is declared once, on the talk. URLs on another origin are skipped
+because they cannot name a post on this site.
 
 Talks also render individual pages under `/speaking/`, but that permalink comes
 from `src/talks/talks.11tydata.js`, not from the collection. The collection

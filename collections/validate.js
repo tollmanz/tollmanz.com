@@ -96,8 +96,10 @@ export function talkProblems(items, label) {
     }
 
     for (const source of data.sources ?? []) {
-      if (!source?.url || !source?.label) {
-        problem("has a source without a label or url");
+      // `label` predates the { publisher, title } split and still supplies the
+      // link text, so either field satisfies the check.
+      if (!source?.url || !(source?.title || source?.label)) {
+        problem("has a source without a title or url");
       } else if (!isKnownSourceKind(source.kind)) {
         problem(`has a source with an unknown kind "${source.kind}"`);
       }

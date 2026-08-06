@@ -17,10 +17,11 @@ slides:
   provider: "Speaker Deck"
 sources:
   - kind: "writing"
-    label: "Wrap-up"
+    title: "Wrap-up"
     url: "/mwphp15/"
   - kind: "coverage"
-    label: "Midwest PHP 2015 Conference (Earthling Interactive recap)"
+    publisher: "Earthling Interactive"
+    title: "Midwest PHP 2015 conference recap"
     url: "https://earthlinginteractive.com/blog/midwest-php-2015-conference/"
 quotes:
   - text: "Appropriately paced and engaging. Zack's presentation style is comfortable and informative."

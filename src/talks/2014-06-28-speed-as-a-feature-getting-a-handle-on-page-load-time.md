@@ -20,6 +20,6 @@ slides:
   count: 29
 sources:
   - kind: "session"
-    label: "Session"
+    title: "schedule"
     url: "https://seattle.wordcamp.org/2014/about/sessions/"
 ---
