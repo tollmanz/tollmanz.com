@@ -26,7 +26,16 @@ Triggers and SLOs are intentionally omitted for now. Like boards they are v1
 resources, so they are a clean drop-in later using the same Configuration Key
 providers the board tier adds.
 
-## RUM boards
+## Boards
+
+Two boards are managed as code against the `tollmanz-com-web` dataset:
+
+| Board                        | Environments   | Question it answers                   |
+| ---------------------------- | -------------- | ------------------------------------- |
+| `Real User Monitoring (RUM)` | prod and local | What are the numbers                  |
+| `Core Web Vitals triage`     | prod only      | Which pages miss a threshold, and why |
+
+## RUM board
 
 The board tier (issue #59) manages the `Real User Monitoring (RUM)` board as
 code, one per environment, in two sections against the `tollmanz-com-web`
@@ -62,6 +71,94 @@ because the template was written for a generic web app rather than this one:
   document loads, and `COUNT_DISTINCT(session.id)` would return the same figure, so
   only the label was wrong
 
+## Core Web Vitals triage board
+
+`Core Web Vitals triage` answers the question the RUM board does not: which
+pages miss a Core Web Vitals threshold, and why. Seven sections, 22 query
+panels, a 7 day window throughout:
+
+| Section                     | Content                                                             |
+| --------------------------- | ------------------------------------------------------------------- |
+| 1. Which pages miss         | Offender table and rating mix per metric, by `page.route`           |
+| 2. Why LCP misses           | The four LCP phases per route, the LCP element, phase trend         |
+| 3. Why CLS misses           | `cls.largest_shift_target` (the element that moved), and load state |
+| 4. Why INP misses           | The three INP phases per route, and the interaction behind them     |
+| 5. Server time and delivery | TTFB phases, plus Fastly cache outcome and POP from `documentFetch` |
+| 6. Who is affected          | Vitals split by device type, network type, and browser              |
+| 7. Drill into one page view | Worst individual views, keyed by `session.id`                       |
+
+Four properties of this telemetry shape the design. All four were verified by
+running the built bundle in headless Chromium and reading the exported OTLP
+payload, and against the live prod schema.
+
+- **Every web vital is its own single-span trace.** `WebVitalsInstrumentation`
+  starts a span with no parent when the metric finalizes, long after
+  `documentLoad` ended, so LCP, CLS, INP, FCP and TTFB each land as a root span
+  in a trace of their own. One page view is spread across about six traces and
+  no trace waterfall contains all of it
+- **`session.id` is the join key.** The SDK mints it once per document with no
+  persistence, so on this multi-page site one session id is exactly one page
+  view, and it is stamped on every span in every one of those traces. Section 7
+  exists because of this: take a `session.id` from a table and query
+  `session.id = <id>` to get every span that page view produced
+- **`page.route` is on every span**, added by the SDK's
+  `BrowserAttributesSpanProcessor` on span start, so vitals break down per page
+- **Resource attributes are flattened onto every event** by Honeycomb, so
+  `device.type`, `network.effectiveType` and `browser.name` segment vitals for
+  free
+
+The one thing that does not compose: `fastly.*` exists only on `documentFetch`
+spans and `ttfb.*` only on `TTFB` spans. Honeycomb has no join and these are
+different spans in different traces, so edge cache outcome cannot be broken down
+by TTFB in one query. Section 5 keeps them as neighbouring panels instead.
+
+Panels filter on `<metric>.rating` rather than a hand-written millisecond
+threshold, so Google's boundaries cannot drift out of sync here. It also
+sidesteps a data bug: `cls.value` was an `integer` column in prod for a while
+and truncated every score to zero, but `cls.rating` is computed in the browser
+from the true float and is correct across that period.
+
+Panels count page views with `COUNT_DISTINCT(session.id)`, not spans. Every
+vital reports at most once per page view, so the two agree on correct data, but
+a span count reads 2x for any window reaching back before the duplicate
+instrumentation fix (see below).
+
+### This board is prod only
+
+Ten of the 33 columns its queries reference do not exist in
+`tollmanz-com-local`, and Honeycomb validates every column when a saved query is
+created, so building it there fails the apply. Seeding them would not help. The
+five `fastly.*` fields come from the Server-Timing header the Fastly edge emits
+and nothing local is behind Fastly, so they can never carry a real value; the
+five `inp.*` attribution fields need a qualifying user interaction that local
+browsing generally does not produce. The local board would be sections of
+permanently empty panels describing infrastructure that is not there.
+
+The triage board is therefore opt-in per environment: `rumBoard` builds it only
+when passed a `triageDescription`, and only the prod call site passes one.
+
+### Web vitals were recorded twice until 2026-08-07
+
+`HoneycombWebSDK` appends its own `WebVitalsInstrumentation` unless
+`webVitalsInstrumentationConfig.enabled` is false. `assets/rum/index.js` also
+named it in `instrumentations`, so two instances were registered, both observed
+the same web-vitals callbacks, and both emitted a span. Every LCP, CLS, INP, FCP
+and TTFB event was recorded twice.
+
+Nothing threw, and p75 was unaffected because duplicating every sample preserves
+percentiles, so the RUM board's vitals section stayed correct throughout. What
+was wrong is every count over a vital: the rating breakdowns and
+`Total Events by Type` on the RUM board read 2x for that period, and so does any
+span count on this board over a window reaching back into it.
+
+The duplicate registration is fixed, and
+`tests/rum/smoke.test.js` guards it: the bundle runs a full page-view lifecycle
+in headless Chromium and asserts exactly one `TTFB` span. Historical data is not
+retroactively fixable. Use `COUNT_DISTINCT(session.id)` when counting across the
+boundary.
+
+## Configuration keys
+
 Boards, queries, and query annotations are Honeycomb v1 API resources. They need
 a v1 Configuration Key scoped to one environment, not the v2 Management Key the
 rest of this project uses. Two constraints shape how the keys are supplied:
@@ -75,12 +172,13 @@ rest of this project uses. Two constraints shape how the keys are supplied:
   env var would let a local apply create a board and a CI apply without the key
   delete it
 
-Each environment has its own flag, config key, and board:
+Each environment has its own flag and config key. Both build the RUM board; only
+prod also builds the triage board:
 
-| Environment          | Flag               | Config key env var           | Board output      |
-| -------------------- | ------------------ | ---------------------------- | ----------------- |
-| `tollmanz-com`       | `manageProdBoard`  | `HONEYCOMB_CONFIG_KEY`       | `rumBoardIdProd`  |
-| `tollmanz-com-local` | `manageLocalBoard` | `HONEYCOMB_LOCAL_CONFIG_KEY` | `rumBoardIdLocal` |
+| Environment          | Flag               | Config key env var           | Board outputs                      |
+| -------------------- | ------------------ | ---------------------------- | ---------------------------------- |
+| `tollmanz-com`       | `manageProdBoard`  | `HONEYCOMB_CONFIG_KEY`       | `rumBoardIdProd`, `cwvBoardIdProd` |
+| `tollmanz-com-local` | `manageLocalBoard` | `HONEYCOMB_LOCAL_CONFIG_KEY` | `rumBoardIdLocal`                  |
 
 Prerequisite: every column the board queries must already exist in the target
 environment, because Honeycomb validates columns when a saved query is created

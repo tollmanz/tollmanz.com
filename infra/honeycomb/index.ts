@@ -300,6 +300,506 @@ const overview = [
   },
 ];
 
+// ---------------------------------------------------------------------------
+// Core Web Vitals triage board (a second board, alongside the RUM one above)
+// ---------------------------------------------------------------------------
+//
+// The RUM board answers "what are the numbers". This one answers "which pages
+// miss a threshold, and why". Four facts about the shape of this telemetry
+// drive its design; all four were verified against the built bundle running in
+// headless Chromium and against the live prod schema.
+//
+// 1. Every web vital is its own single-span trace. WebVitalsInstrumentation
+//    calls `tracer.startSpan` with no parent when the metric finalizes, which
+//    is long after documentLoad ended, so LCP, CLS, INP, FCP and TTFB each land
+//    as a root span in their own trace. One page view is therefore scattered
+//    across roughly six traces and no trace waterfall shows the whole thing.
+//
+// 2. `session.id` is the join key that stitches them back together. The SDK
+//    mints it once per document with no persistence, so on this multi-page
+//    static site one session id is exactly one page view. It is stamped on
+//    every span, in every one of those traces. That is what makes the drill-down
+//    section work.
+//
+// 3. `page.route` is also on every span, added by the SDK's
+//    BrowserAttributesSpanProcessor on span start. Vitals can therefore be
+//    broken down per page, which is the whole basis of the offender tables.
+//
+// 4. Resource attributes (`device.type`, `network.effectiveType`,
+//    `browser.name`, `screen.size`, `entry_page.*`) are flattened onto every
+//    event by Honeycomb, so they segment vitals for free.
+//
+// The one thing that does not compose: `fastly.*` lives only on `documentFetch`
+// spans, and `ttfb.*` only on `TTFB` spans. Honeycomb has no join, and these
+// are different spans in different traces, so edge cache outcome cannot be
+// broken down by TTFB in a single query. The delivery section keeps them as
+// neighbouring panels and says so.
+//
+// Filters use `<metric>.rating` rather than a hand-written millisecond
+// threshold. The SDK computes the rating in the browser from Google's official
+// good/needs-improvement/poor boundaries, so the thresholds cannot drift out of
+// sync here. It also sidesteps a data bug: `cls.value` was an integer column in
+// prod for a while and truncated every score to zero, but `cls.rating` was
+// computed client-side from the true float and is correct across that period.
+
+// Seven days, matching the window Google reports Core Web Vitals over and the
+// vitals section of the RUM board.
+const TRIAGE_WINDOW = 604800;
+// Hourly buckets over that window, for the panels that show a trend.
+const TRIAGE_GRANULARITY = 3600;
+
+// The spans for one metric. Span names are emitted uppercase; the lowercase
+// alternate matches what the RUM board's ported queries already allow for.
+const vitalSpans = (metric: string) => ({
+  column: "name",
+  op: "in",
+  value: [metric.toUpperCase(), metric],
+});
+
+// Views that miss the threshold: everything Google does not call "good", so
+// needs-improvement is included rather than waiting for outright failure.
+const missesThreshold = (metric: string) => ({
+  column: `${metric}.rating`,
+  op: "!=",
+  value: "good",
+});
+
+const documentFetchSpans = {
+  column: "name",
+  op: "=",
+  value: "documentFetch",
+};
+
+// Vitals panels count page views, not spans. Every web vital reports at most
+// once per page view, and one `session.id` is one page view (see note 2 above),
+// so COUNT_DISTINCT over it is the honest number for a panel whose label says
+// "views". Plain COUNT would also read high for any window reaching back before
+// 2026-08-07: the bundle registered WebVitalsInstrumentation twice until then
+// and emitted every vital as two identical spans, so a span count reports twice
+// the real traffic. COUNT_DISTINCT is immune to that, which keeps these panels
+// comparable across the fix instead of showing a phantom 50% drop on the day it
+// shipped.
+const PAGE_VIEWS = { op: "COUNT_DISTINCT", column: "session.id" };
+const BY_VIEWS = [
+  { column: "session.id", op: "COUNT_DISTINCT", order: "descending" },
+];
+
+// documentFetch spans are one per navigation and were never duplicated, so on
+// the delivery panels a plain span count is exactly the request count.
+const BY_COUNT = [{ op: "COUNT", order: "descending" }];
+
+interface TriagePanel {
+  key: string;
+  label: string;
+  description: string;
+  style: string;
+  position: { x: number; y: number; width: number; height: number };
+  query: Record<string, unknown>;
+}
+
+interface TriageSection {
+  heading: string;
+  panels: TriagePanel[];
+}
+
+// One offender table per metric: the routes serving views that miss the
+// threshold, ranked by how many. This is the "where do I start" panel.
+const offenders = (metric: string, label: string, x: number): TriagePanel => ({
+  key: `${metric}-offenders`,
+  label: `${label}: pages missing the threshold`,
+  description: `Routes ranked by how many page views rated needs-improvement or poor for ${label}, with the 75th percentile ${label} on those views`,
+  style: "table",
+  position: { x, y: 0, width: 4, height: 6 },
+  query: {
+    breakdowns: ["page.route"],
+    calculations: [PAGE_VIEWS, { op: "P75", column: `${metric}.value` }],
+    filters: [vitalSpans(metric), missesThreshold(metric)],
+    orders: BY_VIEWS,
+    limit: 100,
+    time_range: TRIAGE_WINDOW,
+  },
+});
+
+// The good/needs-improvement/poor split over time, so a regression shows up as
+// a change in mix rather than only as a percentile drift.
+const ratingMix = (metric: string, label: string, x: number): TriagePanel => ({
+  key: `${metric}-rating-mix`,
+  label: `${label}: rating mix`,
+  description: `Page views by ${label} rating over time, hourly`,
+  style: "combo",
+  position: { x, y: 6, width: 4, height: 5 },
+  query: {
+    granularity: TRIAGE_GRANULARITY,
+    breakdowns: [`${metric}.rating`],
+    calculations: [PAGE_VIEWS],
+    filters: [vitalSpans(metric)],
+    orders: BY_VIEWS,
+    time_range: TRIAGE_WINDOW,
+  },
+});
+
+// Segment failing views by an audience dimension. Every calculation is scoped
+// to vitals spans, and each P75 only sees the spans that carry that column, so
+// one query reports all four metrics per segment.
+const segment = (
+  key: string,
+  column: string,
+  label: string,
+  x: number
+): TriagePanel => ({
+  key: `by-${key}`,
+  label: `Vitals by ${label}`,
+  description: `p75 of each Core Web Vital, split by ${label}`,
+  style: "table",
+  position: { x, y: 0, width: 4, height: 5 },
+  query: {
+    breakdowns: [column],
+    calculations: [
+      PAGE_VIEWS,
+      { op: "P75", column: "lcp.value" },
+      { op: "P75", column: "cls.value" },
+      { op: "P75", column: "inp.value" },
+      { op: "P75", column: "ttfb.value" },
+    ],
+    filters: [
+      {
+        column: "name",
+        op: "in",
+        value: ["LCP", "CLS", "INP", "TTFB", "FCP"],
+      },
+    ],
+    orders: BY_VIEWS,
+    limit: 100,
+    time_range: TRIAGE_WINDOW,
+  },
+});
+
+// The worst individual page views for one metric. `session.id` is the page view
+// (see note 2 above), so each row is one visitor's load and the id is what you
+// filter on to pull up every span that page view produced.
+const worstViews = (metric: string, label: string, x: number): TriagePanel => ({
+  key: `worst-${metric}-views`,
+  label: `Worst page views by ${label}`,
+  description: `Individual page views that missed the ${label} threshold, worst first. Filter the dataset on a session.id from this table to see every span that page view produced`,
+  style: "table",
+  position: { x, y: 0, width: 4, height: 8 },
+  query: {
+    breakdowns: ["session.id", "page.route"],
+    calculations: [{ op: "MAX", column: `${metric}.value` }],
+    filters: [vitalSpans(metric), missesThreshold(metric)],
+    orders: [{ column: `${metric}.value`, op: "MAX", order: "descending" }],
+    limit: 50,
+    time_range: TRIAGE_WINDOW,
+  },
+});
+
+const triage: TriageSection[] = [
+  {
+    heading:
+      "## 1. Which pages miss a threshold\n\n" +
+      "Seven days. A view counts as missing when the browser rated it anything other than `good`: " +
+      "LCP over 2.5s, INP over 200ms, CLS over 0.1. Start with the route at the top of a table, " +
+      "then read the matching section below for why.",
+    panels: [
+      offenders("lcp", "LCP", 0),
+      offenders("cls", "CLS", 4),
+      offenders("inp", "INP", 8),
+      ratingMix("lcp", "LCP", 0),
+      ratingMix("cls", "CLS", 4),
+      ratingMix("inp", "INP", 8),
+    ],
+  },
+  {
+    heading:
+      "## 2. Why LCP misses\n\n" +
+      "LCP decomposes into four consecutive phases that sum to the metric: time to first byte, " +
+      "then the delay before the browser discovers the LCP resource, then downloading it, then " +
+      "rendering it. Whichever column dominates is the thing to fix, and each points somewhere " +
+      "different: TTFB at the edge or origin, resource load delay at markup and discovery order, " +
+      "load duration at the asset itself, render delay at blocking CSS or JavaScript. " +
+      "`lcp.element` names the actual DOM node the browser measured.",
+    panels: [
+      {
+        key: "lcp-phases",
+        label: "LCP phase breakdown on failing views",
+        description:
+          "For views that missed the LCP threshold, p75 of each LCP phase per route. The four phases sum to LCP, so the largest column is the bottleneck",
+        style: "table",
+        position: { x: 0, y: 0, width: 8, height: 6 },
+        query: {
+          breakdowns: ["page.route"],
+          calculations: [
+            PAGE_VIEWS,
+            { op: "P75", column: "lcp.value" },
+            { op: "P75", column: "lcp.time_to_first_byte" },
+            { op: "P75", column: "lcp.resource_load_delay" },
+            { op: "P75", column: "lcp.resource_load_duration" },
+            { op: "P75", column: "lcp.element_render_delay" },
+          ],
+          filters: [vitalSpans("lcp"), missesThreshold("lcp")],
+          orders: BY_VIEWS,
+          limit: 100,
+          time_range: TRIAGE_WINDOW,
+        },
+      },
+      {
+        key: "lcp-elements",
+        label: "Which element is the LCP element",
+        description:
+          "The DOM element the browser measured as largest contentful paint on views that missed the threshold",
+        style: "table",
+        position: { x: 8, y: 0, width: 4, height: 6 },
+        query: {
+          breakdowns: ["lcp.element"],
+          calculations: [PAGE_VIEWS, { op: "P75", column: "lcp.value" }],
+          filters: [vitalSpans("lcp"), missesThreshold("lcp")],
+          orders: BY_VIEWS,
+          limit: 100,
+          time_range: TRIAGE_WINDOW,
+        },
+      },
+      {
+        key: "lcp-phase-trend",
+        label: "LCP phases over time",
+        description:
+          "p75 of each LCP phase across all views, hourly. Shows which phase moved when LCP regresses",
+        style: "graph",
+        position: { x: 0, y: 6, width: 12, height: 4 },
+        query: {
+          granularity: TRIAGE_GRANULARITY,
+          calculations: [
+            { op: "P75", column: "lcp.time_to_first_byte" },
+            { op: "P75", column: "lcp.resource_load_delay" },
+            { op: "P75", column: "lcp.resource_load_duration" },
+            { op: "P75", column: "lcp.element_render_delay" },
+          ],
+          filters: [vitalSpans("lcp")],
+          time_range: TRIAGE_WINDOW,
+        },
+      },
+    ],
+  },
+  {
+    heading:
+      "## 3. Why CLS misses\n\n" +
+      "`cls.largest_shift_target` is the CSS selector of the element whose movement contributed " +
+      "the most to the score, which usually names the fix outright: an image without dimensions, " +
+      "a late-loading font, an injected banner. `cls.load_state` says whether the shift happened " +
+      "while the page was still loading or after it settled.",
+    panels: [
+      {
+        key: "cls-shift-targets",
+        label: "Elements causing the layout shift",
+        description:
+          "The element responsible for the largest layout shift on views that missed the CLS threshold, ranked by how many page views it affected",
+        style: "table",
+        position: { x: 0, y: 0, width: 8, height: 6 },
+        query: {
+          breakdowns: ["cls.largest_shift_target"],
+          calculations: [
+            PAGE_VIEWS,
+            { op: "P75", column: "cls.value" },
+            { op: "MAX", column: "cls.largest_shift_value" },
+          ],
+          filters: [vitalSpans("cls"), missesThreshold("cls")],
+          orders: BY_VIEWS,
+          limit: 100,
+          time_range: TRIAGE_WINDOW,
+        },
+      },
+      {
+        key: "cls-load-state",
+        label: "When the shift happens",
+        description:
+          "Page lifecycle state at the moment of the largest shift, on views that missed the CLS threshold",
+        style: "table",
+        position: { x: 8, y: 0, width: 4, height: 6 },
+        query: {
+          breakdowns: ["cls.load_state"],
+          calculations: [PAGE_VIEWS, { op: "P75", column: "cls.value" }],
+          filters: [vitalSpans("cls"), missesThreshold("cls")],
+          orders: BY_VIEWS,
+          limit: 100,
+          time_range: TRIAGE_WINDOW,
+        },
+      },
+    ],
+  },
+  {
+    heading:
+      "## 4. Why INP misses\n\n" +
+      "INP is the sum of three phases: input delay while the main thread is busy before the " +
+      "handler runs, processing duration inside the handler, and presentation delay before the " +
+      "next frame paints. A large input delay means something else was blocking; a large " +
+      "processing duration means the handler itself is slow. `inp.element` and `inp.event_type` " +
+      "identify the interaction.",
+    panels: [
+      {
+        key: "inp-phases",
+        label: "INP phase breakdown on failing views",
+        description:
+          "For views that missed the INP threshold, p75 of each INP phase per route. The three phases sum to INP",
+        style: "table",
+        position: { x: 0, y: 0, width: 8, height: 6 },
+        query: {
+          breakdowns: ["page.route"],
+          calculations: [
+            PAGE_VIEWS,
+            { op: "P75", column: "inp.value" },
+            { op: "P75", column: "inp.input_delay" },
+            { op: "P75", column: "inp.processing_duration" },
+            { op: "P75", column: "inp.presentation_delay" },
+          ],
+          filters: [vitalSpans("inp"), missesThreshold("inp")],
+          orders: BY_VIEWS,
+          limit: 100,
+          time_range: TRIAGE_WINDOW,
+        },
+      },
+      {
+        key: "inp-interactions",
+        label: "Which interactions are slow",
+        description:
+          "The element and event type behind interactions that missed the INP threshold",
+        style: "table",
+        position: { x: 8, y: 0, width: 4, height: 6 },
+        query: {
+          breakdowns: ["inp.element", "inp.event_type"],
+          calculations: [PAGE_VIEWS, { op: "P75", column: "inp.value" }],
+          filters: [vitalSpans("inp"), missesThreshold("inp")],
+          orders: BY_VIEWS,
+          limit: 100,
+          time_range: TRIAGE_WINDOW,
+        },
+      },
+    ],
+  },
+  {
+    heading:
+      "## 5. Server time and edge delivery\n\n" +
+      "TTFB is the floor under LCP: no page can paint before its first byte arrives. The left " +
+      "panel decomposes TTFB as the browser measured it. The right two come from the Fastly " +
+      "Server-Timing header on the `documentFetch` span, which is a different span in a " +
+      "different trace, so Honeycomb cannot break one down by the other. Read them side by " +
+      "side: a route with poor TTFB and a `MISS` or `SHIELD_HIT` cache status is an edge caching " +
+      "problem, not an application one. `fastly.backend_ms` is absent whenever the edge answered " +
+      "from its own cache, which is the honest signal that no backend work happened.",
+    panels: [
+      {
+        key: "ttfb-phases",
+        label: "TTFB phase breakdown by route",
+        description:
+          "p75 of each phase the browser attributes time to before the first byte: DNS, connection, request, and waiting",
+        style: "table",
+        position: { x: 0, y: 0, width: 6, height: 6 },
+        query: {
+          breakdowns: ["page.route"],
+          calculations: [
+            PAGE_VIEWS,
+            { op: "P75", column: "ttfb.value" },
+            { op: "P75", column: "ttfb.dns_duration" },
+            { op: "P75", column: "ttfb.connection_duration" },
+            { op: "P75", column: "ttfb.request_duration" },
+            { op: "P75", column: "ttfb.waiting_duration" },
+          ],
+          filters: [vitalSpans("ttfb")],
+          orders: [{ column: "ttfb.value", op: "P75", order: "descending" }],
+          limit: 100,
+          time_range: TRIAGE_WINDOW,
+        },
+      },
+      {
+        key: "edge-cache-status",
+        label: "Navigation time by edge cache outcome",
+        description:
+          "How deep into the stack the navigation request went, and what it cost. Measured on the documentFetch span from the Fastly Server-Timing header",
+        style: "table",
+        position: { x: 6, y: 0, width: 6, height: 6 },
+        query: {
+          breakdowns: ["fastly.cache_status"],
+          calculations: [
+            { op: "COUNT" },
+            { op: "P75", column: "duration_ms" },
+            { op: "P75", column: "fastly.total_ms" },
+            { op: "P75", column: "fastly.backend_ms" },
+          ],
+          filters: [documentFetchSpans],
+          orders: BY_COUNT,
+          limit: 100,
+          time_range: TRIAGE_WINDOW,
+        },
+      },
+      {
+        key: "edge-pop",
+        label: "Navigation time by Fastly POP",
+        description:
+          "Navigation request duration per customer-facing POP, slowest first. Isolates a regional edge problem from a site-wide one",
+        style: "table",
+        position: { x: 0, y: 6, width: 12, height: 5 },
+        query: {
+          breakdowns: ["fastly.pop", "fastly.region"],
+          calculations: [
+            { op: "COUNT" },
+            { op: "P75", column: "duration_ms" },
+            { op: "P75", column: "fastly.total_ms" },
+          ],
+          filters: [documentFetchSpans],
+          orders: [{ column: "duration_ms", op: "P75", order: "descending" }],
+          limit: 100,
+          time_range: TRIAGE_WINDOW,
+        },
+      },
+    ],
+  },
+  {
+    heading:
+      "## 6. Who is affected\n\n" +
+      "The same vitals split by audience, from resource attributes Honeycomb flattens onto every " +
+      "event. A metric that only misses on `mobile`, on `3g`, or in one browser is a different " +
+      "problem from one that misses everywhere, and it changes what is worth fixing.",
+    panels: [
+      segment("device", "device.type", "device type", 0),
+      segment("network", "network.effectiveType", "network type", 4),
+      segment("browser", "browser.name", "browser", 8),
+    ],
+  },
+  {
+    heading:
+      "## 7. Drill into one page view\n\n" +
+      "Each web vital finalizes long after `documentLoad` ended, so the SDK emits it as a root " +
+      "span in its own trace. One page view is therefore spread across about six traces and no " +
+      "single waterfall contains all of it. `session.id` is what puts it back together: the SDK " +
+      "mints one per document, so on this site one session id is exactly one page view, and it " +
+      "is stamped on every span in every one of those traces.\n\n" +
+      "**To investigate a bad view:** pick a `session.id` from a table below, then run " +
+      "`session.id = <that id>` over the dataset with no breakdown. That returns every span the " +
+      "page view produced, the vitals and the load waterfall together, with each vital's full " +
+      "attribution attached. The left panel is different: those rows are `documentLoad` spans, " +
+      "so opening one goes straight to a real trace waterfall of the navigation and its " +
+      "subresources.",
+    panels: [
+      {
+        key: "slowest-page-loads",
+        label: "Slowest page loads (opens a trace)",
+        description:
+          "Individual documentLoad spans, slowest first. These are real traces: open one for the navigation and subresource waterfall",
+        style: "table",
+        position: { x: 0, y: 0, width: 4, height: 8 },
+        query: {
+          breakdowns: ["session.id", "page.route"],
+          calculations: [{ op: "MAX", column: "duration_ms" }],
+          filters: [{ column: "name", op: "=", value: "documentLoad" }],
+          orders: [{ column: "duration_ms", op: "MAX", order: "descending" }],
+          limit: 50,
+          time_range: TRIAGE_WINDOW,
+        },
+      },
+      worstViews("lcp", "LCP", 4),
+      worstViews("cls", "CLS", 8),
+    ],
+  },
+];
+
 // Honeycomb lays boards out on a 12 column grid. The vitals sit three to a row
 // under their heading, then the ported overview section starts below them, so
 // each section reads as its own block.
@@ -313,20 +813,35 @@ const OVERVIEW_HEADING_Y =
   VITALS_ORIGIN_Y + Math.ceil(vitals.length / VITALS_PER_ROW) * VITAL_HEIGHT;
 const OVERVIEW_ORIGIN_Y = OVERVIEW_HEADING_Y + HEADING_HEIGHT;
 
-// Build a curated RUM board in one environment, authenticated with that
+// The boards one environment gets. Every environment gets the RUM board; only
+// an environment whose dataset carries the full attribution schema gets the
+// triage board, so `triageBoardId` is absent for the local environment.
+interface EnvironmentBoards {
+  rumBoardId: pulumi.Output<string>;
+  triageBoardId?: pulumi.Output<string>;
+}
+
+// Build both curated boards for one environment, authenticated with that
 // environment's v1 Configuration Key. `slug` (prod/local) keeps resource names
-// unique across the two boards.
+// unique across the two environments. One provider serves both boards.
 //
-// This is now the only RUM board in each environment. The hand-made template
-// board that Honeycomb created, also called `Real User Monitoring (RUM)`, was
-// deleted once its panels were reproduced in the overview section below, so the
-// name is free and there is one board per environment rather than two similar
-// ones.
+// `Real User Monitoring (RUM)` is now the only RUM board in each environment.
+// The hand-made template board that Honeycomb created, also called `Real User
+// Monitoring (RUM)`, was deleted once its panels were reproduced in the overview
+// section below, so the name is free and there is one board per environment
+// rather than two similar ones.
+//
+// `Core Web Vitals triage` is the second board, built from the `triage` sections
+// above. It is separate rather than another section on the RUM board because it
+// answers a different question and is read at a different time: the RUM board
+// is the standing view, this one is opened when a vital regresses.
 function rumBoard(
   slug: string,
   configKey: string,
-  description: string
-): pulumi.Output<string> {
+  description: string,
+  // Omit to skip the Core Web Vitals triage board for this environment.
+  triageDescription?: string
+): EnvironmentBoards {
   const provider = new honeycombio.Provider(`rum-${slug}-config`, {
     apiKey: configKey,
   });
@@ -438,7 +953,59 @@ function rumBoard(
     providerOpts
   );
 
-  return board.id;
+  // The triage board is opt-in per environment, and only prod opts in. Ten of
+  // the columns its queries reference do not exist in `tollmanz-com-local`, and
+  // Honeycomb validates every column when a saved query is created, so building
+  // it there fails the apply outright. Seeding the columns would not help: the
+  // five `fastly.*` fields come from the Server-Timing header the Fastly edge
+  // emits, and nothing in the local stack is behind Fastly, so they can never
+  // carry a real value. The five `inp.*` attribution fields need a qualifying
+  // user interaction that local browsing generally does not produce. Either way
+  // the local board would be sections of permanently empty panels describing
+  // infrastructure that is not there.
+  if (!triageDescription) {
+    return { rumBoardId: board.id };
+  }
+
+  // Sections stack vertically: a full-width heading, then that section's panels
+  // at their declared offsets, then the next heading below the tallest panel in
+  // the section. Sections therefore never need to know their own absolute
+  // position, and inserting one does not renumber the rest.
+  let y = 0;
+  const triagePanels = triage.flatMap(section => {
+    const sectionPanels = [
+      heading(y, section.heading),
+      ...section.panels.map(panel =>
+        queryPanel(
+          `cwv-${slug}-${panel.key}`,
+          panel.query,
+          panel.label,
+          panel.description,
+          panel.style,
+          {
+            ...panel.position,
+            y: y + HEADING_HEIGHT + panel.position.y,
+          }
+        )
+      ),
+    ];
+    y +=
+      HEADING_HEIGHT +
+      Math.max(...section.panels.map(p => p.position.y + p.position.height));
+    return sectionPanels;
+  });
+
+  const triageBoard = new honeycombio.FlexibleBoard(
+    `cwv-${slug}-board`,
+    {
+      name: "Core Web Vitals triage",
+      description: triageDescription,
+      panels: triagePanels,
+    },
+    providerOpts
+  );
+
+  return { rumBoardId: board.id, triageBoardId: triageBoard.id };
 }
 
 // Read a required config key, failing fast with an actionable message so a
@@ -453,20 +1020,23 @@ function requireConfigKey(envVar: string, flag: string): string {
   return key;
 }
 
-let prodBoardId: pulumi.Output<string> | undefined;
+let prodBoards: EnvironmentBoards | undefined;
 if (manageProdBoard) {
-  prodBoardId = rumBoard(
+  prodBoards = rumBoard(
     "prod",
     requireConfigKey("HONEYCOMB_CONFIG_KEY", "manageProdBoard"),
-    "Core Web Vitals and a RUM overview for tollmanz.com browser RUM. Managed by infra/honeycomb (Pulumi)."
+    "Core Web Vitals and a RUM overview for tollmanz.com browser RUM. Managed by infra/honeycomb (Pulumi).",
+    "Which pages miss a Core Web Vitals threshold, and why. Managed by infra/honeycomb (Pulumi)."
   );
 }
 
-let localBoardId: pulumi.Output<string> | undefined;
+let localBoards: EnvironmentBoards | undefined;
 if (manageLocalBoard) {
-  localBoardId = rumBoard(
+  localBoards = rumBoard(
     "local",
     requireConfigKey("HONEYCOMB_LOCAL_CONFIG_KEY", "manageLocalBoard"),
+    // No triage board here: the local dataset lacks the fastly.* and inp.*
+    // attribution columns its queries need. See rumBoard.
     "Core Web Vitals and a RUM overview for tollmanz.com browser RUM, local testing environment. Managed by infra/honeycomb (Pulumi)."
   );
 }
@@ -482,7 +1052,10 @@ export const localEnvironmentSlug = localEnvironment.slug;
 export const ingestKey = pulumi.secret(ingest.key);
 export const localIngestKey = pulumi.secret(localIngest.key);
 
-// IDs of the curated RUM boards, when managed. Each is undefined until its flag
-// is enabled with the matching v1 Configuration Key present.
-export const rumBoardIdProd = prodBoardId;
-export const rumBoardIdLocal = localBoardId;
+// IDs of the curated boards, when managed. Each RUM board id is undefined until
+// its environment's flag is enabled with the matching v1 Configuration Key
+// present. There is no local counterpart to the triage board id: only prod
+// builds that board (see rumBoard).
+export const rumBoardIdProd = prodBoards?.rumBoardId;
+export const rumBoardIdLocal = localBoards?.rumBoardId;
+export const cwvBoardIdProd = prodBoards?.triageBoardId;

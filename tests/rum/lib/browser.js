@@ -28,10 +28,20 @@ export const SERVER_TIMING =
   "cache_status;desc=MISS, total;dur=42.1";
 
 // Run `source` (a built IIFE bundle) in headless Chromium and collect any
-// uncaught page errors plus every OTLP trace export it attempts. Resolves once
-// a trace export is recorded or a page error is thrown, whichever comes first,
-// so a clean bundle and a broken one both return promptly.
-export async function runRumBundle(source, { timeoutMs = 20000 } = {}) {
+// uncaught page errors plus every OTLP trace export it attempts.
+//
+// By default this resolves once a trace export is recorded or a page error is
+// thrown, whichever comes first, so a clean bundle and a broken one both return
+// promptly.
+//
+// `settleMs` instead runs a whole page-view lifecycle: keep collecting for that
+// long, then mark the document hidden, which is what makes web-vitals finalize
+// and report. Core Web Vitals are only observable that way, since none of them
+// are flushed by the first export.
+export async function runRumBundle(
+  source,
+  { timeoutMs = 20000, settleMs = 0 } = {}
+) {
   const pageErrors = [];
   const traceRequests = [];
 
@@ -60,7 +70,7 @@ export async function runRumBundle(source, { timeoutMs = 20000 } = {}) {
         return route.fulfill({
           contentType: "text/html",
           headers: { "Server-Timing": SERVER_TIMING },
-          body: `<!doctype html><meta charset="utf-8"><title>rum smoke</title><script src="/rum.js"></script>`,
+          body: `<!doctype html><meta charset="utf-8"><title>rum smoke</title><script src="/rum.js"></script><h1>rum smoke</h1>`,
         });
       }
       if (url === `${ORIGIN}/rum.js`) {
@@ -72,7 +82,9 @@ export async function runRumBundle(source, { timeoutMs = 20000 } = {}) {
           method: route.request().method(),
           body: route.request().postData(),
         });
-        finish();
+        // In settle mode the run is timed, not export-driven: vitals arrive in
+        // later exports than this one, so finishing here would cut them off.
+        if (!settleMs) finish();
         return route.fulfill({
           status: 200,
           contentType: "application/json",
@@ -83,7 +95,23 @@ export async function runRumBundle(source, { timeoutMs = 20000 } = {}) {
     });
 
     await page.goto(`${ORIGIN}/`, { waitUntil: "load" });
-    await settled;
+
+    if (settleMs) {
+      await page.waitForTimeout(settleMs);
+      // web-vitals finalizes and reports each metric when the document becomes
+      // hidden. Chromium will not hide a page on request, so drive the state
+      // and the event the library listens for directly.
+      await page.evaluate(() => {
+        Object.defineProperty(document, "visibilityState", {
+          value: "hidden",
+          configurable: true,
+        });
+        document.dispatchEvent(new Event("visibilitychange"));
+      });
+      await page.waitForTimeout(settleMs);
+    } else {
+      await settled;
+    }
 
     return { pageErrors, traceRequests };
   } finally {
