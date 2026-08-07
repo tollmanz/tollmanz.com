@@ -813,12 +813,64 @@ const OVERVIEW_HEADING_Y =
   VITALS_ORIGIN_Y + Math.ceil(vitals.length / VITALS_PER_ROW) * VITAL_HEIGHT;
 const OVERVIEW_ORIGIN_Y = OVERVIEW_HEADING_Y + HEADING_HEIGHT;
 
-// The boards one environment gets. Every environment gets the RUM board; only
-// an environment whose dataset carries the full attribution schema gets the
-// triage board, so `triageBoardId` is absent for the local environment.
+// Columns the triage board queries that `tollmanz-com-local` ingest has not
+// created yet, with the types prod inferred, so local mirrors production.
+//
+// Local exists to stage board changes before they reach prod. That only works
+// if it can build the same board, and Honeycomb validates every column when a
+// saved query is created, so the ten columns local has never seen have to exist
+// before the queries referencing them can be created.
+//
+// Declaring a column is not seeding it. `POST /1/columns` creates the column
+// empty, so nothing fabricates telemetry here and no panel shows invented data:
+// the local board renders with these sections empty until real events arrive.
+// Seeding, when it is wanted, stays a separate deliberate act.
+//
+// Two of these will stay empty locally for good, because nothing in the local
+// stack sits behind Fastly and `fastly.*` comes from the edge's Server-Timing
+// header. That is the accepted cost of being able to rehearse the whole board.
+// The five `inp.*` fields do fill in as soon as local browsing produces a
+// qualifying interaction.
+//
+// Prod declares nothing: ingest created all 33 columns there already.
+const LOCAL_STAGING_COLUMNS: readonly StagingColumn[] = [
+  { name: "fastly.backend_ms", type: "integer" },
+  { name: "fastly.cache_status", type: "string" },
+  { name: "fastly.pop", type: "string" },
+  { name: "fastly.region", type: "string" },
+  { name: "fastly.total_ms", type: "integer" },
+  { name: "inp.element", type: "string" },
+  { name: "inp.event_type", type: "string" },
+  { name: "inp.input_delay", type: "float" },
+  { name: "inp.presentation_delay", type: "integer" },
+  { name: "inp.processing_duration", type: "integer" },
+];
+
+// A column the triage board queries but this environment's ingest has not
+// created yet. Declaring it is schema, not data: the column exists and is
+// empty until real telemetry fills it.
+interface StagingColumn {
+  name: string;
+  type: string;
+}
+
+// The boards one environment gets. Both environments get both boards.
 interface EnvironmentBoards {
   rumBoardId: pulumi.Output<string>;
-  triageBoardId?: pulumi.Output<string>;
+  triageBoardId: pulumi.Output<string>;
+}
+
+interface BoardOptions {
+  // prod/local, keeps resource names unique across the two environments.
+  slug: string;
+  // That environment's v1 Configuration Key.
+  configKey: string;
+  rumDescription: string;
+  triageDescription: string;
+  // Columns to declare before the triage queries reference them. Honeycomb
+  // validates every column when a saved query is created, so an environment
+  // missing any of them cannot build the board until they exist.
+  declareColumns?: readonly StagingColumn[];
 }
 
 // Build both curated boards for one environment, authenticated with that
@@ -835,17 +887,39 @@ interface EnvironmentBoards {
 // above. It is separate rather than another section on the RUM board because it
 // answers a different question and is read at a different time: the RUM board
 // is the standing view, this one is opened when a vital regresses.
-function rumBoard(
-  slug: string,
-  configKey: string,
-  description: string,
-  // Omit to skip the Core Web Vitals triage board for this environment.
-  triageDescription?: string
-): EnvironmentBoards {
+//
+// Both environments build both boards. Local needs `declareColumns` to do it;
+// see LOCAL_STAGING_COLUMNS.
+function rumBoard({
+  slug,
+  configKey,
+  rumDescription,
+  triageDescription,
+  declareColumns = [],
+}: BoardOptions): EnvironmentBoards {
   const provider = new honeycombio.Provider(`rum-${slug}-config`, {
     apiKey: configKey,
   });
   const providerOpts = { provider };
+
+  // Declared up front so the triage queries below can reference them. Pulumi
+  // cannot infer this ordering, since a query names its columns inside an
+  // opaque JSON string rather than through a resource reference, so the queries
+  // take an explicit dependsOn.
+  const columns = declareColumns.map(
+    column =>
+      new honeycombio.Column(
+        `cwv-${slug}-col-${column.name.replace(/\./g, "-")}`,
+        {
+          dataset: datasetName,
+          name: column.name,
+          type: column.type,
+          description: `Declared by infra/honeycomb so the Core Web Vitals triage board can query it before ingest creates it. Empty until real telemetry arrives.`,
+        },
+        providerOpts
+      )
+  );
+  const triageOpts = { provider, dependsOn: columns };
 
   // A query panel and the two resources behind it. `name` is the Pulumi resource
   // name and must stay stable: the vitals panels were created as
@@ -857,12 +931,15 @@ function rumBoard(
     label: string,
     caption: string,
     style: string,
-    position: { x: number; y: number; width: number; height: number }
+    position: { x: number; y: number; width: number; height: number },
+    // Triage panels pass triageOpts so their queries wait on the declared
+    // columns; RUM panels reference only columns ingest already created.
+    resourceOpts: pulumi.CustomResourceOptions = providerOpts
   ) => {
     const query = new honeycombio.Query(
       name,
       { dataset: datasetName, queryJson: JSON.stringify(queryJson) },
-      providerOpts
+      resourceOpts
     );
     const annotation = new honeycombio.QueryAnnotation(
       name,
@@ -872,7 +949,7 @@ function rumBoard(
         name: label,
         description: caption,
       },
-      providerOpts
+      resourceOpts
     );
     return {
       type: "query",
@@ -947,25 +1024,11 @@ function rumBoard(
     `rum-${slug}-board`,
     {
       name: "Real User Monitoring (RUM)",
-      description,
+      description: rumDescription,
       panels,
     },
     providerOpts
   );
-
-  // The triage board is opt-in per environment, and only prod opts in. Ten of
-  // the columns its queries reference do not exist in `tollmanz-com-local`, and
-  // Honeycomb validates every column when a saved query is created, so building
-  // it there fails the apply outright. Seeding the columns would not help: the
-  // five `fastly.*` fields come from the Server-Timing header the Fastly edge
-  // emits, and nothing in the local stack is behind Fastly, so they can never
-  // carry a real value. The five `inp.*` attribution fields need a qualifying
-  // user interaction that local browsing generally does not produce. Either way
-  // the local board would be sections of permanently empty panels describing
-  // infrastructure that is not there.
-  if (!triageDescription) {
-    return { rumBoardId: board.id };
-  }
 
   // Sections stack vertically: a full-width heading, then that section's panels
   // at their declared offsets, then the next heading below the tallest panel in
@@ -985,7 +1048,8 @@ function rumBoard(
           {
             ...panel.position,
             y: y + HEADING_HEIGHT + panel.position.y,
-          }
+          },
+          triageOpts
         )
       ),
     ];
@@ -1022,23 +1086,30 @@ function requireConfigKey(envVar: string, flag: string): string {
 
 let prodBoards: EnvironmentBoards | undefined;
 if (manageProdBoard) {
-  prodBoards = rumBoard(
-    "prod",
-    requireConfigKey("HONEYCOMB_CONFIG_KEY", "manageProdBoard"),
-    "Core Web Vitals and a RUM overview for tollmanz.com browser RUM. Managed by infra/honeycomb (Pulumi).",
-    "Which pages miss a Core Web Vitals threshold, and why. Managed by infra/honeycomb (Pulumi)."
-  );
+  prodBoards = rumBoard({
+    slug: "prod",
+    configKey: requireConfigKey("HONEYCOMB_CONFIG_KEY", "manageProdBoard"),
+    rumDescription:
+      "Core Web Vitals and a RUM overview for tollmanz.com browser RUM. Managed by infra/honeycomb (Pulumi).",
+    triageDescription:
+      "Which pages miss a Core Web Vitals threshold, and why. Managed by infra/honeycomb (Pulumi).",
+  });
 }
 
 let localBoards: EnvironmentBoards | undefined;
 if (manageLocalBoard) {
-  localBoards = rumBoard(
-    "local",
-    requireConfigKey("HONEYCOMB_LOCAL_CONFIG_KEY", "manageLocalBoard"),
-    // No triage board here: the local dataset lacks the fastly.* and inp.*
-    // attribution columns its queries need. See rumBoard.
-    "Core Web Vitals and a RUM overview for tollmanz.com browser RUM, local testing environment. Managed by infra/honeycomb (Pulumi)."
-  );
+  localBoards = rumBoard({
+    slug: "local",
+    configKey: requireConfigKey(
+      "HONEYCOMB_LOCAL_CONFIG_KEY",
+      "manageLocalBoard"
+    ),
+    rumDescription:
+      "Core Web Vitals and a RUM overview for tollmanz.com browser RUM, local testing environment. Managed by infra/honeycomb (Pulumi).",
+    triageDescription:
+      "Which pages miss a Core Web Vitals threshold, and why. Staging copy of the prod board: change it here first. Managed by infra/honeycomb (Pulumi).",
+    declareColumns: LOCAL_STAGING_COLUMNS,
+  });
 }
 
 export const environmentId = environment.id;
@@ -1052,10 +1123,9 @@ export const localEnvironmentSlug = localEnvironment.slug;
 export const ingestKey = pulumi.secret(ingest.key);
 export const localIngestKey = pulumi.secret(localIngest.key);
 
-// IDs of the curated boards, when managed. Each RUM board id is undefined until
-// its environment's flag is enabled with the matching v1 Configuration Key
-// present. There is no local counterpart to the triage board id: only prod
-// builds that board (see rumBoard).
+// IDs of the curated boards, when managed. Each is undefined until its
+// environment's flag is enabled with the matching v1 Configuration Key present.
 export const rumBoardIdProd = prodBoards?.rumBoardId;
 export const rumBoardIdLocal = localBoards?.rumBoardId;
 export const cwvBoardIdProd = prodBoards?.triageBoardId;
+export const cwvBoardIdLocal = localBoards?.triageBoardId;

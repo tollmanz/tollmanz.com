@@ -33,7 +33,7 @@ Two boards are managed as code against the `tollmanz-com-web` dataset:
 | Board                        | Environments   | Question it answers                   |
 | ---------------------------- | -------------- | ------------------------------------- |
 | `Real User Monitoring (RUM)` | prod and local | What are the numbers                  |
-| `Core Web Vitals triage`     | prod only      | Which pages miss a threshold, and why |
+| `Core Web Vitals triage`     | prod and local | Which pages miss a threshold, and why |
 
 ## RUM board
 
@@ -123,19 +123,45 @@ vital reports at most once per page view, so the two agree on correct data, but
 a span count reads 2x for any window reaching back before the duplicate
 instrumentation fix (see below).
 
-### This board is prod only
+### Local builds it too, as a staging copy
 
-Ten of the 33 columns its queries reference do not exist in
-`tollmanz-com-local`, and Honeycomb validates every column when a saved query is
-created, so building it there fails the apply. Seeding them would not help. The
-five `fastly.*` fields come from the Server-Timing header the Fastly edge emits
-and nothing local is behind Fastly, so they can never carry a real value; the
-five `inp.*` attribution fields need a qualifying user interaction that local
-browsing generally does not produce. The local board would be sections of
-permanently empty panels describing infrastructure that is not there.
+Both environments build this board, so a change can be rehearsed in
+`tollmanz-com-local` before it reaches prod.
 
-The triage board is therefore opt-in per environment: `rumBoard` builds it only
-when passed a `triageDescription`, and only the prod call site passes one.
+That takes a deliberate step. Ten of the 33 columns the board queries had never
+been seen by local ingest, and Honeycomb validates every column when a saved
+query is created (`missing unknown column or derived column "<name>"`), so those
+queries could not be created there. The ten are declared as `honeycombio.Column`
+resources in `LOCAL_STAGING_COLUMNS`, with the types prod inferred.
+
+Declaring a column is not seeding it. `POST /1/columns` creates the column
+empty, so nothing here fabricates telemetry and no panel shows invented data:
+the affected sections render empty until real events arrive. Seeding, when it is
+wanted, stays a separate deliberate act.
+
+Pulumi cannot infer that a query depends on a column, because a query names its
+columns inside an opaque JSON string rather than through a resource reference.
+The triage queries carry an explicit `dependsOn` on the declared columns.
+
+Prod declares nothing, since ingest created all 33 columns there already.
+
+Two caveats on how faithful the staging copy is. The five `fastly.*` columns
+stay empty locally for good, because nothing in the local stack sits behind
+Fastly and those values come from the edge's Server-Timing header; the five
+`inp.*` fields do fill in once local browsing produces a qualifying interaction.
+And three columns have drifted in type between the environments, because each
+was created by ingest independently and typed from its first value:
+
+| Column                  | Local     | Prod      |
+| ----------------------- | --------- | --------- |
+| `inp.value`             | `float`   | `integer` |
+| `ttfb.request_duration` | `integer` | `float`   |
+| `cls.delta`             | `float`   | `integer` |
+
+`float` is correct in all three cases, since each is fractional. None is used by
+either board, so they are left alone, but a query that reads them can behave
+differently in the two environments. Fix with
+`PUT /1/columns/<dataset>/<id>`, which governs later writes only.
 
 ### Web vitals were recorded twice until 2026-08-07
 
@@ -172,20 +198,20 @@ rest of this project uses. Two constraints shape how the keys are supplied:
   env var would let a local apply create a board and a CI apply without the key
   delete it
 
-Each environment has its own flag and config key. Both build the RUM board; only
-prod also builds the triage board:
+Each environment has its own flag and config key, and both build both boards:
 
-| Environment          | Flag               | Config key env var           | Board outputs                      |
-| -------------------- | ------------------ | ---------------------------- | ---------------------------------- |
-| `tollmanz-com`       | `manageProdBoard`  | `HONEYCOMB_CONFIG_KEY`       | `rumBoardIdProd`, `cwvBoardIdProd` |
-| `tollmanz-com-local` | `manageLocalBoard` | `HONEYCOMB_LOCAL_CONFIG_KEY` | `rumBoardIdLocal`                  |
+| Environment          | Flag               | Config key env var           | Board outputs                        |
+| -------------------- | ------------------ | ---------------------------- | ------------------------------------ |
+| `tollmanz-com`       | `manageProdBoard`  | `HONEYCOMB_CONFIG_KEY`       | `rumBoardIdProd`, `cwvBoardIdProd`   |
+| `tollmanz-com-local` | `manageLocalBoard` | `HONEYCOMB_LOCAL_CONFIG_KEY` | `rumBoardIdLocal`, `cwvBoardIdLocal` |
 
 Prerequisite: every column the board queries must already exist in the target
 environment, because Honeycomb validates columns when a saved query is created
 (`missing unknown column or derived column "<name>"`). Columns are created by
 ingest, so the environment needs real RUM traffic first: run the site with
 `RUM_MODE=local` and browse it (see `local/otel/README.md`). Prod has live
-traffic and all five columns.
+traffic and every column both boards use. The alternative, for a column ingest
+cannot produce locally, is to declare it: see `LOCAL_STAGING_COLUMNS`.
 
 `inp.value` is the one that bites. INP is only emitted after a qualifying user
 interaction, and synthetic or headless clicks generally do not produce one, so a
