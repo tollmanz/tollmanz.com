@@ -153,6 +153,38 @@ test("the built RUM bundle samples at RUM_SAMPLE_RATE", async () => {
   );
 });
 
+// HoneycombWebSDK appends its own WebVitalsInstrumentation unless
+// `webVitalsInstrumentationConfig.enabled` is false, so also naming it in
+// `instrumentations` registers two instances that both observe the same
+// web-vitals callbacks and both emit a span. Every Core Web Vital is then
+// recorded twice. Nothing throws, and P75 is unmoved because duplicating every
+// sample preserves percentiles, so the boards in infra/honeycomb keep looking
+// plausible while every COUNT over a vital reads 2x. Only the span count shows
+// it, and only after the metrics report.
+//
+// TTFB is the sentinel. A duplicated registration duplicates all five vitals
+// equally, and TTFB is the one that always reports: it comes off the navigation
+// timing entry rather than needing paint, layout shift, or user interaction.
+test("the built RUM bundle records each Core Web Vital exactly once", async () => {
+  const pageView = await runRumBundle(buildLocalBundle(), { settleMs: 2500 });
+  assert.deepEqual(
+    pageView.pageErrors,
+    [],
+    `bundle threw: ${pageView.pageErrors.join("; ")}`
+  );
+
+  const ttfb = exportedSpans(pageView.traceRequests).filter(
+    span => span.name === "TTFB"
+  );
+  assert.equal(
+    ttfb.length,
+    1,
+    `expected exactly one TTFB span, got ${ttfb.length}. More than one means ` +
+      `web vitals are registered twice: drop WebVitalsInstrumentation from ` +
+      `the instrumentations list in assets/rum/index.js and let the SDK add it.`
+  );
+});
+
 test("the harness catches a process reference leaking into a bundle", async () => {
   const leaky = await buildLeakyBundle();
   const { pageErrors } = await runRumBundle(leaky, { timeoutMs: 5000 });

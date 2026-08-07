@@ -1,7 +1,4 @@
-import {
-  HoneycombWebSDK,
-  WebVitalsInstrumentation,
-} from "@honeycombio/opentelemetry-web";
+import { HoneycombWebSDK } from "@honeycombio/opentelemetry-web";
 import { getWebAutoInstrumentations } from "@opentelemetry/auto-instrumentations-web";
 
 // Build-time configuration, replaced by esbuild `define` (see
@@ -60,6 +57,14 @@ if (mode !== "off") {
     serviceName,
     sampleRate,
     skipOptionsValidation: true,
+    // Core Web Vitals are deliberately absent from this list.
+    // HoneycombWebSDK appends its own WebVitalsInstrumentation unless
+    // `webVitalsInstrumentationConfig.enabled` is false, so naming it here too
+    // registers two instances. Both observe the same web-vitals callbacks and
+    // both emit a span, which silently doubles every LCP/CLS/INP/FCP/TTFB
+    // event. P75 survives that (duplicating every sample preserves
+    // percentiles) but every COUNT does not, so rating breakdowns and
+    // per-page-view counts read 2x. Leave vitals to the SDK.
     instrumentations: [
       getWebAutoInstrumentations({
         "@opentelemetry/instrumentation-fetch": { ignoreUrls },
@@ -75,7 +80,6 @@ if (mode !== "off") {
           },
         },
       }),
-      new WebVitalsInstrumentation(),
     ],
   });
 
