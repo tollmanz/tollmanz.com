@@ -2,8 +2,8 @@
 //
 // These probe properties an HTTP client cannot observe: which protocol versions
 // the edge accepts, whether it resumes a prior session, and whether it accepts
-// TLS 1.3 0-RTT early data. openssl is present on GitHub-hosted runners and
-// macOS, and version 3.x supports -early_data.
+// TLS 1.3 0-RTT early data. OPENSSL_BIN can select a non-system executable;
+// this matters on macOS, where /usr/bin/openssl is LibreSSL.
 //
 // s_client is run with stdin set to /dev/null (stdio "ignore"). With an empty
 // stdin it sees EOF immediately, completes the handshake, prints its session
@@ -21,9 +21,9 @@ const TIMEOUT_MS = 20000;
 // s_client exits non-zero in ordinary flows (the peer closing the connection,
 // for one), so output is captured regardless of exit status and the caller
 // decides success from the handshake summary it parses.
-function openssl(args) {
+function openssl(args, env = process.env) {
   return new Promise(resolve => {
-    const child = spawn("openssl", args, {
+    const child = spawn(env.OPENSSL_BIN || "openssl", args, {
       stdio: ["ignore", "pipe", "pipe"],
     });
     let out = "";
@@ -40,6 +40,29 @@ function openssl(args) {
     child.on("close", done);
     child.on("error", done);
   });
+}
+
+export async function opensslCapabilities(env = process.env) {
+  const bin = env.OPENSSL_BIN || "openssl";
+  const [versionOutput, help] = await Promise.all([
+    openssl(["version"], env),
+    openssl(["s_client", "-help"], env),
+  ]);
+  const version = versionOutput.trim();
+  const isOpenSsl = /^OpenSSL\s/.test(version);
+  const supports = flag => new RegExp(`(^|\\s)${flag}(?=\\s|$)`).test(help);
+  const sessionResumption =
+    isOpenSsl &&
+    supports("-tls1_3") &&
+    supports("-sess_in") &&
+    supports("-sess_out");
+
+  return {
+    bin,
+    version,
+    sessionResumption,
+    earlyData: sessionResumption && supports("-early_data"),
+  };
 }
 
 function connect(host, ...extra) {

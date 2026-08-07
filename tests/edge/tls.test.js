@@ -8,7 +8,18 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { config } from "./config.js";
-import { handshake, sessionResumption, earlyData } from "./lib/tls.js";
+import {
+  handshake,
+  sessionResumption,
+  earlyData,
+  opensslCapabilities,
+} from "./lib/tls.js";
+
+const capabilities = await opensslCapabilities();
+const unsupported = probe =>
+  `${probe} requires an OpenSSL s_client with TLS 1.3 session-ticket support; ` +
+  `found ${capabilities.version || "no usable executable"} at ${capabilities.bin}. ` +
+  "Set OPENSSL_BIN to a compatible OpenSSL executable.";
 
 test("TLS 1.3 is supported", async () => {
   const res = await handshake(config.host, "-tls1_3");
@@ -22,7 +33,11 @@ test("TLS 1.2 is supported for broad client compatibility", async () => {
   assert.equal(res.protocol, "TLSv1.2");
 });
 
-test("the edge resumes a prior TLS session", async () => {
+test("the edge resumes a prior TLS session", async t => {
+  if (!capabilities.sessionResumption) {
+    t.skip(unsupported("TLS session resumption"));
+    return;
+  }
   const res = await sessionResumption(config.host);
   assert.ok(
     res.reused,
@@ -30,7 +45,11 @@ test("the edge resumes a prior TLS session", async () => {
   );
 });
 
-test("the edge accepts TLS 1.3 0-RTT early data", async () => {
+test("the edge accepts TLS 1.3 0-RTT early data", async t => {
+  if (!capabilities.earlyData) {
+    t.skip(unsupported("TLS 1.3 0-RTT early data"));
+    return;
+  }
   const res = await earlyData(config.host);
   assert.ok(
     res.maxEarlyData > 0,
