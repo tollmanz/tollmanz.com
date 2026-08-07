@@ -62,3 +62,17 @@ jobs:
           NODE_OPTIONS: --disable-warning=DEP0169
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           FASTLY_API_KEY: ${{ secrets.FASTLY_API_KEY }}
+
+      # Mark applied infra changes; skip PR previews (they run `pulumi preview`,
+      # not `up`). Runs from the repo root, not the infra/fastly default. The
+      # emitter script has no dependencies, so no extra install is needed.
+      # continue-on-error so a sink outage never fails an apply that succeeded.
+      - name: Emit deploy marker
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        working-directory: ${{ github.workspace }}
+        env:
+          DEPLOY_EVENT_SINKS: ${{ vars.DEPLOY_EVENT_SINKS }}
+          HONEYCOMB_DATASET: ${{ vars.HONEYCOMB_DATASET }}
+          HONEYCOMB_CONFIG_KEY: ${{ secrets.HONEYCOMB_CONFIG_KEY }}
+        run: node scripts/deploy-events/emit.js --type=infra
